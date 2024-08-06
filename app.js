@@ -47,40 +47,7 @@ function showSection(section) {
   }
 }
 
-function showGameSessions() {
-  mainContent.innerHTML = `
-    <h2>Game Sessions</h2>
-    <button onclick="showModal('addGameSession')">Add Game Session</button>
-    <div id="sessionList"></div>
-  `;
-  loadGameSessions();
-}
-
-function addMatch(e) {
-  e.preventDefault();
-  const form = e.target;
-  const sessionId = form.dataset.sessionId;
-  const matchData = {
-    gameMode: form.gameMode.value,
-    map: form.map.value,
-    placement: parseInt(form.placement.value),
-  };
-
-  const matchRef = push(ref(database, `gameSessions/${sessionId}/matches`), matchData);
-
-  matchRef
-    .then(() => {
-      loadMatches(sessionId);
-      modal.style.display = "none";
-    })
-    .catch(error => {
-      console.error("Error adding match: ", error);
-      alert('Error adding match. Please try again.');
-    });
-}
-
-// Make showModal globally accessible
-window.showModal = function(action, id = null) {
+function showModal(action, id = null) {
   modalContent.innerHTML = '';
   switch(action) {
     case 'addTeamMember':
@@ -154,61 +121,16 @@ window.showModal = function(action, id = null) {
             <option value="">Select Map</option>
           </select>
           <input type="number" id="placement" placeholder="Placement" required>
+          <input type="number" id="kills-player1" placeholder="Kills Player 1">
+          <input type="number" id="kills-player2" placeholder="Kills Player 2">
+          <input type="number" id="kills-player3" placeholder="Kills Player 3">
+          <input type="number" id="kills-player4" placeholder="Kills Player 4">
+          <input type="number" id="kills-player5" placeholder="Kills Player 5">
           <button type="submit">Add Match</button>
         </form>
       `;
       loadGameModesAndMaps();
       document.getElementById('matchForm').addEventListener('submit', addMatch);
-      break;
-    case 'addMap':
-      modalContent.innerHTML = `
-        <h3>Add Map</h3>
-        <form id="mapForm">
-          <input type="text" id="name" placeholder="Map Name" required>
-          <button type="submit">Add Map</button>
-        </form>
-      `;
-      document.getElementById('mapForm').addEventListener('submit', addOrUpdateMap);
-      break;
-    case 'editMap':
-      get(ref(database, `maps/${id}`)).then((snapshot) => {
-        if (snapshot.exists()) {
-          const map = snapshot.val();
-          modalContent.innerHTML = `
-            <h3>Edit Map</h3>
-            <form id="mapForm" data-id="${id}">
-              <input type="text" id="name" value="${map.name}" required>
-              <button type="submit">Update Map</button>
-            </form>
-          `;
-          document.getElementById('mapForm').addEventListener('submit', addOrUpdateMap);
-        }
-      });
-      break;
-    case 'addGameMode':
-      modalContent.innerHTML = `
-        <h3>Add Game Mode</h3>
-        <form id="gameModeForm">
-          <input type="text" id="name" placeholder="Game Mode Name" required>
-          <button type="submit">Add Game Mode</button>
-        </form>
-      `;
-      document.getElementById('gameModeForm').addEventListener('submit', addOrUpdateGameMode);
-      break;
-    case 'editGameMode':
-      get(ref(database, `gameModes/${id}`)).then((snapshot) => {
-        if (snapshot.exists()) {
-          const gameMode = snapshot.val();
-          modalContent.innerHTML = `
-            <h3>Edit Game Mode</h3>
-            <form id="gameModeForm" data-id="${id}">
-              <input type="text" id="name" value="${gameMode.name}" required>
-              <button type="submit">Update Game Mode</button>
-            </form>
-          `;
-          document.getElementById('gameModeForm').addEventListener('submit', addOrUpdateGameMode);
-        }
-      });
       break;
     case 'viewMatches':
       viewMatches(id);
@@ -216,10 +138,6 @@ window.showModal = function(action, id = null) {
   }
   modal.style.display = "block";
 }
-
-// Ensure the form handling for adding/updating maps and game modes is properly set up
-document.getElementById('mapForm')?.addEventListener('submit', addOrUpdateMap);
-document.getElementById('gameModeForm')?.addEventListener('submit', addOrUpdateGameMode);
 
 function addOrUpdateGameSession(e) {
   e.preventDefault();
@@ -241,6 +159,34 @@ function addOrUpdateGameSession(e) {
     .catch(error => {
       console.error("Error adding/updating game session: ", error);
       alert('Error adding/updating game session. Please try again.');
+    });
+}
+
+function addMatch(e) {
+  e.preventDefault();
+  const form = e.target;
+  const sessionId = form.dataset.sessionId;
+  const matchData = {
+    gameMode: form.gameMode.value,
+    map: form.map.value,
+    placement: parseInt(form.placement.value),
+    killsPlayer1: form['kills-player1'].value ? parseInt(form['kills-player1'].value) : null,
+    killsPlayer2: form['kills-player2'].value ? parseInt(form['kills-player2'].value) : null,
+    killsPlayer3: form['kills-player3'].value ? parseInt(form['kills-player3'].value) : null,
+    killsPlayer4: form['kills-player4'].value ? parseInt(form['kills-player4'].value) : null,
+    killsPlayer5: form['kills-player5'].value ? parseInt(form['kills-player5'].value) : null,
+  };
+
+  const matchRef = push(ref(database, `gameSessions/${sessionId}/matches`), matchData);
+
+  matchRef
+    .then(() => {
+      loadMatches(sessionId);
+      modal.style.display = "none";
+    })
+    .catch(error => {
+      console.error("Error adding match: ", error);
+      alert('Error adding match. Please try again.');
     });
 }
 
@@ -270,6 +216,8 @@ function loadTeamMembers() {
           <p>State: ${member.state}</p>
           <p>Age: ${member.age}</p>
           <p>Favorite Snack: ${member.favoriteSnack}</p>
+          <p>Games Played: ${member.gamesPlayed || 0}</p>
+          <p>Total Kills: ${member.totalKills || 0}</p>
           <button onclick="showModal('editTeamMember', '${memberId}')">Edit</button>
           <button onclick="deleteTeamMember('${memberId}')">Delete</button>
         </div>
@@ -334,22 +282,13 @@ window.deleteTeamMember = function(id) {
   }
 }
 
-// Game Sessions
 function formatDate(dateString) {
-  // Create a date object from the date string
   const date = new Date(dateString);
-  
-  // Adjust the date for the correct time zone if necessary
-  const correctedDate = new Date(date.getTime() + date.getTimezoneOffset() * 60000);
-
-  // Define the format options
   const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-  
-  // Return the formatted date string
-  return correctedDate.toLocaleDateString(undefined, options);
+  return date.toLocaleDateString(undefined, options);
 }
 
-// Load game sessions and display formatted dates
+// Game Sessions
 function loadGameSessions() {
   const sessionList = document.getElementById('sessionList');
   sessionList.innerHTML = 'Loading game sessions...';
@@ -362,19 +301,25 @@ function loadGameSessions() {
       sessions.push(session);
     });
 
-    // Sort sessions by date
-    sessions.sort((a, b) => new Date(a.date) - new Date(b.date));
+    // Sort sessions by date in descending order
+    sessions.sort((a, b) => new Date(b.date) - new Date(a.date));
 
     sessionList.innerHTML = '';
     sessions.forEach((session) => {
       sessionList.innerHTML += `
         <div class="card">
-          <h3>${formatDate(session.date)}</h3>
+          <div class="session-header">
+            <h3>${formatDate(session.date)}</h3>
+            <div class="session-actions">
+              <i class="fas fa-pencil-alt" onclick="showModal('editGameSession', '${session.id}')"></i>
+              <i class="fas fa-trash" onclick="deleteGameSession('${session.id}')"></i>
+            </div>
+          </div>
           <p>Number of matches: ${session.matches ? Object.keys(session.matches).length : 0}</p>
-          <button class="toggle-matches" onclick="toggleMatches('${session.id}')">View Matches</button>
-          <button onclick="showModal('addMatch', '${session.id}')">Add Match</button>
-          <button onclick="showModal('editGameSession', '${session.id}')">Edit Session</button>
-          <button onclick="deleteGameSession('${session.id}')">Delete Session</button>
+          <div class="session-buttons">
+            <button onclick="toggleMatches('${session.id}')">View Matches</button>
+            <button onclick="showModal('addMatch', '${session.id}')">Add Match</button>
+          </div>
           <div id="matches-${session.id}" class="matches-container"></div>
         </div>
       `;
@@ -386,7 +331,7 @@ function loadGameSessions() {
   });
 }
 
-window.toggleMatches = function(sessionId) {
+function toggleMatches(sessionId) {
   const matchesContainer = document.getElementById(`matches-${sessionId}`);
   if (matchesContainer.style.display === 'none' || matchesContainer.style.display === '') {
     loadMatches(sessionId);
@@ -397,32 +342,36 @@ window.toggleMatches = function(sessionId) {
 }
 
 function loadMatches(sessionId) {
-    const matchesContainer = document.getElementById(`matches-${sessionId}`);
-    get(ref(database, `gameSessions/${sessionId}`)).then((snapshot) => {
-        if (snapshot.exists()) {
-            const session = snapshot.val();
-            let matchesHtml = '<h3>Matches</h3>';
-            if (session.matches) {
-                matchesHtml += '<table class="matches-table"><tr><th>Game Mode</th><th>Map</th><th>Placement</th></tr>';
-                Object.entries(session.matches).forEach(([matchId, match]) => {
-                    matchesHtml += `
-                        <tr>
-                            <td>${match.gameMode}</td>
-                            <td>${match.map}</td>
-                            <td>${match.placement}</td>
-                            <td><button onclick="deleteMatch('${sessionId}', '${matchId}')">Delete Match</button></td>
-                        </tr>
-                    `;
-                });
-                matchesHtml += '</table>';
-            } else {
-                matchesHtml += '<p>No matches found for this session.</p>';
-            }
-            matchesContainer.innerHTML = matchesHtml;
-        }
-    });
+  const matchesContainer = document.getElementById(`matches-${sessionId}`);
+  get(ref(database, `gameSessions/${sessionId}`)).then((snapshot) => {
+    if (snapshot.exists()) {
+      const session = snapshot.val();
+      let matchesHtml = '<h3>Matches</h3>';
+      if (session.matches) {
+        matchesHtml += '<table><tr><th>Game Mode</th><th>Map</th><th>Placement</th><th>Kills Player 1</th><th>Kills Player 2</th><th>Kills Player 3</th><th>Kills Player 4</th><th>Kills Player 5</th></tr>';
+        Object.entries(session.matches).forEach(([matchId, match]) => {
+          matchesHtml += `
+            <tr>
+              <td>${match.gameMode}</td>
+              <td>${match.map}</td>
+              <td>${match.placement}</td>
+              <td>${match.killsPlayer1 !== null && match.killsPlayer1 !== undefined ? match.killsPlayer1 : ''}</td>
+              <td>${match.killsPlayer2 !== null && match.killsPlayer2 !== undefined ? match.killsPlayer2 : ''}</td>
+              <td>${match.killsPlayer3 !== null && match.killsPlayer3 !== undefined ? match.killsPlayer3 : ''}</td>
+              <td>${match.killsPlayer4 !== null && match.killsPlayer4 !== undefined ? match.killsPlayer4 : ''}</td>
+              <td>${match.killsPlayer5 !== null && match.killsPlayer5 !== undefined ? match.killsPlayer5 : ''}</td>
+              <td><button onclick="deleteMatch('${sessionId}', '${matchId}')">Delete Match</button></td>
+            </tr>
+          `;
+        });
+        matchesHtml += '</table>';
+      } else {
+        matchesHtml += '<p>No matches found for this session.</p>';
+      }
+      matchesContainer.innerHTML = matchesHtml;
+    }
+  });
 }
-
 
 window.deleteGameSession = function(id) {
   if (confirm('Are you sure you want to delete this game session?')) {
@@ -618,14 +567,6 @@ onValue(connectedRef, (snap) => {
 });
 
 // Statistics
-function showStats() {
-  mainContent.innerHTML = `
-    <h2>Game Statistics</h2>
-    <div id="statsTable"></div>
-  `;
-  loadStats();
-}
-
 function loadStats() {
   const statsTable = document.getElementById('statsTable');
   statsTable.innerHTML = 'Loading statistics...';
@@ -634,11 +575,12 @@ function loadStats() {
     const sessions = [];
     snapshot.forEach((childSnapshot) => {
       const session = childSnapshot.val();
+      session.id = childSnapshot.key; // Save the session ID
       sessions.push(session);
     });
 
-    // Sort sessions by date
-    sessions.sort((a, b) => new Date(a.date) - new Date(b.date));
+    // Sort sessions by date in descending order
+    sessions.sort((a, b) => new Date(b.date) - new Date(a.date));
 
     let tableHTML = `
       <table class="stats-table">
@@ -652,6 +594,11 @@ function loadStats() {
             <th>4th Place</th>
             <th>5th Place</th>
             <th>6th+ Place</th>
+            <th>Kills Player 1</th>
+            <th>Kills Player 2</th>
+            <th>Kills Player 3</th>
+            <th>Kills Player 4</th>
+            <th>Kills Player 5</th>
           </tr>
         </thead>
         <tbody>
@@ -664,12 +611,17 @@ function loadStats() {
       thirdPlace: 0,
       fourthPlace: 0,
       fifthPlace: 0,
-      sixthPlacePlus: 0
+      sixthPlacePlus: 0,
+      killsPlayer1: 0,
+      killsPlayer2: 0,
+      killsPlayer3: 0,
+      killsPlayer4: 0,
+      killsPlayer5: 0,
     };
 
     sessions.forEach((session) => {
       const stats = calculateSessionStats(session.matches || {});
-      
+
       // Add to totals
       for (let key in totalStats) {
         totalStats[key] += stats[key];
@@ -685,6 +637,11 @@ function loadStats() {
           <td>${stats.fourthPlace} (${((stats.fourthPlace / stats.gamesPlayed) * 100).toFixed(1)}%)</td>
           <td>${stats.fifthPlace} (${((stats.fifthPlace / stats.gamesPlayed) * 100).toFixed(1)}%)</td>
           <td>${stats.sixthPlacePlus} (${((stats.sixthPlacePlus / stats.gamesPlayed) * 100).toFixed(1)}%)</td>
+          <td>${stats.killsPlayer1}</td>
+          <td>${stats.killsPlayer2}</td>
+          <td>${stats.killsPlayer3}</td>
+          <td>${stats.killsPlayer4}</td>
+          <td>${stats.killsPlayer5}</td>
         </tr>
       `;
     });
@@ -702,6 +659,11 @@ function loadStats() {
             <td><strong>${totalStats.fourthPlace} (${((totalStats.fourthPlace / totalStats.gamesPlayed) * 100).toFixed(1)}%)</strong></td>
             <td><strong>${totalStats.fifthPlace} (${((totalStats.fifthPlace / totalStats.gamesPlayed) * 100).toFixed(1)}%)</strong></td>
             <td><strong>${totalStats.sixthPlacePlus} (${((totalStats.sixthPlacePlus / totalStats.gamesPlayed) * 100).toFixed(1)}%)</strong></td>
+            <td><strong>${totalStats.killsPlayer1}</strong></td>
+            <td><strong>${totalStats.killsPlayer2}</strong></td>
+            <td><strong>${totalStats.killsPlayer3}</strong></td>
+            <td><strong>${totalStats.killsPlayer4}</strong></td>
+            <td><strong>${totalStats.killsPlayer5}</strong></td>
           </tr>
         </tfoot>
       `;
@@ -710,7 +672,7 @@ function loadStats() {
     tableHTML += '</tbody></table>';
     statsTable.innerHTML = tableHTML;
 
-    if (sessions.length === 0) {
+    if (snapshot.size === 0) {
       statsTable.innerHTML = 'No game sessions found. Add some games first!';
     }
   });
@@ -724,7 +686,12 @@ function calculateSessionStats(matches) {
     thirdPlace: 0,
     fourthPlace: 0,
     fifthPlace: 0,
-    sixthPlacePlus: 0
+    sixthPlacePlus: 0,
+    killsPlayer1: 0,
+    killsPlayer2: 0,
+    killsPlayer3: 0,
+    killsPlayer4: 0,
+    killsPlayer5: 0,
   };
 
   Object.values(matches).forEach(match => {
@@ -736,6 +703,11 @@ function calculateSessionStats(matches) {
       case 5: stats.fifthPlace++; break;
       default: stats.sixthPlacePlus++;
     }
+    if (match.killsPlayer1) stats.killsPlayer1 += match.killsPlayer1;
+    if (match.killsPlayer2) stats.killsPlayer2 += match.killsPlayer2;
+    if (match.killsPlayer3) stats.killsPlayer3 += match.killsPlayer3;
+    if (match.killsPlayer4) stats.killsPlayer4 += match.killsPlayer4;
+    if (match.killsPlayer5) stats.killsPlayer5 += match.killsPlayer5;
   });
 
   return stats;

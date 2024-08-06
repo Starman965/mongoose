@@ -1,6 +1,8 @@
-import { ref, onValue, push, update, remove, get, set } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-database.js";
+import { ref, onValue, push, update, remove, get } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-database.js";
+import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-storage.js";
 
 const database = window.database;
+const storage = getStorage();
 
 // DOM elements
 const mainContent = document.getElementById('mainContent');
@@ -53,7 +55,13 @@ window.showModal = function(action, id = null) {
       modalContent.innerHTML = `
         <h3>Add Team Member</h3>
         <form id="teamMemberForm">
-          <!-- form fields here -->
+          <input type="text" id="name" placeholder="Name" required>
+          <input type="text" id="gamertag" placeholder="Gamertag" required>
+          <input type="text" id="state" placeholder="State" required>
+          <input type="number" id="age" placeholder="Age" required>
+          <input type="text" id="favoriteSnack" placeholder="Favorite Snack" required>
+          <input type="file" id="photo" accept="image/*" required>
+          <button type="submit">Add Team Member</button>
         </form>
       `;
       document.getElementById('teamMemberForm').addEventListener('submit', addOrUpdateTeamMember);
@@ -65,57 +73,18 @@ window.showModal = function(action, id = null) {
           modalContent.innerHTML = `
             <h3>Edit Team Member</h3>
             <form id="teamMemberForm" data-id="${id}">
-              <!-- form fields here with values populated -->
+              <input type="text" id="name" value="${member.name}" required>
+              <input type="text" id="gamertag" value="${member.gamertag}" required>
+              <input type="text" id="state" value="${member.state}" required>
+              <input type="number" id="age" value="${member.age}" required>
+              <input type="text" id="favoriteSnack" value="${member.favoriteSnack}" required>
+              <input type="file" id="photo" accept="image/*">
+              <button type="submit">Update Team Member</button>
             </form>
           `;
           document.getElementById('teamMemberForm').addEventListener('submit', addOrUpdateTeamMember);
         }
       });
-      break;
-    case 'addGameSession':
-      modalContent.innerHTML = `
-        <h3>Add Game Session</h3>
-        <form id="gameSessionForm">
-          <input type="date" id="date" placeholder="Date" required>
-          <button type="submit">Add Game Session</button>
-        </form>
-      `;
-      document.getElementById('gameSessionForm').addEventListener('submit', addOrUpdateGameSession);
-      break;
-    case 'editGameSession':
-      get(ref(database, `gameSessions/${id}`)).then((snapshot) => {
-        if (snapshot.exists()) {
-          const session = snapshot.val();
-          modalContent.innerHTML = `
-            <h3>Edit Game Session</h3>
-            <form id="gameSessionForm" data-id="${id}">
-              <input type="date" id="date" value="${session.date}" required>
-              <button type="submit">Update Game Session</button>
-            </form>
-          `;
-          document.getElementById('gameSessionForm').addEventListener('submit', addOrUpdateGameSession);
-        }
-      });
-      break;
-    case 'addMatch':
-      modalContent.innerHTML = `
-        <h3>Add Match</h3>
-        <form id="matchForm" data-session-id="${id}">
-          <select id="gameMode" required>
-            <option value="">Select Game Mode</option>
-          </select>
-          <select id="map" required>
-            <option value="">Select Map</option>
-          </select>
-          <input type="number" id="placement" placeholder="Placement" required>
-          <button type="submit">Add Match</button>
-        </form>
-      `;
-      loadGameModesAndMaps();
-      document.getElementById('matchForm').addEventListener('submit', addMatch);
-      break;
-    case 'viewMatches':
-      viewMatches(id);
       break;
   }
   modal.style.display = "block";
@@ -142,6 +111,7 @@ function loadTeamMembers() {
       const memberId = childSnapshot.key;
       teamList.innerHTML += `
         <div class="card">
+          <img src="${member.photoURL}" alt="${member.name}" class="team-photo">
           <h3>${member.name} (${member.gamertag})</h3>
           <p>State: ${member.state}</p>
           <p>Age: ${member.age}</p>
@@ -169,6 +139,21 @@ function addOrUpdateTeamMember(e) {
     favoriteSnack: form.favoriteSnack.value
   };
 
+  const photo = form.photo.files[0];
+  if (photo) {
+    const photoRef = storageRef(storage, `teamMembers/${photo.name}`);
+    uploadBytes(photoRef, photo).then(snapshot => {
+      getDownloadURL(snapshot.ref).then(url => {
+        memberData.photoURL = url;
+        saveTeamMember(memberId, memberData);
+      });
+    });
+  } else {
+    saveTeamMember(memberId, memberData);
+  }
+}
+
+function saveTeamMember(memberId, memberData) {
   const operation = memberId
     ? update(ref(database, `teamMembers/${memberId}`), memberData)
     : push(ref(database, 'teamMembers'), memberData);
@@ -438,182 +423,3 @@ function calculateSessionStats(matches) {
 
 // Initialize the app
 showTeamMembers();
-
-// Check connection
-const connectedRef = ref(database, ".info/connected");
-onValue(connectedRef, (snap) => {
-    if (snap.val() === true) {
-        console.log("Connected to Firebase");
-    } else {
-        console.log("Not connected to Firebase");
-    }
-});
-
-// Game Modes
-function showGameModes() {
-  mainContent.innerHTML = `
-    <h2>Game Modes</h2>
-    <button onclick="showModal('addGameMode')">Add Game Mode</button>
-    <div id="gameModeList"></div>
-  `;
-  loadGameModes();
-}
-
-function loadGameModes() {
-  const gameModeList = document.getElementById('gameModeList');
-  gameModeList.innerHTML = 'Loading game modes...';
-  
-  onValue(ref(database, 'gameModes'), (snapshot) => {
-    gameModeList.innerHTML = '';
-    snapshot.forEach((childSnapshot) => {
-      const gameMode = childSnapshot.val();
-      const gameModeId = childSnapshot.key;
-      gameModeList.innerHTML += `
-        <div class="card">
-          <h3>${gameMode.name}</h3>
-          <button onclick="showModal('editGameMode', '${gameModeId}')">Edit</button>
-          <button onclick="deleteGameMode('${gameModeId}')">Delete</button>
-        </div>
-      `;
-    });
-    if (gameModeList.innerHTML === '') {
-      gameModeList.innerHTML = 'No game modes found. Add some!';
-    }
-  });
-}
-
-function addOrUpdateGameMode(e) {
-  e.preventDefault();
-  const form = e.target;
-  const gameModeId = form.dataset.id;
-  const gameModeData = {
-    name: form.name.value,
-  };
-
-  const operation = gameModeId
-    ? update(ref(database, `gameModes/${gameModeId}`), gameModeData)
-    : push(ref(database, 'gameModes'), gameModeData);
-
-  operation
-    .then(() => {
-      loadGameModes();
-      modal.style.display = "none";
-    })
-    .catch(error => {
-      console.error("Error adding/updating game mode: ", error);
-      alert('Error adding/updating game mode. Please try again.');
-    });
-}
-
-window.deleteGameMode = function(id) {
-  if (confirm('Are you sure you want to delete this game mode?')) {
-    remove(ref(database, `gameModes/${id}`))
-      .then(() => loadGameModes())
-      .catch(error => {
-        console.error("Error deleting game mode: ", error);
-        alert('Error deleting game mode. Please try again.');
-      });
-  }
-}
-
-// Maps
-function showMaps() {
-  mainContent.innerHTML = `
-    <h2>Maps</h2>
-    <button onclick="showModal('addMap')">Add Map</button>
-    <div id="mapList"></div>
-  `;
-  loadMaps();
-}
-
-function loadMaps() {
-  const mapList = document.getElementById('mapList');
-  mapList.innerHTML = 'Loading maps...';
-  
-  onValue(ref(database, 'maps'), (snapshot) => {
-    mapList.innerHTML = '';
-    snapshot.forEach((childSnapshot) => {
-      const map = childSnapshot.val();
-      const mapId = childSnapshot.key;
-      mapList.innerHTML += `
-        <div class="card">
-          <h3>${map.name}</h3>
-          <button onclick="showModal('editMap', '${mapId}')">Edit</button>
-          <button onclick="deleteMap('${mapId}')">Delete</button>
-        </div>
-      `;
-    });
-    if (mapList.innerHTML === '') {
-      mapList.innerHTML = 'No maps found. Add some!';
-    }
-  });
-}
-
-function addOrUpdateMap(e) {
-  e.preventDefault();
-  const form = e.target;
-  const mapId = form.dataset.id;
-  const mapData = {
-    name: form.name.value,
-  };
-
-  const operation = mapId
-    ? update(ref(database, `maps/${mapId}`), mapData)
-    : push(ref(database, 'maps'), mapData);
-
-  operation
-    .then(() => {
-      loadMaps();
-      modal.style.display = "none";
-    })
-    .catch(error => {
-      console.error("Error adding/updating map: ", error);
-      alert('Error adding/updating map. Please try again.');
-    });
-}
-
-window.deleteMap = function(id) {
-  if (confirm('Are you sure you want to delete this map?')) {
-    remove(ref(database, `maps/${id}`))
-      .then(() => loadMaps())
-      .catch(error => {
-        console.error("Error deleting map: ", error);
-        alert('Error deleting map. Please try again.');
-      });
-  }
-}
-
-// Helper function to load game modes and maps for the match form
-function loadGameModesAndMaps() {
-  const gameModeSelect = document.getElementById('gameMode');
-  const mapSelect = document.getElementById('map');
-
-  get(ref(database, 'gameModes')).then((snapshot) => {
-    gameModeSelect.innerHTML = '<option value="">Select Game Mode</option>';
-    snapshot.forEach((childSnapshot) => {
-      const gameMode = childSnapshot.val();
-      gameModeSelect.innerHTML += `<option value="${gameMode.name}">${gameMode.name}</option>`;
-    });
-  });
-
-  get(ref(database, 'maps')).then((snapshot) => {
-    mapSelect.innerHTML = '<option value="">Select Map</option>';
-    snapshot.forEach((childSnapshot) => {
-      const map = childSnapshot.val();
-      mapSelect.innerHTML += `<option value="${map.name}">${map.name}</option>`;
-    });
-  });
-}
-
-// Initialize the app
-showTeamMembers();
-
-// Check connection
-const connectedRef = ref(database, ".info/connected");
-onValue(connectedRef, (snap) => {
-    if (snap.val() === true) {
-        console.log("Connected to Firebase");
-    } else {
-        console.log("Not connected to Firebase");
-    }
-});

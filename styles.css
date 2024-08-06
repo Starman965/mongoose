@@ -79,6 +79,14 @@ form button {
     align-self: flex-start;
 }
 
+.team-photo {
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  object-fit: cover;
+  margin-bottom: 10px;
+}
+
 table {
   width: 100%;
   border-collapse: collapse;
@@ -110,6 +118,25 @@ button {
 }
 
 button:hover {
+  background-color: #0056b3;
+}
+
+.matches-container {
+  margin-top: 10px;
+  display: none;
+}
+
+button.toggle-matches {
+  background-color: #007bff;
+  color: white;
+  border: none;
+  padding: 5px 10px;
+  cursor: pointer;
+  border-radius: 5px;
+  margin-bottom: 10px;
+}
+
+button.toggle-matches:hover {
   background-color: #0056b3;
 }
 

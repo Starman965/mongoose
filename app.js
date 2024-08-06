@@ -95,56 +95,6 @@ window.showModal = function(action, id = null) {
         }
       });
       break;
-    case 'addGameMode':
-      modalContent.innerHTML = `
-        <h3>Add Game Mode</h3>
-        <form id="gameModeForm">
-          <input type="text" id="name" placeholder="Game Mode Name" required>
-          <button type="submit">Add Game Mode</button>
-        </form>
-      `;
-      document.getElementById('gameModeForm').addEventListener('submit', addOrUpdateGameMode);
-      break;
-    case 'editGameMode':
-      get(ref(database, `gameModes/${id}`)).then((snapshot) => {
-        if (snapshot.exists()) {
-          const gameMode = snapshot.val();
-          modalContent.innerHTML = `
-            <h3>Edit Game Mode</h3>
-            <form id="gameModeForm" data-id="${id}">
-              <input type="text" id="name" value="${gameMode.name}" required>
-              <button type="submit">Update Game Mode</button>
-            </form>
-          `;
-          document.getElementById('gameModeForm').addEventListener('submit', addOrUpdateGameMode);
-        }
-      });
-      break;
-    case 'addMap':
-      modalContent.innerHTML = `
-        <h3>Add Map</h3>
-        <form id="mapForm">
-          <input type="text" id="name" placeholder="Map Name" required>
-          <button type="submit">Add Map</button>
-        </form>
-      `;
-      document.getElementById('mapForm').addEventListener('submit', addOrUpdateMap);
-      break;
-    case 'editMap':
-      get(ref(database, `maps/${id}`)).then((snapshot) => {
-        if (snapshot.exists()) {
-          const map = snapshot.val();
-          modalContent.innerHTML = `
-            <h3>Edit Map</h3>
-            <form id="mapForm" data-id="${id}">
-              <input type="text" id="name" value="${map.name}" required>
-              <button type="submit">Update Map</button>
-            </form>
-          `;
-          document.getElementById('mapForm').addEventListener('submit', addOrUpdateMap);
-        }
-      });
-      break;
     case 'addGameSession':
       modalContent.innerHTML = `
         <h3>Add Game Session</h3>
@@ -193,6 +143,30 @@ window.showModal = function(action, id = null) {
   }
   modal.style.display = "block";
 }
+
+function addOrUpdateGameSession(e) {
+  e.preventDefault();
+  const form = e.target;
+  const sessionId = form.dataset.id;
+  const sessionData = {
+    date: form.date.value,
+  };
+
+  const operation = sessionId
+    ? update(ref(database, `gameSessions/${sessionId}`), sessionData)
+    : push(ref(database, 'gameSessions'), sessionData);
+
+  operation
+    .then(() => {
+      loadGameSessions();
+      modal.style.display = "none";
+    })
+    .catch(error => {
+      console.error("Error adding/updating game session: ", error);
+      alert('Error adding/updating game session. Please try again.');
+    });
+}
+
 
 // Team Members
 function showTeamMembers() {

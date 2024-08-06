@@ -1,4 +1,4 @@
-import { ref, onValue, push, update, remove, get } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-database.js";
+import { ref, onValue, push, update, remove, get, set } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-database.js";
 import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-storage.js";
 
 const database = window.database;
@@ -85,6 +85,101 @@ window.showModal = function(action, id = null) {
           document.getElementById('teamMemberForm').addEventListener('submit', addOrUpdateTeamMember);
         }
       });
+      break;
+    case 'addGameMode':
+      modalContent.innerHTML = `
+        <h3>Add Game Mode</h3>
+        <form id="gameModeForm">
+          <input type="text" id="name" placeholder="Game Mode Name" required>
+          <button type="submit">Add Game Mode</button>
+        </form>
+      `;
+      document.getElementById('gameModeForm').addEventListener('submit', addOrUpdateGameMode);
+      break;
+    case 'editGameMode':
+      get(ref(database, `gameModes/${id}`)).then((snapshot) => {
+        if (snapshot.exists()) {
+          const gameMode = snapshot.val();
+          modalContent.innerHTML = `
+            <h3>Edit Game Mode</h3>
+            <form id="gameModeForm" data-id="${id}">
+              <input type="text" id="name" value="${gameMode.name}" required>
+              <button type="submit">Update Game Mode</button>
+            </form>
+          `;
+          document.getElementById('gameModeForm').addEventListener('submit', addOrUpdateGameMode);
+        }
+      });
+      break;
+    case 'addMap':
+      modalContent.innerHTML = `
+        <h3>Add Map</h3>
+        <form id="mapForm">
+          <input type="text" id="name" placeholder="Map Name" required>
+          <button type="submit">Add Map</button>
+        </form>
+      `;
+      document.getElementById('mapForm').addEventListener('submit', addOrUpdateMap);
+      break;
+    case 'editMap':
+      get(ref(database, `maps/${id}`)).then((snapshot) => {
+        if (snapshot.exists()) {
+          const map = snapshot.val();
+          modalContent.innerHTML = `
+            <h3>Edit Map</h3>
+            <form id="mapForm" data-id="${id}">
+              <input type="text" id="name" value="${map.name}" required>
+              <button type="submit">Update Map</button>
+            </form>
+          `;
+          document.getElementById('mapForm').addEventListener('submit', addOrUpdateMap);
+        }
+      });
+      break;
+    case 'addGameSession':
+      modalContent.innerHTML = `
+        <h3>Add Game Session</h3>
+        <form id="gameSessionForm">
+          <input type="date" id="date" placeholder="Date" required>
+          <button type="submit">Add Game Session</button>
+        </form>
+      `;
+      document.getElementById('gameSessionForm').addEventListener('submit', addOrUpdateGameSession);
+      break;
+    case 'editGameSession':
+      get(ref(database, `gameSessions/${id}`)).then((snapshot) => {
+        if (snapshot.exists()) {
+          const session = snapshot.val();
+          modalContent.innerHTML = `
+            <h3>Edit Game Session</h3>
+            <form id="gameSessionForm" data-id="${id}">
+              <input type="date" id="date" value="${session.date}" required>
+              <button type="submit">Update Game Session</button>
+            </form>
+          `;
+          document.getElementById('gameSessionForm').addEventListener('submit', addOrUpdateGameSession);
+        }
+      });
+      break;
+    case 'addMatch':
+      modalContent.innerHTML = `
+        <h3>Add Match</h3>
+        <form id="matchForm" data-session-id="${id}">
+          <select id="gameMode" required>
+            <option value="">Select Game Mode</option>
+          </select>
+          <select id="map" required>
+            <option value="">Select Map</option>
+          </select>
+          <input type="number" id="placement" placeholder="Placement" required>
+          <button type="submit">Add Match</button>
+        </form>
+      `;
+      loadGameModesAndMaps();
+      document.getElementById('matchForm').addEventListener('submit', addMatch);
+      break;
+    case 'viewMatches':
+      viewMatches(id);
       break;
   }
   modal.style.display = "block";
@@ -181,13 +276,10 @@ window.deleteTeamMember = function(id) {
 }
 
 // Game Sessions
-function showGameSessions() {
-  mainContent.innerHTML = `
-    <h2>Game Sessions</h2>
-    <button onclick="showModal('addGameSession')">Add Game Session</button>
-    <div id="sessionList"></div>
-  `;
-  loadGameSessions();
+function formatDate(dateString) {
+  const date = new Date(dateString);
+  const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+  return date.toLocaleDateString(undefined, options);
 }
 
 function loadGameSessions() {
@@ -201,12 +293,13 @@ function loadGameSessions() {
       const sessionId = childSnapshot.key;
       sessionList.innerHTML += `
         <div class="card">
-          <h3>Session on ${session.date}</h3>
+          <h3>${formatDate(session.date)}</h3>
           <p>Number of matches: ${session.matches ? Object.keys(session.matches).length : 0}</p>
-          <button onclick="showModal('viewMatches', '${sessionId}')">View Matches</button>
+          <button class="toggle-matches" onclick="toggleMatches('${sessionId}')">View Matches</button>
           <button onclick="showModal('addMatch', '${sessionId}')">Add Match</button>
           <button onclick="showModal('editGameSession', '${sessionId}')">Edit Session</button>
           <button onclick="deleteGameSession('${sessionId}')">Delete Session</button>
+          <div id="matches-${sessionId}" class="matches-container"></div>
         </div>
       `;
     });
@@ -216,62 +309,18 @@ function loadGameSessions() {
   });
 }
 
-function addOrUpdateGameSession(e) {
-  e.preventDefault();
-  const form = e.target;
-  const sessionId = form.dataset.id;
-  const sessionData = {
-    date: form.date.value,
-  };
-
-  const operation = sessionId
-    ? update(ref(database, `gameSessions/${sessionId}`), sessionData)
-    : push(ref(database, 'gameSessions'), sessionData);
-
-  operation
-    .then(() => {
-      loadGameSessions();
-      modal.style.display = "none";
-    })
-    .catch(error => {
-      console.error("Error adding/updating game session: ", error);
-      alert('Error adding/updating game session. Please try again.');
-    });
-}
-
-window.deleteGameSession = function(id) {
-  if (confirm('Are you sure you want to delete this game session?')) {
-    remove(ref(database, `gameSessions/${id}`))
-      .then(() => loadGameSessions())
-      .catch(error => {
-        console.error("Error deleting game session: ", error);
-        alert('Error deleting game session. Please try again.');
-      });
+function toggleMatches(sessionId) {
+  const matchesContainer = document.getElementById(`matches-${sessionId}`);
+  if (matchesContainer.style.display === 'none') {
+    loadMatches(sessionId);
+    matchesContainer.style.display = 'block';
+  } else {
+    matchesContainer.style.display = 'none';
   }
 }
 
-function addMatch(e) {
-  e.preventDefault();
-  const form = e.target;
-  const sessionId = form.dataset.sessionId;
-  const matchData = {
-    gameMode: form.gameMode.value,
-    map: form.map.value,
-    placement: parseInt(form.placement.value)
-  };
-
-  push(ref(database, `gameSessions/${sessionId}/matches`), matchData)
-    .then(() => {
-      loadGameSessions();
-      modal.style.display = "none";
-    })
-    .catch(error => {
-      console.error("Error adding match: ", error);
-      alert('Error adding match. Please try again.');
-    });
-}
-
-function viewMatches(sessionId) {
+function loadMatches(sessionId) {
+  const matchesContainer = document.getElementById(`matches-${sessionId}`);
   get(ref(database, `gameSessions/${sessionId}`)).then((snapshot) => {
     if (snapshot.exists()) {
       const session = snapshot.val();
@@ -292,16 +341,27 @@ function viewMatches(sessionId) {
       } else {
         matchesHtml += '<p>No matches found for this session.</p>';
       }
-      modalContent.innerHTML = matchesHtml;
+      matchesContainer.innerHTML = matchesHtml;
     }
   });
+}
+
+window.deleteGameSession = function(id) {
+  if (confirm('Are you sure you want to delete this game session?')) {
+    remove(ref(database, `gameSessions/${id}`))
+      .then(() => loadGameSessions())
+      .catch(error => {
+        console.error("Error deleting game session: ", error);
+        alert('Error deleting game session. Please try again.');
+      });
+  }
 }
 
 window.deleteMatch = function(sessionId, matchId) {
   if (confirm('Are you sure you want to delete this match?')) {
     remove(ref(database, `gameSessions/${sessionId}/matches/${matchId}`))
       .then(() => {
-        viewMatches(sessionId);
+        loadMatches(sessionId);
       })
       .catch(error => {
         console.error("Error deleting match: ", error);
@@ -309,6 +369,175 @@ window.deleteMatch = function(sessionId, matchId) {
       });
   }
 }
+
+// Game Modes
+function showGameModes() {
+  mainContent.innerHTML = `
+    <h2>Game Modes</h2>
+    <button onclick="showModal('addGameMode')">Add Game Mode</button>
+    <div id="gameModeList"></div>
+  `;
+  loadGameModes();
+}
+
+function loadGameModes() {
+  const gameModeList = document.getElementById('gameModeList');
+  gameModeList.innerHTML = 'Loading game modes...';
+  
+  onValue(ref(database, 'gameModes'), (snapshot) => {
+    gameModeList.innerHTML = '';
+    snapshot.forEach((childSnapshot) => {
+      const gameMode = childSnapshot.val();
+      const gameModeId = childSnapshot.key;
+      gameModeList.innerHTML += `
+        <div class="card">
+          <h3>${gameMode.name}</h3>
+          <button onclick="showModal('editGameMode', '${gameModeId}')">Edit</button>
+          <button onclick="deleteGameMode('${gameModeId}')">Delete</button>
+        </div>
+      `;
+    });
+    if (gameModeList.innerHTML === '') {
+      gameModeList.innerHTML = 'No game modes found. Add some!';
+    }
+  });
+}
+
+function addOrUpdateGameMode(e) {
+  e.preventDefault();
+  const form = e.target;
+  const gameModeId = form.dataset.id;
+  const gameModeData = {
+    name: form.name.value,
+  };
+
+  const operation = gameModeId
+    ? update(ref(database, `gameModes/${gameModeId}`), gameModeData)
+    : push(ref(database, 'gameModes'), gameModeData);
+
+  operation
+    .then(() => {
+      loadGameModes();
+      modal.style.display = "none";
+    })
+    .catch(error => {
+      console.error("Error adding/updating game mode: ", error);
+      alert('Error adding/updating game mode. Please try again.');
+    });
+}
+
+window.deleteGameMode = function(id) {
+  if (confirm('Are you sure you want to delete this game mode?')) {
+    remove(ref(database, `gameModes/${id}`))
+      .then(() => loadGameModes())
+      .catch(error => {
+        console.error("Error deleting game mode: ", error);
+        alert('Error deleting game mode. Please try again.');
+      });
+  }
+}
+
+// Maps
+function showMaps() {
+  mainContent.innerHTML = `
+    <h2>Maps</h2>
+    <button onclick="showModal('addMap')">Add Map</button>
+    <div id="mapList"></div>
+  `;
+  loadMaps();
+}
+
+function loadMaps() {
+  const mapList = document.getElementById('mapList');
+  mapList.innerHTML = 'Loading maps...';
+  
+  onValue(ref(database, 'maps'), (snapshot) => {
+    mapList.innerHTML = '';
+    snapshot.forEach((childSnapshot) => {
+      const map = childSnapshot.val();
+      const mapId = childSnapshot.key;
+      mapList.innerHTML += `
+        <div class="card">
+          <h3>${map.name}</h3>
+          <button onclick="showModal('editMap', '${mapId}')">Edit</button>
+          <button onclick="deleteMap('${mapId}')">Delete</button>
+        </div>
+      `;
+    });
+    if (mapList.innerHTML === '') {
+      mapList.innerHTML = 'No maps found. Add some!';
+    }
+  });
+}
+
+function addOrUpdateMap(e) {
+  e.preventDefault();
+  const form = e.target;
+  const mapId = form.dataset.id;
+  const mapData = {
+    name: form.name.value,
+  };
+
+  const operation = mapId
+    ? update(ref(database, `maps/${mapId}`), mapData)
+    : push(ref(database, 'maps'), mapData);
+
+  operation
+    .then(() => {
+      loadMaps();
+      modal.style.display = "none";
+    })
+    .catch(error => {
+      console.error("Error adding/updating map: ", error);
+      alert('Error adding/updating map. Please try again.');
+    });
+}
+
+window.deleteMap = function(id) {
+  if (confirm('Are you sure you want to delete this map?')) {
+    remove(ref(database, `maps/${id}`))
+      .then(() => loadMaps())
+      .catch(error => {
+        console.error("Error deleting map: ", error);
+        alert('Error deleting map. Please try again.');
+      });
+  }
+}
+
+// Helper function to load game modes and maps for the match form
+function loadGameModesAndMaps() {
+  const gameModeSelect = document.getElementById('gameMode');
+  const mapSelect = document.getElementById('map');
+
+  get(ref(database, 'gameModes')).then((snapshot) => {
+    gameModeSelect.innerHTML = '<option value="">Select Game Mode</option>';
+    snapshot.forEach((childSnapshot) => {
+      const gameMode = childSnapshot.val();
+      gameModeSelect.innerHTML += `<option value="${gameMode.name}">${gameMode.name}</option>`;
+    });
+  });
+
+  get(ref(database, 'maps')).then((snapshot) => {
+    mapSelect.innerHTML = '<option value="">Select Map</option>';
+    snapshot.forEach((childSnapshot) => {
+      const map = childSnapshot.val();
+      mapSelect.innerHTML += `<option value="${map.name}">${map.name}</option>`;
+    });
+  });
+}
+
+// Initialize the app
+showTeamMembers();
+
+// Check connection
+const connectedRef = ref(database, ".info/connected");
+onValue(connectedRef, (snap) => {
+    if (snap.val() === true) {
+        console.log("Connected to Firebase");
+    } else {
+        console.log("Not connected to Firebase");
+    }
+});
 
 // Statistics
 function showStats() {
@@ -420,6 +649,3 @@ function calculateSessionStats(matches) {
 
   return stats;
 }
-
-// Initialize the app
-showTeamMembers();

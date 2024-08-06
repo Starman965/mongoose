@@ -156,3 +156,35 @@ footer {
     color: #FFD700; /* Gold text */
     border-top: 2px solid #FFD700; /* Gold border */
 }
+.matches-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+}
+
+.matches-table th, .matches-table td {
+    border: 1px solid #444444;
+    padding: 10px;
+    text-align: center;
+}
+
+.matches-table th {
+    background-color: #333333;
+    color: #FFD700;
+}
+
+.matches-table td button {
+    background-color: #FFD700;
+    border: none;
+    color: #000000;
+    padding: 5px 10px;
+    cursor: pointer;
+    font-size: 14px;
+    border-radius: 3px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    transition: background-color 0.3s ease;
+}
+
+.matches-table td button:hover {
+    background-color: #FFA500;
+}

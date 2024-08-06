@@ -136,7 +136,6 @@ window.showModal = function(action, id = null) {
   modal.style.display = "block";
 }
 
-
 // Team Members
 function showTeamMembers() {
   mainContent.innerHTML = `
@@ -599,54 +598,92 @@ window.deleteMap = function(id) {
 
 // Update showModal function to include game modes and maps
 window.showModal = function(action, id = null) {
-  // ... (previous code remains the same)
-  
+  modalContent.innerHTML = '';
   switch(action) {
-    // ... (previous cases remain the same)
-    
-    case 'addGameMode':
-    case 'editGameMode':
-      const gameModeForm = `
-        <h3>${action === 'addGameMode' ? 'Add' : 'Edit'} Game Mode</h3>
-        <form id="gameModeForm" ${id ? `data-id="${id}"` : ''}>
-          <input type="text" id="name" placeholder="Game Mode Name" ${id ? `value="${gameMode.name}"` : ''} required>
-          <button type="submit">${action === 'addGameMode' ? 'Add' : 'Update'} Game Mode</button>
+    case 'addTeamMember':
+      modalContent.innerHTML = `
+        <h3>Add Team Member</h3>
+        <form id="teamMemberForm">
+          <input type="text" id="name" placeholder="Name" required>
+          <input type="text" id="gamertag" placeholder="Gamertag" required>
+          <input type="text" id="state" placeholder="State" required>
+          <input type="number" id="age" placeholder="Age" required>
+          <input type="text" id="favoriteSnack" placeholder="Favorite Snack" required>
+          <button type="submit">Add Team Member</button>
         </form>
       `;
-      modalContent.innerHTML = gameModeForm;
-      document.getElementById('gameModeForm').addEventListener('submit', addOrUpdateGameMode);
-      if (id) {
-        get(ref(database, `gameModes/${id}`)).then((snapshot) => {
-          if (snapshot.exists()) {
-            const gameMode = snapshot.val();
-            document.getElementById('name').value = gameMode.name;
-          }
-        });
-      }
+      document.getElementById('teamMemberForm').addEventListener('submit', addOrUpdateTeamMember);
       break;
-    
-    case 'addMap':
-    case 'editMap':
-      const mapForm = `
-        <h3>${action === 'addMap' ? 'Add' : 'Edit'} Map</h3>
-        <form id="mapForm" ${id ? `data-id="${id}"` : ''}>
-          <input type="text" id="name" placeholder="Map Name" ${id ? `value="${map.name}"` : ''} required>
-          <button type="submit">${action === 'addMap' ? 'Add' : 'Update'} Map</button>
+    case 'editTeamMember':
+      get(ref(database, `teamMembers/${id}`)).then((snapshot) => {
+        if (snapshot.exists()) {
+          const member = snapshot.val();
+          modalContent.innerHTML = `
+            <h3>Edit Team Member</h3>
+            <form id="teamMemberForm" data-id="${id}">
+              <input type="text" id="name" value="${member.name}" required>
+              <input type="text" id="gamertag" value="${member.gamertag}" required>
+              <input type="text" id="state" value="${member.state}" required>
+              <input type="number" id="age" value="${member.age}" required>
+              <input type="text" id="favoriteSnack" value="${member.favoriteSnack}" required>
+              <button type="submit">Update Team Member</button>
+            </form>
+          `;
+          document.getElementById('teamMemberForm').addEventListener('submit', addOrUpdateTeamMember);
+        }
+      });
+      break;
+    case 'addGameMode':
+      modalContent.innerHTML = `
+        <h3>Add Game Mode</h3>
+        <form id="gameModeForm">
+          <input type="text" id="name" placeholder="Game Mode Name" required>
+          <button type="submit">Add Game Mode</button>
         </form>
       `;
-      modalContent.innerHTML = mapForm;
+      document.getElementById('gameModeForm').addEventListener('submit', addOrUpdateGameMode);
+      break;
+    case 'editGameMode':
+      get(ref(database, `gameModes/${id}`)).then((snapshot) => {
+        if (snapshot.exists()) {
+          const gameMode = snapshot.val();
+          modalContent.innerHTML = `
+            <h3>Edit Game Mode</h3>
+            <form id="gameModeForm" data-id="${id}">
+              <input type="text" id="name" value="${gameMode.name}" required>
+              <button type="submit">Update Game Mode</button>
+            </form>
+          `;
+          document.getElementById('gameModeForm').addEventListener('submit', addOrUpdateGameMode);
+        }
+      });
+      break;
+    case 'addMap':
+      modalContent.innerHTML = `
+        <h3>Add Map</h3>
+        <form id="mapForm">
+          <input type="text" id="name" placeholder="Map Name" required>
+          <button type="submit">Add Map</button>
+        </form>
+      `;
       document.getElementById('mapForm').addEventListener('submit', addOrUpdateMap);
-      if (id) {
-        get(ref(database, `maps/${id}`)).then((snapshot) => {
-          if (snapshot.exists()) {
-            const map = snapshot.val();
-            document.getElementById('name').value = map.name;
-          }
-        });
-      }
+      break;
+    case 'editMap':
+      get(ref(database, `maps/${id}`)).then((snapshot) => {
+        if (snapshot.exists()) {
+          const map = snapshot.val();
+          modalContent.innerHTML = `
+            <h3>Edit Map</h3>
+            <form id="mapForm" data-id="${id}">
+              <input type="text" id="name" value="${map.name}" required>
+              <button type="submit">Update Map</button>
+            </form>
+          `;
+          document.getElementById('mapForm').addEventListener('submit', addOrUpdateMap);
+        }
+      });
       break;
   }
-  
   modal.style.display = "block";
 }
 

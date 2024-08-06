@@ -236,34 +236,35 @@ footer {
 .matches-table td button:hover {
     background-color: #FFA500;
 }
-
-/* Example styles for the stats table */
 .stats-table {
-  width: 100%;
-  border-collapse: collapse;
-  margin: 20px 0;
-  font-size: 18px;
-  text-align: left;
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
 }
 
 .stats-table th, .stats-table td {
-  padding: 12px 15px;
-  border: 1px solid #ddd;
+    border: 1px solid #444444;
+    padding: 12px 15px;
+    text-align: center;
 }
 
 .stats-table th {
-  background-color: #f4f4f4;
+    background-color: #333333;
+    color: #FFD700;
+    font-weight: bold;
 }
 
-.stats-table tr:nth-of-type(even) {
-  background-color: #f9f9f9;
+.stats-table td {
+    background-color: #222222;
+    color: #FFFFFF;
 }
 
-.stats-table tr:hover {
-  background-color: #f1f1f1;
+.stats-table tr:nth-child(even) td {
+    background-color: #2A2A2A;
 }
 
-.stats-table tfoot {
-  font-weight: bold;
-  background-color: #f4f4f4;
+.stats-table tfoot td {
+    font-weight: bold;
+    background-color: #333333;
 }
+

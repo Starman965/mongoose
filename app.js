@@ -166,7 +166,6 @@ window.showModal = function(action, id = null) {
   }
   modal.style.display = "block";
 }
-
 function addOrUpdateGameSession(e) {
   e.preventDefault();
   const form = e.target;

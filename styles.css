@@ -156,6 +156,54 @@ footer {
     color: #FFD700; /* Gold text */
     border-top: 2px solid #FFD700; /* Gold border */
 }
+
+.session-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+}
+
+.session-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.session-actions i {
+    cursor: pointer;
+    color: #FFD700; /* Gold icons */
+    font-size: 20px;
+}
+
+.session-actions i:hover {
+    color: #FFA500; /* Darker gold on hover */
+}
+
+.session-buttons {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    width: 100%;
+}
+
+.session-buttons button {
+    flex-grow: 1;
+    background-color: #FFD700;
+    border: none;
+    color: #000000;
+    padding: 10px;
+    cursor: pointer;
+    font-size: 16px;
+    border-radius: 5px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    transition: background-color 0.3s ease;
+    white-space: nowrap;
+}
+
+.session-buttons button:hover {
+    background-color: #FFA500;
+}
+
 .matches-table {
     width: 100%;
     border-collapse: collapse;
@@ -188,27 +236,3 @@ footer {
 .matches-table td button:hover {
     background-color: #FFA500;
 }
-.session-buttons {
-    display: flex;
-    justify-content: space-between;
-    gap: 10px; /* Adjust the spacing as needed */
-}
-
-.session-buttons button {
-    flex-grow: 1;
-    background-color: #FFD700;
-    border: none;
-    color: #000000;
-    padding: 10px;
-    cursor: pointer;
-    font-size: 16px;
-    border-radius: 5px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    transition: background-color 0.3s ease;
-    white-space: nowrap; /* Ensure text doesn't wrap */
-}
-
-.session-buttons button:hover {
-    background-color: #FFA500;
-}
-

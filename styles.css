@@ -236,6 +236,7 @@ footer {
 .matches-table td button:hover {
     background-color: #FFA500;
 }
+
 /* Example styles for the stats table */
 .stats-table {
   width: 100%;
@@ -266,8 +267,3 @@ footer {
   font-weight: bold;
   background-color: #f4f4f4;
 }
-.stats-table tfoot td {
-    font-weight: bold;
-    background-color: #333333;
-}
-

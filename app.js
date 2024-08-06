@@ -290,7 +290,6 @@ function formatDate(dateString) {
   const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
   return date.toLocaleDateString(undefined, options);
 }
-
 function loadGameSessions() {
   const sessionList = document.getElementById('sessionList');
   sessionList.innerHTML = 'Loading game sessions...';
@@ -320,7 +319,7 @@ function loadGameSessions() {
 
 function toggleMatches(sessionId) {
   const matchesContainer = document.getElementById(`matches-${sessionId}`);
-  if (matchesContainer.style.display === 'none') {
+  if (matchesContainer.style.display === 'none' || matchesContainer.style.display === '') {
     loadMatches(sessionId);
     matchesContainer.style.display = 'block';
   } else {

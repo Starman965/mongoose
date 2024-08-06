@@ -253,9 +253,9 @@ footer {
 
 .card .button-group {
     display: flex;
-    flex-wrap: wrap;
-    justify-content: space-around;
+    justify-content: space-between;
     width: 100%;
+    gap: 10px; /* Add spacing between buttons */
 }
 
 .card .button-group button {
@@ -263,11 +263,11 @@ footer {
     border: none;
     color: #000000;
     padding: 10px;
-    margin: 5px;
+    margin: 5px 0;
     cursor: pointer;
     font-size: 16px;
     border-radius: 5px;
-    flex-grow: 1;
+    width: 30%; /* Fixed width for buttons */
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     transition: background-color 0.3s ease;
 }
@@ -311,7 +311,7 @@ footer {
     cursor: pointer;
     font-size: 16px;
     border-radius: 5px;
-    width: calc(33.333% - 10px); /* Fixed width for buttons */
+    width: 90%;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     transition: background-color 0.3s ease;
 }

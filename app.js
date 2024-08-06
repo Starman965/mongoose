@@ -312,7 +312,6 @@ function viewMatches(sessionId) {
   });
 }
 
-
 window.deleteMatch = function(sessionId, matchId) {
   if (confirm('Are you sure you want to delete this match?')) {
     remove(ref(database, `gameSessions/${sessionId}/matches/${matchId}`))

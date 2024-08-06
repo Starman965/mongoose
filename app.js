@@ -47,6 +47,15 @@ function showSection(section) {
   }
 }
 
+function showGameSessions() {
+  mainContent.innerHTML = `
+    <h2>Game Sessions</h2>
+    <button onclick="showModal('addGameSession')">Add Game Session</button>
+    <div id="sessionList"></div>
+  `;
+  loadGameSessions();
+}
+
 // Make showModal globally accessible
 window.showModal = function(action, id = null) {
   modalContent.innerHTML = '';

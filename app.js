@@ -1,100 +1,7 @@
-// Firebase configuration
-const firebaseConfig = {
-    apiKey: "AIzaSyCsW2O4WMxcHKMsIBJE4qHhkcTBdqYNZTk",
-    authDomain: "mongoose-a1fec.firebaseapp.com",
-    databaseURL: "https://mongoose-a1fec-default-rtdb.firebaseio.com",
-    projectId: "mongoose-a1fec",
-    storageBucket: "mongoose-a1fec.appspot.com",
-    messagingSenderId: "504377946463",
-    appId: "1:504377946463:web:863aee9ddf559239bb06ea",
-    measurementId: "G-31E63T2391"
-};
+// ... (previous Firebase configuration and initialization)
 
-// Initialize Firebase
-firebase.initializeApp(firebaseConfig);
-const database = firebase.database();
-const analytics = firebase.analytics();
-
-// DOM elements
-const mainContent = document.getElementById('mainContent');
-const modal = document.getElementById('modal');
-const modalContent = document.getElementById('modalContent');
-const closeModal = document.getElementsByClassName('close')[0];
-
-// Close modal when clicking on 'x'
-closeModal.onclick = () => modal.style.display = "none";
-
-// Close modal when clicking outside of it
-window.onclick = (event) => {
-  if (event.target == modal) {
-    modal.style.display = "none";
-  }
-}
-
-// Navigation setup
-document.getElementById('teamNav').addEventListener('click', () => showSection('team'));
-document.getElementById('modesNav').addEventListener('click', () => showSection('modes'));
-document.getElementById('mapsNav').addEventListener('click', () => showSection('maps'));
-document.getElementById('sessionsNav').addEventListener('click', () => showSection('sessions'));
-document.getElementById('statsNav').addEventListener('click', () => showSection('stats'));
-
-function showSection(section) {
-  switch(section) {
-    case 'team':
-      showTeamMembers();
-      break;
-    case 'modes':
-      showGameModes();
-      break;
-    case 'maps':
-      showMaps();
-      break;
-    case 'sessions':
-      showGameSessions();
-      break;
-    case 'stats':
-      showStats();
-      break;
-  }
-}
-
-// Team Members
-function showTeamMembers() {
-  mainContent.innerHTML = `
-    <h2>Team Members</h2>
-    <button onclick="showModal('addTeamMember')">Add Team Member</button>
-    <div id="teamList"></div>
-  `;
-  loadTeamMembers();
-}
-
-function loadTeamMembers() {
-  const teamList = document.getElementById('teamList');
-  teamList.innerHTML = 'Loading team members...';
-  
-  database.ref('teamMembers').once('value', (snapshot) => {
-    teamList.innerHTML = '';
-    snapshot.forEach((childSnapshot) => {
-      const member = childSnapshot.val();
-      const memberId = childSnapshot.key;
-      teamList.innerHTML += `
-        <div class="card">
-          <h3>${member.name} (${member.gamertag})</h3>
-          <p>State: ${member.state}</p>
-          <p>Age: ${member.age}</p>
-          <p>Favorite Snack: ${member.favoriteSnack}</p>
-          <button onclick="showModal('editTeamMember', '${memberId}')">Edit</button>
-          <button onclick="deleteTeamMember('${memberId}')">Delete</button>
-        </div>
-      `;
-    });
-    if (teamList.innerHTML === '') {
-      teamList.innerHTML = 'No team members found. Add some!';
-    }
-  });
-}
-
-function showModal(action, id = null) {
+// Make showModal globally accessible
+window.showModal = function(action, id = null) {
   modalContent.innerHTML = '';
   switch(action) {
     case 'addTeamMember':
@@ -130,39 +37,59 @@ function showModal(action, id = null) {
         }
       });
       break;
-    // Add cases for game modes and maps here
+    case 'addGameSession':
+      modalContent.innerHTML = `
+        <h3>Add Game Session</h3>
+        <form id="gameSessionForm">
+          <input type="date" id="date" required>
+          <button type="submit">Add Game Session</button>
+        </form>
+      `;
+      document.getElementById('gameSessionForm').addEventListener('submit', addGameSession);
+      break;
+    case 'editGameSession':
+      database.ref(`gameSessions/${id}`).once('value', (snapshot) => {
+        if (snapshot.exists()) {
+          const session = snapshot.val();
+          modalContent.innerHTML = `
+            <h3>Edit Game Session</h3>
+            <form id="gameSessionForm" data-id="${id}">
+              <input type="date" id="date" value="${session.date}" required>
+              <button type="submit">Update Game Session</button>
+            </form>
+          `;
+          document.getElementById('gameSessionForm').addEventListener('submit', addOrUpdateGameSession);
+        }
+      });
+      break;
+    case 'addMatch':
+      modalContent.innerHTML = `
+        <h3>Add Match</h3>
+        <form id="matchForm" data-session-id="${id}">
+          <select id="gameMode" required>
+            <option value="">Select Game Mode</option>
+            <!-- Add game modes dynamically here -->
+          </select>
+          <select id="map" required>
+            <option value="">Select Map</option>
+            <!-- Add maps dynamically here -->
+          </select>
+          <input type="number" id="placement" placeholder="Placement" required min="1">
+          <button type="submit">Add Match</button>
+        </form>
+      `;
+      loadGameModesAndMaps();
+      document.getElementById('matchForm').addEventListener('submit', addMatch);
+      break;
+    case 'viewMatches':
+      viewMatches(id);
+      break;
   }
   modal.style.display = "block";
 }
 
-function addOrUpdateTeamMember(e) {
-  e.preventDefault();
-  const form = e.target;
-  const memberId = form.dataset.id;
-  const memberData = {
-    name: form.name.value,
-    gamertag: form.gamertag.value,
-    state: form.state.value,
-    age: parseInt(form.age.value),
-    favoriteSnack: form.favoriteSnack.value
-  };
-
-  const operation = memberId
-    ? database.ref(`teamMembers/${memberId}`).update(memberData)
-    : database.ref('teamMembers').push(memberData);
-
-  operation
-    .then(() => {
-      loadTeamMembers();
-      modal.style.display = "none";
-    })
-    .catch(error => {
-      console.error("Error adding/updating team member: ", error);
-      alert('Error adding/updating team member. Please try again.');
-    });
-}
-
-function deleteTeamMember(id) {
+// Make deleteTeamMember globally accessible
+window.deleteTeamMember = function(id) {
   if (confirm('Are you sure you want to delete this team member?')) {
     database.ref(`teamMembers/${id}`).remove()
       .then(() => loadTeamMembers())
@@ -173,14 +100,117 @@ function deleteTeamMember(id) {
   }
 }
 
-// Game Sessions
-function showGameSessions() {
-  mainContent.innerHTML = `
-    <h2>Game Sessions</h2>
-    <button onclick="showModal('addGameSession')">Add Game Session</button>
-    <div id="sessionList"></div>
-  `;
-  loadGameSessions();
+// ... (previous team member functions)
+
+function addOrUpdateGameSession(e) {
+  e.preventDefault();
+  const form = e.target;
+  const sessionId = form.dataset.id;
+  const sessionData = {
+    date: form.date.value,
+  };
+
+  const operation = sessionId
+    ? database.ref(`gameSessions/${sessionId}`).update(sessionData)
+    : database.ref('gameSessions').push(sessionData);
+
+  operation
+    .then(() => {
+      loadGameSessions();
+      modal.style.display = "none";
+    })
+    .catch(error => {
+      console.error("Error adding/updating game session: ", error);
+      alert('Error adding/updating game session. Please try again.');
+    });
+}
+
+function deleteGameSession(id) {
+  if (confirm('Are you sure you want to delete this game session?')) {
+    database.ref(`gameSessions/${id}`).remove()
+      .then(() => loadGameSessions())
+      .catch(error => {
+        console.error("Error deleting game session: ", error);
+        alert('Error deleting game session. Please try again.');
+      });
+  }
+}
+
+function addMatch(e) {
+  e.preventDefault();
+  const form = e.target;
+  const sessionId = form.dataset.sessionId;
+  const matchData = {
+    gameMode: form.gameMode.value,
+    map: form.map.value,
+    placement: parseInt(form.placement.value)
+  };
+
+  database.ref(`gameSessions/${sessionId}/matches`).push(matchData)
+    .then(() => {
+      loadGameSessions();
+      modal.style.display = "none";
+    })
+    .catch(error => {
+      console.error("Error adding match: ", error);
+      alert('Error adding match. Please try again.');
+    });
+}
+
+function viewMatches(sessionId) {
+  database.ref(`gameSessions/${sessionId}`).once('value', (snapshot) => {
+    if (snapshot.exists()) {
+      const session = snapshot.val();
+      let matchesHtml = '<h3>Matches</h3>';
+      if (session.matches) {
+        Object.entries(session.matches).forEach(([matchId, match]) => {
+          matchesHtml += `
+            <div class="match-card">
+              <p>Game Mode: ${match.gameMode}</p>
+              <p>Map: ${match.map}</p>
+              <p>Placement: ${match.placement}</p>
+              <button onclick="deleteMatch('${sessionId}', '${matchId}')">Delete Match</button>
+            </div>
+          `;
+        });
+      } else {
+        matchesHtml += '<p>No matches found for this session.</p>';
+      }
+      modalContent.innerHTML = matchesHtml;
+    }
+  });
+}
+
+window.deleteMatch = function(sessionId, matchId) {
+  if (confirm('Are you sure you want to delete this match?')) {
+    database.ref(`gameSessions/${sessionId}/matches/${matchId}`).remove()
+      .then(() => {
+        viewMatches(sessionId);
+      })
+      .catch(error => {
+        console.error("Error deleting match: ", error);
+        alert('Error deleting match. Please try again.');
+      });
+  }
+}
+
+function loadGameModesAndMaps() {
+  const gameModeSelect = document.getElementById('gameMode');
+  const mapSelect = document.getElementById('map');
+
+  database.ref('gameModes').once('value', (snapshot) => {
+    snapshot.forEach((childSnapshot) => {
+      const gameMode = childSnapshot.val();
+      gameModeSelect.innerHTML += `<option value="${gameMode.name}">${gameMode.name}</option>`;
+    });
+  });
+
+  database.ref('maps').once('value', (snapshot) => {
+    snapshot.forEach((childSnapshot) => {
+      const map = childSnapshot.val();
+      mapSelect.innerHTML += `<option value="${map.name}">${map.name}</option>`;
+    });
+  });
 }
 
 function loadGameSessions() {
@@ -198,6 +228,8 @@ function loadGameSessions() {
           <p>Number of matches: ${session.matches ? Object.keys(session.matches).length : 0}</p>
           <button onclick="showModal('viewMatches', '${sessionId}')">View Matches</button>
           <button onclick="showModal('addMatch', '${sessionId}')">Add Match</button>
+          <button onclick="showModal('editGameSession', '${sessionId}')">Edit Session</button>
+          <button onclick="deleteGameSession('${sessionId}')">Delete Session</button>
         </div>
       `;
     });
@@ -207,7 +239,87 @@ function loadGameSessions() {
   });
 }
 
-// Add functions for adding/editing/deleting game sessions and matches here
+// Make deleteGameSession globally accessible
+window.deleteGameSession = deleteGameSession;
+
+// Statistics
+function showStats() {
+  mainContent.innerHTML = `
+    <h2>Game Statistics</h2>
+    <div id="statsTable"></div>
+  `;
+  loadStats();
+}
+
+function loadStats() {
+  const statsTable = document.getElementById('statsTable');
+  statsTable.innerHTML = 'Loading statistics...';
+
+  database.ref('gameSessions').once('value', (snapshot) => {
+    let tableHTML = `
+      <table>
+        <tr>
+          <th>Date</th>
+          <th>Games Played</th>
+          <th>Wins</th>
+          <th>2nd Place</th>
+          <th>3rd Place</th>
+          <th>4th Place</th>
+          <th>5th Place</th>
+          <th>6th+ Place</th>
+        </tr>
+    `;
+
+    snapshot.forEach((childSnapshot) => {
+      const session = childSnapshot.val();
+      const stats = calculateSessionStats(session.matches || {});
+      tableHTML += `
+        <tr>
+          <td>${session.date}</td>
+          <td>${stats.gamesPlayed}</td>
+          <td>${stats.wins}</td>
+          <td>${stats.secondPlace}</td>
+          <td>${stats.thirdPlace}</td>
+          <td>${stats.fourthPlace}</td>
+          <td>${stats.fifthPlace}</td>
+          <td>${stats.sixthPlacePlus}</td>
+        </tr>
+      `;
+    });
+
+    tableHTML += '</table>';
+    statsTable.innerHTML = tableHTML;
+
+    if (snapshot.numChildren() === 0) {
+      statsTable.innerHTML = 'No game sessions found. Add some games first!';
+    }
+  });
+}
+
+function calculateSessionStats(matches) {
+  const stats = {
+    gamesPlayed: Object.keys(matches).length,
+    wins: 0,
+    secondPlace: 0,
+    thirdPlace: 0,
+    fourthPlace: 0,
+    fifthPlace: 0,
+    sixthPlacePlus: 0
+  };
+
+  Object.values(matches).forEach(match => {
+    switch(match.placement) {
+      case 1: stats.wins++; break;
+      case 2: stats.secondPlace++; break;
+      case 3: stats.thirdPlace++; break;
+      case 4: stats.fourthPlace++; break;
+      case 5: stats.fifthPlace++; break;
+      default: stats.sixthPlacePlus++;
+    }
+  });
+
+  return stats;
+}
 
 // Initialize the app
 showTeamMembers();

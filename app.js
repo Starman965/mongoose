@@ -282,7 +282,6 @@ function loadTeamMembers() {
         }
     });
 }
-
 function addOrUpdateTeamMember(e) {
   e.preventDefault();
   const form = e.target;

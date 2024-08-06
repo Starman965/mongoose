@@ -60,6 +60,44 @@ main {
     overflow-y: auto;
 }
 
+.card {
+    background-color: #333333; /* Dark gray background for cards */
+    padding: 15px;
+    margin: 10px 0;
+    border-radius: 8px;
+}
+
+.card img.team-photo {
+    width: 100px; /* Set a fixed width */
+    height: 100px; /* Set a fixed height */
+    object-fit: cover; /* Ensure the image covers the area without distorting */
+    border-radius: 50%; /* Make the images circular */
+    display: block;
+    margin: 0 auto 10px auto;
+}
+
+.card h3, .card p {
+    margin: 5px 0;
+    text-align: center;
+}
+
+.card button {
+    display: block;
+    width: 100%;
+    background-color: #FFD700;
+    border: none;
+    color: #000000;
+    padding: 10px;
+    margin: 5px 0;
+    cursor: pointer;
+    font-size: 16px;
+    border-radius: 5px;
+}
+
+.card button:hover {
+    background-color: #FFA500;
+}
+
 .modal {
     display: none;
     position: fixed;

@@ -169,7 +169,7 @@ function loadTeamMembers() {
     if (teamList.innerHTML === '') {
       teamList.innerHTML = 'No team members found. Add some!';
     }
-  }, { onlyOnce: true });
+  });
 }
 
 function addOrUpdateTeamMember(e) {
@@ -243,7 +243,7 @@ function loadGameSessions() {
     if (sessionList.innerHTML === '') {
       sessionList.innerHTML = 'No game sessions found. Add some!';
     }
-  }, { onlyOnce: true });
+  });
 }
 
 function addOrUpdateGameSession(e) {
@@ -492,7 +492,7 @@ function loadGameModes() {
     if (gameModeList.innerHTML === '') {
       gameModeList.innerHTML = 'No game modes found. Add some!';
     }
-  }, { onlyOnce: true });
+  });
 }
 
 function addOrUpdateGameMode(e) {
@@ -559,7 +559,7 @@ function loadMaps() {
     if (mapList.innerHTML === '') {
       mapList.innerHTML = 'No maps found. Add some!';
     }
-  }, { onlyOnce: true });
+  });
 }
 
 function addOrUpdateMap(e) {
@@ -596,97 +596,6 @@ window.deleteMap = function(id) {
   }
 }
 
-// Update showModal function to include game modes and maps
-window.showModal = function(action, id = null) {
-  modalContent.innerHTML = '';
-  switch(action) {
-    case 'addTeamMember':
-      modalContent.innerHTML = `
-        <h3>Add Team Member</h3>
-        <form id="teamMemberForm">
-          <input type="text" id="name" placeholder="Name" required>
-          <input type="text" id="gamertag" placeholder="Gamertag" required>
-          <input type="text" id="state" placeholder="State" required>
-          <input type="number" id="age" placeholder="Age" required>
-          <input type="text" id="favoriteSnack" placeholder="Favorite Snack" required>
-          <button type="submit">Add Team Member</button>
-        </form>
-      `;
-      document.getElementById('teamMemberForm').addEventListener('submit', addOrUpdateTeamMember);
-      break;
-    case 'editTeamMember':
-      get(ref(database, `teamMembers/${id}`)).then((snapshot) => {
-        if (snapshot.exists()) {
-          const member = snapshot.val();
-          modalContent.innerHTML = `
-            <h3>Edit Team Member</h3>
-            <form id="teamMemberForm" data-id="${id}">
-              <input type="text" id="name" value="${member.name}" required>
-              <input type="text" id="gamertag" value="${member.gamertag}" required>
-              <input type="text" id="state" value="${member.state}" required>
-              <input type="number" id="age" value="${member.age}" required>
-              <input type="text" id="favoriteSnack" value="${member.favoriteSnack}" required>
-              <button type="submit">Update Team Member</button>
-            </form>
-          `;
-          document.getElementById('teamMemberForm').addEventListener('submit', addOrUpdateTeamMember);
-        }
-      });
-      break;
-    case 'addGameMode':
-      modalContent.innerHTML = `
-        <h3>Add Game Mode</h3>
-        <form id="gameModeForm">
-          <input type="text" id="name" placeholder="Game Mode Name" required>
-          <button type="submit">Add Game Mode</button>
-        </form>
-      `;
-      document.getElementById('gameModeForm').addEventListener('submit', addOrUpdateGameMode);
-      break;
-    case 'editGameMode':
-      get(ref(database, `gameModes/${id}`)).then((snapshot) => {
-        if (snapshot.exists()) {
-          const gameMode = snapshot.val();
-          modalContent.innerHTML = `
-            <h3>Edit Game Mode</h3>
-            <form id="gameModeForm" data-id="${id}">
-              <input type="text" id="name" value="${gameMode.name}" required>
-              <button type="submit">Update Game Mode</button>
-            </form>
-          `;
-          document.getElementById('gameModeForm').addEventListener('submit', addOrUpdateGameMode);
-        }
-      });
-      break;
-    case 'addMap':
-      modalContent.innerHTML = `
-        <h3>Add Map</h3>
-        <form id="mapForm">
-          <input type="text" id="name" placeholder="Map Name" required>
-          <button type="submit">Add Map</button>
-        </form>
-      `;
-      document.getElementById('mapForm').addEventListener('submit', addOrUpdateMap);
-      break;
-    case 'editMap':
-      get(ref(database, `maps/${id}`)).then((snapshot) => {
-        if (snapshot.exists()) {
-          const map = snapshot.val();
-          modalContent.innerHTML = `
-            <h3>Edit Map</h3>
-            <form id="mapForm" data-id="${id}">
-              <input type="text" id="name" value="${map.name}" required>
-              <button type="submit">Update Map</button>
-            </form>
-          `;
-          document.getElementById('mapForm').addEventListener('submit', addOrUpdateMap);
-        }
-      });
-      break;
-  }
-  modal.style.display = "block";
-}
-
 // Helper function to load game modes and maps for the match form
 function loadGameModesAndMaps() {
   const gameModeSelect = document.getElementById('gameMode');
@@ -708,3 +617,16 @@ function loadGameModesAndMaps() {
     });
   });
 }
+
+// Initialize the app
+showTeamMembers();
+
+// Check connection
+const connectedRef = ref(database, ".info/connected");
+onValue(connectedRef, (snap) => {
+    if (snap.val() === true) {
+        console.log("Connected to Firebase");
+    } else {
+        console.log("Not connected to Firebase");
+    }
+});

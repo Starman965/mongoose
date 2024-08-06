@@ -388,31 +388,32 @@ window.toggleMatches = function(sessionId) {
 }
 
 function loadMatches(sessionId) {
-  const matchesContainer = document.getElementById(`matches-${sessionId}`);
-  get(ref(database, `gameSessions/${sessionId}`)).then((snapshot) => {
-    if (snapshot.exists()) {
-      const session = snapshot.val();
-      let matchesHtml = '<h3>Matches</h3>';
-      if (session.matches) {
-        matchesHtml += '<table><tr><th>Game Mode</th><th>Map</th><th>Placement</th><th>Action</th></tr>';
-        Object.entries(session.matches).forEach(([matchId, match]) => {
-          matchesHtml += `
-            <tr>
-              <td>${match.gameMode}</td>
-              <td>${match.map}</td>
-              <td>${match.placement}</td>
-              <td><button onclick="deleteMatch('${sessionId}', '${matchId}')">Delete Match</button></td>
-            </tr>
-          `;
-        });
-        matchesHtml += '</table>';
-      } else {
-        matchesHtml += '<p>No matches found for this session.</p>';
-      }
-      matchesContainer.innerHTML = matchesHtml;
-    }
-  });
+    const matchesContainer = document.getElementById(`matches-${sessionId}`);
+    get(ref(database, `gameSessions/${sessionId}`)).then((snapshot) => {
+        if (snapshot.exists()) {
+            const session = snapshot.val();
+            let matchesHtml = '<h3>Matches</h3>';
+            if (session.matches) {
+                matchesHtml += '<table class="matches-table"><tr><th>Game Mode</th><th>Map</th><th>Placement</th></tr>';
+                Object.entries(session.matches).forEach(([matchId, match]) => {
+                    matchesHtml += `
+                        <tr>
+                            <td>${match.gameMode}</td>
+                            <td>${match.map}</td>
+                            <td>${match.placement}</td>
+                            <td><button onclick="deleteMatch('${sessionId}', '${matchId}')">Delete Match</button></td>
+                        </tr>
+                    `;
+                });
+                matchesHtml += '</table>';
+            } else {
+                matchesHtml += '<p>No matches found for this session.</p>';
+            }
+            matchesContainer.innerHTML = matchesHtml;
+        }
+    });
 }
+
 
 window.deleteGameSession = function(id) {
   if (confirm('Are you sure you want to delete this game session?')) {

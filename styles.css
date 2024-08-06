@@ -1,7 +1,7 @@
 body {
     background-color: #000000; /* Black background */
     color: #ffffff; /* White text */
-    font-family: Arial, sans-serif;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     margin: 0;
     padding: 0;
 }
@@ -14,7 +14,7 @@ header {
 }
 
 header .logo {
-    width: 150px; /* Adjust size as needed */
+    width: 100px; /* Adjust size as needed */
     display: block;
     margin: 0 auto;
 }
@@ -22,11 +22,12 @@ header .logo {
 h1 {
     color: #FFD700; /* Gold text */
     margin: 0;
+    font-size: 1.5em;
 }
 
 .container {
     display: flex;
-    height: calc(100vh - 60px); /* Full height minus header */
+    height: calc(100vh - 100px); /* Full height minus header */
 }
 
 .sidebar {
@@ -35,17 +36,23 @@ h1 {
     min-width: 200px;
     display: flex;
     flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    border-right: 2px solid #FFD700; /* Gold border */
 }
 
 .sidebar button {
     background-color: #FFD700; /* Gold buttons */
     border: none;
     color: #000000; /* Black text */
-    padding: 10px;
+    padding: 10px 20px;
     margin: 5px 0;
     cursor: pointer;
     font-size: 16px;
     border-radius: 5px;
+    width: 90%;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    transition: background-color 0.3s ease;
 }
 
 .sidebar button:hover {
@@ -58,6 +65,7 @@ main {
     background-color: #222222; /* Very dark gray */
     border-radius: 10px;
     overflow-y: auto;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
 .card {
@@ -65,6 +73,10 @@ main {
     padding: 15px;
     margin: 10px 0;
     border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
 }
 
 .card img.team-photo {
@@ -82,8 +94,6 @@ main {
 }
 
 .card button {
-    display: block;
-    width: 100%;
     background-color: #FFD700;
     border: none;
     color: #000000;
@@ -92,6 +102,9 @@ main {
     cursor: pointer;
     font-size: 16px;
     border-radius: 5px;
+    width: 90%;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    transition: background-color 0.3s ease;
 }
 
 .card button:hover {
@@ -118,6 +131,8 @@ main {
     border: 1px solid #888;
     width: 80%;
     color: #ffffff;
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
 .close {

@@ -246,39 +246,39 @@ function addOrUpdateGameSession(e) {
 
 // Team Members
 function showTeamMembers() {
-  mainContent.innerHTML = `
-    <h2>Team Members</h2>
-    <button onclick="showModal('addTeamMember')">Add Team Member</button>
-    <div id="teamList"></div>
-  `;
-  loadTeamMembers();
+    mainContent.innerHTML = `
+        <h2>Team Members</h2>
+        <button onclick="showModal('addTeamMember')">Add Team Member</button>
+        <div id="teamList" class="team-list"></div>
+    `;
+    loadTeamMembers();
 }
 
 function loadTeamMembers() {
-  const teamList = document.getElementById('teamList');
-  teamList.innerHTML = 'Loading team members...';
-  
-  onValue(ref(database, 'teamMembers'), (snapshot) => {
-    teamList.innerHTML = '';
-    snapshot.forEach((childSnapshot) => {
-      const member = childSnapshot.val();
-      const memberId = childSnapshot.key;
-      teamList.innerHTML += `
-        <div class="card">
-          <img src="${member.photoURL}" alt="${member.name}" class="team-photo">
-          <h3>${member.name} (${member.gamertag})</h3>
-          <p>State: ${member.state}</p>
-          <p>Age: ${member.age}</p>
-          <p>Favorite Snack: ${member.favoriteSnack}</p>
-          <button onclick="showModal('editTeamMember', '${memberId}')">Edit</button>
-          <button onclick="deleteTeamMember('${memberId}')">Delete</button>
-        </div>
-      `;
+    const teamList = document.getElementById('teamList');
+    teamList.innerHTML = 'Loading team members...';
+
+    onValue(ref(database, 'teamMembers'), (snapshot) => {
+        teamList.innerHTML = '';
+        snapshot.forEach((childSnapshot) => {
+            const member = childSnapshot.val();
+            const memberId = childSnapshot.key;
+            teamList.innerHTML += `
+                <div class="card">
+                    <img src="${member.photoURL}" alt="${member.name}" class="team-photo">
+                    <h3>${member.name} (${member.gamertag})</h3>
+                    <p>State: ${member.state}</p>
+                    <p>Age: ${member.age}</p>
+                    <p>Favorite Snack: ${member.favoriteSnack}</p>
+                    <button onclick="showModal('editTeamMember', '${memberId}')">Edit</button>
+                    <button onclick="deleteTeamMember('${memberId}')">Delete</button>
+                </div>
+            `;
+        });
+        if (teamList.innerHTML === '') {
+            teamList.innerHTML = 'No team members found. Add some!';
+        }
     });
-    if (teamList.innerHTML === '') {
-      teamList.innerHTML = 'No team members found. Add some!';
-    }
-  });
 }
 
 function addOrUpdateTeamMember(e) {

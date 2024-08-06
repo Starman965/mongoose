@@ -313,7 +313,6 @@ function loadGameSessions() {
     }
   });
 }
-
 window.toggleMatches = function(sessionId) {
   const matchesContainer = document.getElementById(`matches-${sessionId}`);
   if (matchesContainer.style.display === 'none' || matchesContainer.style.display === '') {

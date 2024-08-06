@@ -41,7 +41,7 @@ h1 {
     border-right: 2px solid #FFD700; /* Gold border */
 }
 
-.sidebar button {
+.sidebar-button {
     background-color: #FFD700; /* Gold buttons */
     border: none;
     color: #000000; /* Black text */
@@ -55,7 +55,7 @@ h1 {
     transition: background-color 0.3s ease;
 }
 
-.sidebar button:hover {
+.sidebar-button:hover {
     background-color: #FFA500; /* Darker gold on hover */
 }
 
@@ -139,6 +139,38 @@ footer {
     border-top: 2px solid #FFD700; /* Gold border */
 }
 
+/* Base Button Style */
+.button {
+    background-color: #FFD700; /* Gold buttons */
+    border: none;
+    color: #000000; /* Black text */
+    padding: 10px;
+    margin: 5px;
+    cursor: pointer;
+    font-size: 16px;
+    border-radius: 5px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    transition: background-color 0.3s ease;
+}
+
+.button:hover {
+    background-color: #FFA500; /* Darker gold on hover */
+}
+
+/* Specific Button Styles */
+.sidebar-button {
+    width: 90%;
+}
+
+.card-button-group button {
+    width: 23%; /* Adjust width to fit 4 buttons per row with some margin */
+}
+
+.game-mode-button-group button,
+.table-row .actions button {
+    width: 48%; /* Adjust width to fit 2 buttons per row with some margin */
+}
+
 /* New styles for Maps and Modes pages */
 .table-row {
     display: flex;
@@ -178,34 +210,16 @@ footer {
 .table-row .actions button:hover {
     background-color: #FFA500;
 }
-.stats-table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-top: 20px;
+
+/* Team List Layout */
+.team-list {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
 }
 
-.stats-table th, .stats-table td {
-    border: 1px solid #444444;
-    padding: 12px 15px;
-    text-align: center;
-}
-
-.stats-table th {
-    background-color: #333333;
-    color: #FFD700;
-    font-weight: bold;
-}
-
-.stats-table td {
-    background-color: #222222;
-    color: #FFFFFF;
-}
-
-.stats-table tr:nth-child(even) td {
-    background-color: #2A2A2A;
-}
-
-.stats-table tfoot td {
-    font-weight: bold;
-    background-color: #333333;
+.team-list .card {
+    flex: 0 1 calc(33.333% - 10px); /* 3 cards per row with some margin */
+    margin: 5px;
+    box-sizing: border-box;
 }

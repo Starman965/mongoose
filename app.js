@@ -1,16 +1,4 @@
-import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
-import { 
-    getDatabase,
-    ref, 
-    onValue, 
-    set, 
-    push,
-    update,
-    remove,
-    get
-} from "https://www.gstatic.com/firebasejs/9.22.0/firebase-database.js";
-import { getAnalytics } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-analytics.js";
-
+// Firebase configuration
 const firebaseConfig = {
     apiKey: "AIzaSyCsW2O4WMxcHKMsIBJE4qHhkcTBdqYNZTk",
     authDomain: "mongoose-a1fec.firebaseapp.com",
@@ -22,9 +10,10 @@ const firebaseConfig = {
     measurementId: "G-31E63T2391"
 };
 
-const app = initializeApp(firebaseConfig);
-const analytics = getAnalytics(app);
-const database = getDatabase(app);
+// Initialize Firebase
+firebase.initializeApp(firebaseConfig);
+const database = firebase.database();
+const analytics = firebase.analytics();
 
 // DOM elements
 const mainContent = document.getElementById('mainContent');
@@ -83,7 +72,7 @@ function loadTeamMembers() {
   const teamList = document.getElementById('teamList');
   teamList.innerHTML = 'Loading team members...';
   
-  onValue(ref(database, 'teamMembers'), (snapshot) => {
+  database.ref('teamMembers').once('value', (snapshot) => {
     teamList.innerHTML = '';
     snapshot.forEach((childSnapshot) => {
       const member = childSnapshot.val();
@@ -102,8 +91,6 @@ function loadTeamMembers() {
     if (teamList.innerHTML === '') {
       teamList.innerHTML = 'No team members found. Add some!';
     }
-  }, {
-    onlyOnce: true
   });
 }
 
@@ -125,7 +112,7 @@ function showModal(action, id = null) {
       document.getElementById('teamMemberForm').addEventListener('submit', addOrUpdateTeamMember);
       break;
     case 'editTeamMember':
-      get(ref(database, `teamMembers/${id}`)).then((snapshot) => {
+      database.ref(`teamMembers/${id}`).once('value', (snapshot) => {
         if (snapshot.exists()) {
           const member = snapshot.val();
           modalContent.innerHTML = `
@@ -161,8 +148,8 @@ function addOrUpdateTeamMember(e) {
   };
 
   const operation = memberId
-    ? update(ref(database, `teamMembers/${memberId}`), memberData)
-    : push(ref(database, 'teamMembers'), memberData);
+    ? database.ref(`teamMembers/${memberId}`).update(memberData)
+    : database.ref('teamMembers').push(memberData);
 
   operation
     .then(() => {
@@ -177,7 +164,7 @@ function addOrUpdateTeamMember(e) {
 
 function deleteTeamMember(id) {
   if (confirm('Are you sure you want to delete this team member?')) {
-    remove(ref(database, `teamMembers/${id}`))
+    database.ref(`teamMembers/${id}`).remove()
       .then(() => loadTeamMembers())
       .catch(error => {
         console.error("Error deleting team member: ", error);
@@ -200,7 +187,7 @@ function loadGameSessions() {
   const sessionList = document.getElementById('sessionList');
   sessionList.innerHTML = 'Loading game sessions...';
   
-  onValue(ref(database, 'gameSessions'), (snapshot) => {
+  database.ref('gameSessions').once('value', (snapshot) => {
     sessionList.innerHTML = '';
     snapshot.forEach((childSnapshot) => {
       const session = childSnapshot.val();
@@ -217,8 +204,6 @@ function loadGameSessions() {
     if (sessionList.innerHTML === '') {
       sessionList.innerHTML = 'No game sessions found. Add some!';
     }
-  }, {
-    onlyOnce: true
   });
 }
 
@@ -228,8 +213,8 @@ function loadGameSessions() {
 showTeamMembers();
 
 // Check connection
-const connectedRef = ref(database, ".info/connected");
-onValue(connectedRef, (snap) => {
+const connectedRef = database.ref(".info/connected");
+connectedRef.on("value", (snap) => {
     if (snap.val() === true) {
         console.log("Connected to Firebase");
     } else {

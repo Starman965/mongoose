@@ -1,118 +1,270 @@
 body {
-    font-family: Arial, sans-serif;
-    background-color: #333;
-    color: #fff;
+    background-color: #000000; /* Black background */
+    color: #ffffff; /* White text */
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     margin: 0;
     padding: 0;
 }
 
-h1, h2 {
-    color: #ffcc00;
+header {
+    text-align: center;
+    padding: 20px;
+    background-color: #333333; /* Dark gray background */
+    border-bottom: 2px solid #FFD700; /* Gold border */
+}
+
+header .logo {
+    width: 100px; /* Adjust size as needed */
+    display: block;
+    margin: 0 auto;
+}
+
+h1 {
+    color: #FFD700; /* Gold text */
+    margin: 0;
+    font-size: 1.5em;
 }
 
 .container {
     display: flex;
+    height: calc(100vh - 100px); /* Full height minus header */
 }
 
 .sidebar {
-    background-color: #444;
+    background-color: #444444; /* Slightly lighter gray */
     padding: 10px;
+    min-width: 200px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    border-right: 2px solid #FFD700; /* Gold border */
 }
 
 .sidebar button {
-    background-color: #ffcc00;
+    background-color: #FFD700; /* Gold buttons */
     border: none;
-    color: #000;
-    padding: 10px;
+    color: #000000; /* Black text */
+    padding: 10px 20px;
     margin: 5px 0;
     cursor: pointer;
-    width: 100%;
-    text-align: left;
+    font-size: 16px;
+    border-radius: 5px;
+    width: 90%;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    transition: background-color 0.3s ease;
 }
 
 .sidebar button:hover {
-    background-color: #e6b800;
+    background-color: #FFA500; /* Darker gold on hover */
 }
 
-.mainContent {
-    flex: 1;
-    padding: 10px;
+main {
+    flex-grow: 1;
+    padding: 20px;
+    background-color: #222222; /* Very dark gray */
+    border-radius: 10px;
+    overflow-y: auto;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
 .card {
-    background-color: #555;
-    padding: 10px;
+    background-color: #333333; /* Dark gray background for cards */
+    padding: 15px;
     margin: 10px 0;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.card img.team-photo {
+    width: 100px; /* Set a fixed width */
+    height: 100px; /* Set a fixed height */
+    object-fit: cover; /* Ensure the image covers the area without distorting */
+    border-radius: 50%; /* Make the images circular */
+    display: block;
+    margin: 0 auto 10px auto;
+}
+
+.card h3, .card p {
+    margin: 5px 0;
+    text-align: center;
+}
+
+.card button {
+    background-color: #FFD700;
+    border: none;
+    color: #000000;
+    padding: 10px;
+    margin: 5px 0;
+    cursor: pointer;
+    font-size: 16px;
     border-radius: 5px;
+    width: 90%;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    transition: background-color 0.3s ease;
 }
 
-.team-photo {
-    width: 50px;
-    height: 50px;
-    border-radius: 50%;
-    object-fit: cover;
+.card button:hover {
+    background-color: #FFA500;
 }
 
-.button-container {
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgb(0,0,0);
+    background-color: rgba(0,0,0,0.4);
+}
+
+.modal-content {
+    background-color: #333333;
+    margin: 15% auto;
+    padding: 20px;
+    border: 1px solid #888;
+    width: 80%;
+    color: #ffffff;
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.close {
+    color: #aaa;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+}
+
+.close:hover,
+.close:focus {
+    color: #fff;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+footer {
+    text-align: center;
+    padding: 10px;
+    background-color: #333333; /* Dark gray */
+    color: #FFD700; /* Gold text */
+    border-top: 2px solid #FFD700; /* Gold border */
+}
+
+.session-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+}
+
+.session-actions {
     display: flex;
     gap: 10px;
 }
 
-.small-button {
-    background-color: #ffcc00;
+.session-actions i {
+    cursor: pointer;
+    color: #FFD700; /* Gold icons */
+    font-size: 20px;
+}
+
+.session-actions i:hover {
+    color: #FFA500; /* Darker gold on hover */
+}
+
+.session-buttons {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    width: 100%;
+}
+
+.session-buttons button {
+    flex-grow: 1;
+    background-color: #FFD700;
     border: none;
-    color: #000;
+    color: #000000;
+    padding: 10px;
+    cursor: pointer;
+    font-size: 16px;
+    border-radius: 5px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    transition: background-color 0.3s ease;
+    white-space: nowrap;
+}
+
+.session-buttons button:hover {
+    background-color: #FFA500;
+}
+
+.matches-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+}
+
+.matches-table th, .matches-table td {
+    border: 1px solid #444444;
+    padding: 10px;
+    text-align: center;
+}
+
+.matches-table th {
+    background-color: #333333;
+    color: #FFD700;
+}
+
+.matches-table td button {
+    background-color: #FFD700;
+    border: none;
+    color: #000000;
     padding: 5px 10px;
     cursor: pointer;
+    font-size: 14px;
+    border-radius: 3px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    transition: background-color 0.3s ease;
 }
 
-.small-button:hover {
-    background-color: #e6b800;
+.matches-table td button:hover {
+    background-color: #FFA500;
 }
-
-.matches-table,
 .stats-table {
     width: 100%;
     border-collapse: collapse;
+    margin-top: 20px;
 }
 
-.matches-table th,
-.matches-table td,
-.stats-table th,
-.stats-table td {
-    border: 1px solid #444;
-    padding: 5px;
-    text-align: left;
+.stats-table th, .stats-table td {
+    border: 1px solid #444444;
+    padding: 12px 15px;
+    text-align: center;
 }
 
-.matches-table th,
 .stats-table th {
-    background-color: #666;
+    background-color: #333333;
+    color: #FFD700;
+    font-weight: bold;
 }
 
-.matches-table td button,
-.stats-table td button {
-    background-color: #ffcc00;
-    border: none;
-    color: #000;
-    padding: 5px 10px;
-    cursor: pointer;
+.stats-table td {
+    background-color: #222222;
+    color: #FFFFFF;
 }
 
-.matches-table td button:hover,
-.stats-table td button:hover {
-    background-color: #e6b800;
+.stats-table tr:nth-child(even) td {
+    background-color: #2A2A2A;
 }
 
-.icon-button {
-    margin-left: 5px;
-    cursor: pointer;
+.stats-table tfoot td {
+    font-weight: bold;
+    background-color: #333333;
 }
 
-.icon-button i {
-    color: #ffcc00;
-}
-
-.icon-button:hover i {
-    color: #e6b800;
-}

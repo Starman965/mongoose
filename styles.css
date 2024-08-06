@@ -93,24 +93,6 @@ main {
     text-align: center;
 }
 
-.card button {
-    background-color: #FFD700;
-    border: none;
-    color: #000000;
-    padding: 10px;
-    margin: 5px 0;
-    cursor: pointer;
-    font-size: 16px;
-    border-radius: 5px;
-    width: 90%;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    transition: background-color 0.3s ease;
-}
-
-.card button:hover {
-    background-color: #FFA500;
-}
-
 .modal {
     display: none;
     position: fixed;
@@ -236,6 +218,7 @@ footer {
 .matches-table td button:hover {
     background-color: #FFA500;
 }
+
 .stats-table {
     width: 100%;
     border-collapse: collapse;
@@ -268,3 +251,27 @@ footer {
     background-color: #333333;
 }
 
+.card .button-group {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-around;
+    width: 100%;
+}
+
+.card .button-group button {
+    background-color: #FFD700;
+    border: none;
+    color: #000000;
+    padding: 10px;
+    margin: 5px;
+    cursor: pointer;
+    font-size: 16px;
+    border-radius: 5px;
+    flex-grow: 1;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    transition: background-color 0.3s ease;
+}
+
+.card .button-group button:hover {
+    background-color: #FFA500;
+}

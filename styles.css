@@ -139,183 +139,42 @@ footer {
     border-top: 2px solid #FFD700; /* Gold border */
 }
 
-.session-header {
+/* New styles for Maps and Modes pages */
+.table-row {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    width: 100%;
+    padding: 10px;
+    background-color: #333333; /* Dark gray background */
+    margin: 10px 0;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
-.session-actions {
+.table-row .name {
+    flex: 2;
+    color: #FFD700; /* Gold text */
+}
+
+.table-row .actions {
+    flex: 1;
     display: flex;
-    gap: 10px;
+    justify-content: space-around;
 }
 
-.session-actions i {
-    cursor: pointer;
-    color: #FFD700; /* Gold icons */
-    font-size: 20px;
-}
-
-.session-actions i:hover {
-    color: #FFA500; /* Darker gold on hover */
-}
-
-.session-buttons {
-    display: flex;
-    justify-content: space-between;
-    gap: 10px;
-    width: 100%;
-}
-
-.session-buttons button {
-    flex-grow: 1;
+.table-row .actions button {
     background-color: #FFD700;
     border: none;
     color: #000000;
     padding: 10px;
+    margin: 0 5px;
     cursor: pointer;
     font-size: 16px;
     border-radius: 5px;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     transition: background-color 0.3s ease;
-    white-space: nowrap;
 }
 
-.session-buttons button:hover {
-    background-color: #FFA500;
-}
-
-.matches-table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-top: 10px;
-}
-
-.matches-table th, .matches-table td {
-    border: 1px solid #444444;
-    padding: 10px;
-    text-align: center;
-}
-
-.matches-table th {
-    background-color: #333333;
-    color: #FFD700;
-}
-
-.matches-table td button {
-    background-color: #FFD700;
-    border: none;
-    color: #000000;
-    padding: 5px 10px;
-    cursor: pointer;
-    font-size: 14px;
-    border-radius: 3px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    transition: background-color 0.3s ease;
-}
-
-.matches-table td button:hover {
-    background-color: #FFA500;
-}
-
-.stats-table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-top: 20px;
-}
-
-.stats-table th, .stats-table td {
-    border: 1px solid #444444;
-    padding: 12px 15px;
-    text-align: center;
-}
-
-.stats-table th {
-    background-color: #333333;
-    color: #FFD700;
-    font-weight: bold;
-}
-
-.stats-table td {
-    background-color: #222222;
-    color: #FFFFFF;
-}
-
-.stats-table tr:nth-child(even) td {
-    background-color: #2A2A2A;
-}
-
-.stats-table tfoot td {
-    font-weight: bold;
-    background-color: #333333;
-}
-
-.card .button-group {
-    display: flex;
-    justify-content: space-between;
-    width: 100%;
-    gap: 10px; /* Add spacing between buttons */
-}
-
-.card .button-group button {
-    background-color: #FFD700;
-    border: none;
-    color: #000000;
-    padding: 10px;
-    margin: 5px 0;
-    cursor: pointer;
-    font-size: 16px;
-    border-radius: 5px;
-    width: 23%; /* Adjust width to fit 4 buttons per row with some margin */
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    transition: background-color 0.3s ease;
-}
-
-.card .button-group button:hover {
-    background-color: #FFA500;
-}
-
-.team-list {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: space-between;
-}
-
-.team-list .card {
-    flex: 0 1 calc(33.333% - 10px); /* 3 cards per row with some margin */
-    margin: 5px;
-    box-sizing: border-box;
-}
-
-.team-photo {
-    width: 100px; /* Set a fixed width */
-    height: 100px; /* Set a fixed height */
-    object-fit: cover; /* Ensure the image covers the area without distorting */
-    border-radius: 50%; /* Make the images circular */
-    display: block;
-    margin: 0 auto 10px auto;
-}
-
-.card h3, .card p {
-    margin: 5px 0;
-    text-align: center;
-}
-
-.card button {
-    background-color: #FFD700;
-    border: none;
-    color: #000000;
-    padding: 10px;
-    margin: 5px 0;
-    cursor: pointer;
-    font-size: 16px;
-    border-radius: 5px;
-    width: 90%;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    transition: background-color 0.3s ease;
-}
-
-.card button:hover {
+.table-row .actions button:hover {
     background-color: #FFA500;
 }

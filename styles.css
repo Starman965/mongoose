@@ -151,10 +151,23 @@ footer {
     border-radius: 5px;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     transition: background-color 0.3s ease;
+    white-space: nowrap;
 }
 
 .button:hover {
     background-color: #FFA500; /* Darker gold on hover */
+}
+
+/* Ensure button groups are in a row */
+.button-group {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.button-group .button {
+    flex: 1 1 auto;
 }
 
 /* Specific Button Styles */
@@ -162,12 +175,11 @@ footer {
     width: 100%;
 }
 
-.card-button-group button {
+.card-button-group .button {
     width: 23%; /* Adjust width to fit 4 buttons per row with some margin */
 }
 
-.game-mode-button-group button,
-.table-row .actions button {
+.table-row .actions .button {
     width: 48%; /* Adjust width to fit 2 buttons per row with some margin */
 }
 
@@ -194,7 +206,7 @@ footer {
     justify-content: space-around;
 }
 
-.table-row .actions button {
+.table-row .actions .button {
     background-color: #FFD700;
     border: none;
     color: #000000;
@@ -207,7 +219,7 @@ footer {
     transition: background-color 0.3s ease;
 }
 
-.table-row .actions button:hover {
+.table-row .actions .button:hover {
     background-color: #FFA500;
 }
 
@@ -254,22 +266,8 @@ footer {
     width: 100%;
 }
 
-.session-buttons button {
+.session-buttons .button {
     flex-grow: 1;
-    background-color: #FFD700;
-    border: none;
-    color: #000000;
-    padding: 10px;
-    cursor: pointer;
-    font-size: 16px;
-    border-radius: 5px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    transition: background-color 0.3s ease;
-    white-space: nowrap;
-}
-
-.session-buttons button:hover {
-    background-color: #FFA500;
 }
 
 .matches-table {
@@ -289,7 +287,7 @@ footer {
     color: #FFD700;
 }
 
-.matches-table td button {
+.matches-table td .button {
     background-color: #FFD700;
     border: none;
     color: #000000;
@@ -301,7 +299,7 @@ footer {
     transition: background-color 0.3s ease;
 }
 
-.matches-table td button:hover {
+.matches-table td .button:hover {
     background-color: #FFA500;
 }
 
@@ -326,7 +324,8 @@ footer {
 .stats-table td {
     background-color: #222222;
     color: #FFFFFF;
-    
+}
+
 .stats-table tr:nth-child(even) td {
     background-color: #2A2A2A;
 }
@@ -335,4 +334,3 @@ footer {
     font-weight: bold;
     background-color: #333333;
 }
-

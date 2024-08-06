@@ -282,11 +282,29 @@ window.deleteTeamMember = function(id) {
 
 // Game Sessions
 function formatDate(dateString) {
+  // Create a date object from the date string
   const date = new Date(dateString);
+  
+  // Adjust the date for the correct time zone if necessary
+  const correctedDate = new Date(date.getTime() + date.getTimezoneOffset() * 60000);
+
+  // Define the format options
   const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-  return date.toLocaleDateString(undefined, options);
+  
+  // Return the formatted date string
+  return correctedDate.toLocaleDateString(undefined, options);
 }
 
+
+// Format date to correct for time zone issues
+function formatDate(dateString) {
+  const date = new Date(dateString);
+  const correctedDate = new Date(date.getTime() + date.getTimezoneOffset() * 60000);
+  const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+  return correctedDate.toLocaleDateString(undefined, options);
+}
+
+// Load game sessions and display formatted dates
 function loadGameSessions() {
   const sessionList = document.getElementById('sessionList');
   sessionList.innerHTML = 'Loading game sessions...';
@@ -313,6 +331,7 @@ function loadGameSessions() {
     }
   });
 }
+
 window.toggleMatches = function(sessionId) {
   const matchesContainer = document.getElementById(`matches-${sessionId}`);
   if (matchesContainer.style.display === 'none' || matchesContainer.style.display === '') {

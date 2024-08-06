@@ -56,6 +56,29 @@ function showGameSessions() {
   loadGameSessions();
 }
 
+function addMatch(e) {
+  e.preventDefault();
+  const form = e.target;
+  const sessionId = form.dataset.sessionId;
+  const matchData = {
+    gameMode: form.gameMode.value,
+    map: form.map.value,
+    placement: parseInt(form.placement.value),
+  };
+
+  const matchRef = push(ref(database, `gameSessions/${sessionId}/matches`));
+
+  matchRef
+    .then(() => {
+      loadMatches(sessionId);
+      modal.style.display = "none";
+    })
+    .catch(error => {
+      console.error("Error adding match: ", error);
+      alert('Error adding match. Please try again.');
+    });
+}
+
 // Make showModal globally accessible
 window.showModal = function(action, id = null) {
   modalContent.innerHTML = '';

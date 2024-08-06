@@ -1,17 +1,30 @@
-// Firebase configuration
+import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
+import { 
+    getDatabase,
+    ref, 
+    onValue, 
+    set, 
+    push,
+    update,
+    remove,
+    get
+} from "https://www.gstatic.com/firebasejs/9.22.0/firebase-database.js";
+import { getAnalytics } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-analytics.js";
+
 const firebaseConfig = {
-  apiKey: "AIzaSyCsW2O4WMxcHKMsIBJE4qHhkcTBdqYNZTk",
-  authDomain: "mongoose-a1fec.firebaseapp.com",
-  projectId: "mongoose-a1fec",
-  storageBucket: "mongoose-a1fec.appspot.com",
-  messagingSenderId: "504377946463",
-  appId: "1:504377946463:web:863aee9ddf559239bb06ea",
-  measurementId: "G-31E63T2391"
+    apiKey: "AIzaSyCsW2O4WMxcHKMsIBJE4qHhkcTBdqYNZTk",
+    authDomain: "mongoose-a1fec.firebaseapp.com",
+    databaseURL: "https://mongoose-a1fec-default-rtdb.firebaseio.com",
+    projectId: "mongoose-a1fec",
+    storageBucket: "mongoose-a1fec.appspot.com",
+    messagingSenderId: "504377946463",
+    appId: "1:504377946463:web:863aee9ddf559239bb06ea",
+    measurementId: "G-31E63T2391"
 };
 
-// Initialize Firebase
-firebase.initializeApp(firebaseConfig);
-const db = firebase.firestore();
+const app = initializeApp(firebaseConfig);
+const analytics = getAnalytics(app);
+const database = getDatabase(app);
 
 // DOM elements
 const mainContent = document.getElementById('mainContent');
@@ -69,30 +82,29 @@ function showTeamMembers() {
 function loadTeamMembers() {
   const teamList = document.getElementById('teamList');
   teamList.innerHTML = 'Loading team members...';
-  db.collection('teamMembers').get()
-    .then(querySnapshot => {
-      teamList.innerHTML = '';
-      querySnapshot.forEach(doc => {
-        const member = doc.data();
-        teamList.innerHTML += `
-          <div class="card">
-            <h3>${member.name} (${member.gamertag})</h3>
-            <p>State: ${member.state}</p>
-            <p>Age: ${member.age}</p>
-            <p>Favorite Snack: ${member.favoriteSnack}</p>
-            <button onclick="showModal('editTeamMember', '${doc.id}')">Edit</button>
-            <button onclick="deleteTeamMember('${doc.id}')">Delete</button>
-          </div>
-        `;
-      });
-      if (querySnapshot.empty) {
-        teamList.innerHTML = 'No team members found. Add some!';
-      }
-    })
-    .catch(error => {
-      console.error("Error loading team members: ", error);
-      teamList.innerHTML = 'Error loading team members. Please try again.';
+  
+  onValue(ref(database, 'teamMembers'), (snapshot) => {
+    teamList.innerHTML = '';
+    snapshot.forEach((childSnapshot) => {
+      const member = childSnapshot.val();
+      const memberId = childSnapshot.key;
+      teamList.innerHTML += `
+        <div class="card">
+          <h3>${member.name} (${member.gamertag})</h3>
+          <p>State: ${member.state}</p>
+          <p>Age: ${member.age}</p>
+          <p>Favorite Snack: ${member.favoriteSnack}</p>
+          <button onclick="showModal('editTeamMember', '${memberId}')">Edit</button>
+          <button onclick="deleteTeamMember('${memberId}')">Delete</button>
+        </div>
+      `;
     });
+    if (teamList.innerHTML === '') {
+      teamList.innerHTML = 'No team members found. Add some!';
+    }
+  }, {
+    onlyOnce: true
+  });
 }
 
 function showModal(action, id = null) {
@@ -113,9 +125,9 @@ function showModal(action, id = null) {
       document.getElementById('teamMemberForm').addEventListener('submit', addOrUpdateTeamMember);
       break;
     case 'editTeamMember':
-      db.collection('teamMembers').doc(id).get()
-        .then(doc => {
-          const member = doc.data();
+      get(ref(database, `teamMembers/${id}`)).then((snapshot) => {
+        if (snapshot.exists()) {
+          const member = snapshot.val();
           modalContent.innerHTML = `
             <h3>Edit Team Member</h3>
             <form id="teamMemberForm" data-id="${id}">
@@ -128,7 +140,8 @@ function showModal(action, id = null) {
             </form>
           `;
           document.getElementById('teamMemberForm').addEventListener('submit', addOrUpdateTeamMember);
-        });
+        }
+      });
       break;
     // Add cases for game modes and maps here
   }
@@ -148,8 +161,8 @@ function addOrUpdateTeamMember(e) {
   };
 
   const operation = memberId
-    ? db.collection('teamMembers').doc(memberId).update(memberData)
-    : db.collection('teamMembers').add(memberData);
+    ? update(ref(database, `teamMembers/${memberId}`), memberData)
+    : push(ref(database, 'teamMembers'), memberData);
 
   operation
     .then(() => {
@@ -164,7 +177,7 @@ function addOrUpdateTeamMember(e) {
 
 function deleteTeamMember(id) {
   if (confirm('Are you sure you want to delete this team member?')) {
-    db.collection('teamMembers').doc(id).delete()
+    remove(ref(database, `teamMembers/${id}`))
       .then(() => loadTeamMembers())
       .catch(error => {
         console.error("Error deleting team member: ", error);
@@ -186,31 +199,40 @@ function showGameSessions() {
 function loadGameSessions() {
   const sessionList = document.getElementById('sessionList');
   sessionList.innerHTML = 'Loading game sessions...';
-  db.collection('gameSessions').orderBy('date', 'desc').get()
-    .then(querySnapshot => {
-      sessionList.innerHTML = '';
-      querySnapshot.forEach(doc => {
-        const session = doc.data();
-        sessionList.innerHTML += `
-          <div class="card">
-            <h3>Session on ${session.date}</h3>
-            <p>Number of matches: ${session.matches.length}</p>
-            <button onclick="showModal('viewMatches', '${doc.id}')">View Matches</button>
-            <button onclick="showModal('addMatch', '${doc.id}')">Add Match</button>
-          </div>
-        `;
-      });
-      if (querySnapshot.empty) {
-        sessionList.innerHTML = 'No game sessions found. Add some!';
-      }
-    })
-    .catch(error => {
-      console.error("Error loading game sessions: ", error);
-      sessionList.innerHTML = 'Error loading game sessions. Please try again.';
+  
+  onValue(ref(database, 'gameSessions'), (snapshot) => {
+    sessionList.innerHTML = '';
+    snapshot.forEach((childSnapshot) => {
+      const session = childSnapshot.val();
+      const sessionId = childSnapshot.key;
+      sessionList.innerHTML += `
+        <div class="card">
+          <h3>Session on ${session.date}</h3>
+          <p>Number of matches: ${session.matches ? Object.keys(session.matches).length : 0}</p>
+          <button onclick="showModal('viewMatches', '${sessionId}')">View Matches</button>
+          <button onclick="showModal('addMatch', '${sessionId}')">Add Match</button>
+        </div>
+      `;
     });
+    if (sessionList.innerHTML === '') {
+      sessionList.innerHTML = 'No game sessions found. Add some!';
+    }
+  }, {
+    onlyOnce: true
+  });
 }
 
 // Add functions for adding/editing/deleting game sessions and matches here
 
 // Initialize the app
 showTeamMembers();
+
+// Check connection
+const connectedRef = ref(database, ".info/connected");
+onValue(connectedRef, (snap) => {
+    if (snap.val() === true) {
+        console.log("Connected to Firebase");
+    } else {
+        console.log("Not connected to Firebase");
+    }
+});

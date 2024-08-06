@@ -41,21 +41,21 @@ h1 {
     border-right: 2px solid #FFD700; /* Gold border */
 }
 
-.sidebar-button {
+.sidebar button {
     background-color: #FFD700; /* Gold buttons */
     border: none;
     color: #000000; /* Black text */
-    padding: 10px 20px;
+    padding: 10px;
     margin: 5px 0;
     cursor: pointer;
     font-size: 16px;
     border-radius: 5px;
-    width: 90%;
+    width: 100%; /* Full width buttons */
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     transition: background-color 0.3s ease;
 }
 
-.sidebar-button:hover {
+.sidebar button:hover {
     background-color: #FFA500; /* Darker gold on hover */
 }
 
@@ -159,7 +159,7 @@ footer {
 
 /* Specific Button Styles */
 .sidebar-button {
-    width: 90%;
+    width: 100%;
 }
 
 .card-button-group button {
@@ -223,6 +223,88 @@ footer {
     margin: 5px;
     box-sizing: border-box;
 }
+
+/* Styles for Game Sessions and Matches */
+.session-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+}
+
+.session-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.session-actions i {
+    cursor: pointer;
+    color: #FFD700; /* Gold icons */
+    font-size: 20px;
+}
+
+.session-actions i:hover {
+    color: #FFA500; /* Darker gold on hover */
+}
+
+.session-buttons {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    width: 100%;
+}
+
+.session-buttons button {
+    flex-grow: 1;
+    background-color: #FFD700;
+    border: none;
+    color: #000000;
+    padding: 10px;
+    cursor: pointer;
+    font-size: 16px;
+    border-radius: 5px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    transition: background-color 0.3s ease;
+    white-space: nowrap;
+}
+
+.session-buttons button:hover {
+    background-color: #FFA500;
+}
+
+.matches-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+}
+
+.matches-table th, .matches-table td {
+    border: 1px solid #444444;
+    padding: 10px;
+    text-align: center;
+}
+
+.matches-table th {
+    background-color: #333333;
+    color: #FFD700;
+}
+
+.matches-table td button {
+    background-color: #FFD700;
+    border: none;
+    color: #000000;
+    padding: 5px 10px;
+    cursor: pointer;
+    font-size: 14px;
+    border-radius: 3px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    transition: background-color 0.3s ease;
+}
+
+.matches-table td button:hover {
+    background-color: #FFA500;
+}
+
 .stats-table {
     width: 100%;
     border-collapse: collapse;
@@ -244,8 +326,7 @@ footer {
 .stats-table td {
     background-color: #222222;
     color: #FFFFFF;
-}
-
+    
 .stats-table tr:nth-child(even) td {
     background-color: #2A2A2A;
 }

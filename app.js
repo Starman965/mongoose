@@ -362,8 +362,8 @@ function loadGameSessions() {
       sessions.push(session);
     });
 
-    // Sort sessions by date
-    sessions.sort((a, b) => new Date(a.date) - new Date(b.date));
+    // Sort sessions by date in descending order
+    sessions.sort((a, b) => new Date(b.date) - new Date(a.date));
 
     sessionList.innerHTML = '';
     sessions.forEach((session) => {
@@ -386,15 +386,6 @@ function loadGameSessions() {
   });
 }
 
-window.toggleMatches = function(sessionId) {
-  const matchesContainer = document.getElementById(`matches-${sessionId}`);
-  if (matchesContainer.style.display === 'none' || matchesContainer.style.display === '') {
-    loadMatches(sessionId);
-    matchesContainer.style.display = 'block';
-  } else {
-    matchesContainer.style.display = 'none';
-  }
-}
 
 function loadMatches(sessionId) {
     const matchesContainer = document.getElementById(`matches-${sessionId}`);

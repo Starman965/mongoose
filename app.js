@@ -66,7 +66,7 @@ function addMatch(e) {
     placement: parseInt(form.placement.value),
   };
 
-  const matchRef = push(ref(database, `gameSessions/${sessionId}/matches`));
+  const matchRef = push(ref(database, `gameSessions/${sessionId}/matches`), matchData);
 
   matchRef
     .then(() => {

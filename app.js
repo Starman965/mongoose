@@ -292,16 +292,18 @@ function viewMatches(sessionId) {
       const session = snapshot.val();
       let matchesHtml = '<h3>Matches</h3>';
       if (session.matches) {
+        matchesHtml += '<table><tr><th>Game Mode</th><th>Map</th><th>Placement</th><th>Action</th></tr>';
         Object.entries(session.matches).forEach(([matchId, match]) => {
           matchesHtml += `
-            <div class="match-card">
-              <p>Game Mode: ${match.gameMode}</p>
-              <p>Map: ${match.map}</p>
-              <p>Placement: ${match.placement}</p>
-              <button onclick="deleteMatch('${sessionId}', '${matchId}')">Delete Match</button>
-            </div>
+            <tr>
+              <td>${match.gameMode}</td>
+              <td>${match.map}</td>
+              <td>${match.placement}</td>
+              <td><button onclick="deleteMatch('${sessionId}', '${matchId}')">Delete Match</button></td>
+            </tr>
           `;
         });
+        matchesHtml += '</table>';
       } else {
         matchesHtml += '<p>No matches found for this session.</p>';
       }
@@ -309,6 +311,7 @@ function viewMatches(sessionId) {
     }
   });
 }
+
 
 window.deleteMatch = function(sessionId, matchId) {
   if (confirm('Are you sure you want to delete this match?')) {

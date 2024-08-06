@@ -472,10 +472,12 @@ function loadGameModes() {
       const gameMode = childSnapshot.val();
       const gameModeId = childSnapshot.key;
       gameModeList.innerHTML += `
-        <div class="card">
-          <h3>${gameMode.name}</h3>
-          <button onclick="showModal('editGameMode', '${gameModeId}')">Edit</button>
-          <button onclick="deleteGameMode('${gameModeId}')">Delete</button>
+        <div class="table-row">
+          <div class="name">${gameMode.name}</div>
+          <div class="actions">
+            <button onclick="showModal('editGameMode', '${gameModeId}')">Edit</button>
+            <button onclick="deleteGameMode('${gameModeId}')">Delete</button>
+          </div>
         </div>
       `;
     });
@@ -539,10 +541,12 @@ function loadMaps() {
       const map = childSnapshot.val();
       const mapId = childSnapshot.key;
       mapList.innerHTML += `
-        <div class="card">
-          <h3>${map.name}</h3>
-          <button onclick="showModal('editMap', '${mapId}')">Edit</button>
-          <button onclick="deleteMap('${mapId}')">Delete</button>
+        <div class="table-row">
+          <div class="name">${map.name}</div>
+          <div class="actions">
+            <button onclick="showModal('editMap', '${mapId}')">Edit</button>
+            <button onclick="deleteMap('${mapId}')">Delete</button>
+          </div>
         </div>
       `;
     });

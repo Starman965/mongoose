@@ -47,6 +47,150 @@ function showSection(section) {
   }
 }
 
+window.showGameSessions = function() {
+  mainContent.innerHTML = `
+    <h2>Game Sessions</h2>
+    <button onclick="showModal('addGameSession')">Add Game Session</button>
+    <div id="sessionList"></div>
+  `;
+  loadGameSessions();
+}
+
+function addMatch(e) {
+  e.preventDefault();
+  const form = e.target;
+  const sessionId = form.dataset.sessionId;
+  const matchData = {
+    gameMode: form.gameMode.value,
+    map: form.map.value,
+    placement: parseInt(form.placement.value),
+  };
+
+  const matchRef = push(ref(database, `gameSessions/${sessionId}/matches`), matchData);
+
+  matchRef
+    .then(() => {
+      loadMatches(sessionId);
+      modal.style.display = "none";
+    })
+    .catch(error => {
+      console.error("Error adding match: ", error);
+      alert('Error adding match. Please try again.');
+    });
+}
+
+// Make showModal globally accessible
+window.showModal = function(action, id = null) {
+  modalContent.innerHTML = '';
+  switch(action) {
+    case 'addTeamMember':
+      modalContent.innerHTML = `
+        <h3>Add Team Member</h3>
+        <form id="teamMemberForm">
+          <input type="text" id="name" placeholder="Name" required>
+          <input type="text" id="gamertag" placeholder="Gamertag" required>
+          <input type="text" id="state" placeholder="State" required>
+          <input type="number" id="age" placeholder="Age" required>
+          <input type="text" id="favoriteSnack" placeholder="Favorite Snack" required>
+          <input type="file" id="photo" accept="image/*" required>
+          <button type="submit">Add Team Member</button>
+        </form>
+      `;
+      document.getElementById('teamMemberForm').addEventListener('submit', addOrUpdateTeamMember);
+      break;
+    case 'editTeamMember':
+      get(ref(database, `teamMembers/${id}`)).then((snapshot) => {
+        if (snapshot.exists()) {
+          const member = snapshot.val();
+          modalContent.innerHTML = `
+            <h3>Edit Team Member</h3>
+            <form id="teamMemberForm" data-id="${id}">
+              <input type="text" id="name" value="${member.name}" required>
+              <input type="text" id="gamertag" value="${member.gamertag}" required>
+              <input type="text" id="state" value="${member.state}" required>
+              <input type="number" id="age" value="${member.age}" required>
+              <input type="text" id="favoriteSnack" value="${member.favoriteSnack}" required>
+              <input type="file" id="photo" accept="image/*">
+              <button type="submit">Update Team Member</button>
+            </form>
+          `;
+          document.getElementById('teamMemberForm').addEventListener('submit', addOrUpdateTeamMember);
+        }
+      });
+      break;
+    case 'addGameSession':
+      modalContent.innerHTML = `
+        <h3>Add Game Session</h3>
+        <form id="gameSessionForm">
+          <input type="date" id="date" placeholder="Date" required>
+          <button type="submit">Add Game Session</button>
+        </form>
+      `;
+      document.getElementById('gameSessionForm').addEventListener('submit', addOrUpdateGameSession);
+      break;
+    case 'editGameSession':
+      get(ref(database, `gameSessions/${id}`)).then((snapshot) => {
+        if (snapshot.exists()) {
+          const session = snapshot.val();
+          modalContent.innerHTML = `
+            <h3>Edit Game Session</h3>
+            <form id="gameSessionForm" data-id="${id}">
+              <input type="date" id="date" value="${session.date}" required>
+              <button type="submit">Update Game Session</button>
+            </form>
+          `;
+          document.getElementById('gameSessionForm').addEventListener('submit', addOrUpdateGameSession);
+        }
+      });
+      break;
+    case 'addMatch':
+      modalContent.innerHTML = `
+        <h3>Add Match</h3>
+        <form id="matchForm" data-session-id="${id}">
+          <select id="gameMode" required>
+            <option value="">Select Game Mode</option>
+          </select>
+          <select id="map" required>
+            <option value="">Select Map</option>
+          </select>
+          <input type="number" id="placement" placeholder="Placement" required>
+          <button type="submit">Add Match</button>
+        </form>
+      `;
+      loadGameModesAndMaps();
+      document.getElementById('matchForm').addEventListener('submit', addMatch);
+      break;
+    case 'viewMatches':
+      viewMatches(id);
+      break;
+  }
+  modal.style.display = "block";
+}
+
+function addOrUpdateGameSession(e) {
+  e.preventDefault();
+  const form = e.target;
+  const sessionId = form.dataset.id;
+  const sessionData = {
+    date: form.date.value,
+  };
+
+  const operation = sessionId
+    ? update(ref(database, `gameSessions/${sessionId}`), sessionData)
+    : push(ref(database, 'gameSessions'), sessionData);
+
+  operation
+    .then(() => {
+      loadGameSessions();
+      modal.style.display = "none";
+    })
+    .catch(error => {
+      console.error("Error adding/updating game session: ", error);
+      alert('Error adding/updating game session. Please try again.');
+    });
+}
+
+
 // Team Members
 function showTeamMembers() {
   mainContent.innerHTML = `
@@ -135,6 +279,156 @@ window.deleteTeamMember = function(id) {
       .catch(error => {
         console.error("Error deleting team member: ", error);
         alert('Error deleting team member. Please try again.');
+      });
+  }
+}
+
+function formatDate(dateString) {
+  const date = new Date(dateString);
+  const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+  return date.toLocaleDateString(undefined, options);
+}
+
+// Game Sessions
+
+window.loadGameSessions = function() {
+  const sessionList = document.getElementById('sessionList');
+  sessionList.innerHTML = 'Loading game sessions...';
+
+  get(ref(database, 'gameSessions')).then((snapshot) => {
+    const sessions = [];
+    snapshot.forEach((childSnapshot) => {
+      sessions.push({ id: childSnapshot.key, ...childSnapshot.val() });
+    });
+
+    sessions.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+    sessionList.innerHTML = '';
+    sessions.forEach((session) => {
+      const sessionId = session.id;
+      sessionList.innerHTML += `
+        <div class="card">
+          <h3>${formatDate(session.date)} 
+            <span class="icon-button" onclick="showModal('editGameSession', '${sessionId}')">
+              <i class="fas fa-edit"></i>
+            </span>
+            <span class="icon-button" onclick="deleteGameSession('${sessionId}')">
+              <i class="fas fa-trash-alt"></i>
+            </span>
+          </h3>
+          <p>Number of matches: ${session.matches ? Object.keys(session.matches).length : 0}</p>
+          <div class="button-container">
+            <button class="small-button" onclick="toggleMatches('${sessionId}')">View Matches</button>
+            <button class="small-button" onclick="showModal('addMatch', '${sessionId}')">Add Match</button>
+          </div>
+          <div id="matches-${sessionId}" class="matches-container"></div>
+        </div>
+      `;
+    });
+
+    if (sessionList.innerHTML === '') {
+      sessionList.innerHTML = 'No game sessions found. Add some!';
+    }
+  });
+}
+
+window.toggleMatches = function(sessionId) {
+  const matchesContainer = document.getElementById(`matches-${sessionId}`);
+  if (matchesContainer.style.display === 'none' || matchesContainer.style.display === '') {
+    loadMatches(sessionId);
+    matchesContainer.style.display = 'block';
+  } else {
+    matchesContainer.style.display = 'none';
+  }
+}
+
+window.loadMatches = function(sessionId) {
+  const matchesContainer = document.getElementById(`matches-${sessionId}`);
+  get(ref(database, `gameSessions/${sessionId}`)).then((snapshot) => {
+    if (snapshot.exists()) {
+      const session = snapshot.val();
+      let matchesHtml = '<h3>Matches</h3>';
+      if (session.matches) {
+        matchesHtml += `
+          <table class="matches-table">
+            <thead>
+              <tr>
+                <th>Game Mode</th>
+                <th>Map</th>
+                <th>Placement</th>
+        `;
+
+        const teamMembersSnapshot = get(ref(database, 'teamMembers'));
+        teamMembersSnapshot.then((teamMembers) => {
+          teamMembers.forEach((memberSnapshot) => {
+            const member = memberSnapshot.val();
+            matchesHtml += `<th>${member.gamertag}</th>`;
+          });
+
+          matchesHtml += `
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody>
+          `;
+
+          Object.entries(session.matches).forEach(([matchId, match]) => {
+            matchesHtml += `
+              <tr>
+                <td>${match.gameMode}</td>
+                <td>${match.map}</td>
+                <td>${match.placement}</td>
+            `;
+
+            teamMembers.forEach((memberSnapshot) => {
+              const member = memberSnapshot.val();
+              const kills = match.kills && match.kills[memberSnapshot.key] !== undefined
+                ? match.kills[memberSnapshot.key]
+                : '';
+              matchesHtml += `<td>${kills}</td>`;
+            });
+
+            matchesHtml += `
+                <td><button class="small-button" onclick="deleteMatch('${sessionId}', '${matchId}')">Delete Match</button></td>
+              </tr>
+            `;
+          });
+
+          matchesHtml += `
+            </tbody>
+          </table>
+          `;
+
+          matchesContainer.innerHTML = matchesHtml;
+        });
+      } else {
+        matchesHtml += '<p>No matches found for this session.</p>';
+        matchesContainer.innerHTML = matchesHtml;
+      }
+    }
+  });
+}
+
+window.deleteGameSession = function(id) {
+  if (confirm('Are you sure you want to delete this game session?')) {
+    remove(ref(database, `gameSessions/${id}`))
+      .then(() => loadGameSessions())
+      .catch(error => {
+        console.error("Error deleting game session: ", error);
+        alert('Error deleting game session. Please try again.');
+      });
+  }
+}
+
+window.deleteMatch = function(sessionId, matchId) {
+  if (confirm('Are you sure you want to delete this match?')) {
+    remove(ref(database, `gameSessions/${sessionId}/matches/${matchId}`))
+      .then(() => {
+        loadMatches(sessionId);
+      })
+      .catch(error => {
+        console.error("Error deleting match: ", error);
+        alert('Error deleting match. Please try again.');
       });
   }
 }
@@ -273,442 +567,6 @@ window.deleteMap = function(id) {
   }
 }
 
-// Game Sessions
-function showGameSessions() {
-  mainContent.innerHTML = `
-    <h2>Game Sessions</h2>
-    <button onclick="showModal('addGameSession')">Add Game Session</button>
-    <div id="sessionList"></div>
-  `;
-  loadGameSessions();
-}
-
-function loadGameSessions() {
-  const sessionList = document.getElementById('sessionList');
-  sessionList.innerHTML = 'Loading game sessions...';
-  
-  onValue(ref(database, 'gameSessions'), (snapshot) => {
-    const sessions = [];
-    snapshot.forEach((childSnapshot) => {
-      const session = childSnapshot.val();
-      const sessionId = childSnapshot.key;
-      sessions.push({ ...session, id: sessionId });
-    });
-    
-    // Sort sessions by date descending
-    sessions.sort((a, b) => new Date(b.date) - new Date(a.date));
-
-    sessionList.innerHTML = '';
-    sessions.forEach((session) => {
-      sessionList.innerHTML += `
-        <div class="card">
-          <h3>
-            ${formatDate(session.date)}
-            <button onclick="showModal('editGameSession', '${session.id}')" class="icon-button">&#9998;</button>
-            <button onclick="deleteGameSession('${session.id}')" class="icon-button">&#128465;</button>
-          </h3>
-          <p>Number of matches: ${session.matches ? Object.keys(session.matches).length : 0}</p>
-          <div class="button-group">
-            <button onclick="toggleMatches('${session.id}')">View Matches</button>
-            <button onclick="showModal('addMatch', '${session.id}')">Add Match</button>
-          </div>
-          <div id="matches-${session.id}" class="matches-container"></div>
-        </div>
-      `;
-    });
-
-    if (sessionList.innerHTML === '') {
-      sessionList.innerHTML = 'No game sessions found. Add some!';
-    }
-  });
-}
-
-function addOrUpdateGameSession(e) {
-  e.preventDefault();
-  const form = e.target;
-  const sessionId = form.dataset.id;
-  const sessionData = {
-    date: form.date.value,
-  };
-
-  const operation = sessionId
-    ? update(ref(database, `gameSessions/${sessionId}`), sessionData)
-    : push(ref(database, 'gameSessions'), sessionData);
-
-  operation
-    .then(() => {
-      loadGameSessions();
-      modal.style.display = "none";
-    })
-    .catch(error => {
-      console.error("Error adding/updating game session: ", error);
-      alert('Error adding/updating game session. Please try again.');
-    });
-}
-
-function toggleMatches(sessionId) {
-  const matchesContainer = document.getElementById(`matches-${sessionId}`);
-  if (matchesContainer.style.display === 'none' || matchesContainer.style.display === '') {
-    loadMatches(sessionId);
-    matchesContainer.style.display = 'block';
-  } else {
-    matchesContainer.style.display = 'none';
-  }
-}
-
-function loadMatches(sessionId) {
-  const matchesContainer = document.getElementById(`matches-${sessionId}`);
-  get(ref(database, `gameSessions/${sessionId}`)).then((snapshot) => {
-    if (snapshot.exists()) {
-      const session = snapshot.val();
-      let matchesHtml = '<h3>Matches</h3>';
-      if (session.matches) {
-        matchesHtml += '<table class="matches-table"><tr><th>Game Mode</th><th>Map</th><th>Placement</th>';
-        
-        // Add headers for each player
-        onValue(ref(database, 'teamMembers'), (snapshot) => {
-          snapshot.forEach((childSnapshot) => {
-            const member = childSnapshot.val();
-            matchesHtml += `<th>${member.gamertag}</th>`;
-          });
-        });
-        
-        matchesHtml += '</tr>';
-        
-        Object.entries(session.matches).forEach(([matchId, match]) => {
-          matchesHtml += `
-            <tr>
-              <td>${match.gameMode}</td>
-              <td>${match.map}</td>
-              <td>${match.placement}</td>
-          `;
-          
-          // Add kill counts for each player
-          onValue(ref(database, 'teamMembers'), (snapshot) => {
-            snapshot.forEach((childSnapshot) => {
-              const member = childSnapshot.val();
-              matchesHtml += `<td>${match.kills && match.kills[member.gamertag] !== undefined ? match.kills[member.gamertag] : ''}</td>`;
-            });
-          });
-
-          matchesHtml += `
-              <td><button onclick="deleteMatch('${sessionId}', '${matchId}')">Delete Match</button></td>
-            </tr>
-          `;
-        });
-        matchesHtml += '</table>';
-      } else {
-        matchesHtml += '<p>No matches found for this session.</p>';
-      }
-      matchesContainer.innerHTML = matchesHtml;
-    }
-  });
-}
-
-function addMatch(e) {
-  e.preventDefault();
-  const form = e.target;
-  const sessionId = form.dataset.sessionId;
-  const matchData = {
-    gameMode: form.gameMode.value,
-    map: form.map.value,
-    placement: parseInt(form.placement.value),
-    kills: {}
-  };
-
-  // Collect kill counts for each player
-  onValue(ref(database, 'teamMembers'), (snapshot) => {
-    snapshot.forEach((childSnapshot) => {
-      const member = childSnapshot.val();
-      const killsInput = form[`kills-${member.gamertag}`];
-      if (killsInput) {
-        const kills = parseInt(killsInput.value);
-        if (!isNaN(kills)) {
-          matchData.kills[member.gamertag] = kills;
-        }
-      }
-    });
-  });
-
-  const matchRef = push(ref(database, `gameSessions/${sessionId}/matches`), matchData);
-
-  matchRef
-    .then(() => {
-      loadMatches(sessionId);
-      modal.style.display = "none";
-    })
-    .catch(error => {
-      console.error("Error adding match: ", error);
-      alert('Error adding match. Please try again.');
-    });
-}
-
-window.deleteGameSession = function(id) {
-  if (confirm('Are you sure you want to delete this game session?')) {
-    remove(ref(database, `gameSessions/${id}`))
-      .then(() => loadGameSessions())
-      .catch(error => {
-        console.error("Error deleting game session: ", error);
-        alert('Error deleting game session. Please try again.');
-      });
-  }
-}
-
-window.deleteMatch = function(sessionId, matchId) {
-  if (confirm('Are you sure you want to delete this match?')) {
-    remove(ref(database, `gameSessions/${sessionId}/matches/${matchId}`))
-      .then(() => {
-        loadMatches(sessionId);
-      })
-      .catch(error => {
-        console.error("Error deleting match: ", error);
-        alert('Error deleting match. Please try again.');
-      });
-  }
-}
-
-// Statistics
-function showStats() {
-  mainContent.innerHTML = `
-    <h2>Game Statistics</h2>
-    <div id="statsTable"></div>
-  `;
-  loadStats();
-}
-
-function loadStats() {
-  const statsTable = document.getElementById('statsTable');
-  statsTable.innerHTML = 'Loading statistics...';
-
-  get(ref(database, 'gameSessions')).then((snapshot) => {
-    const sessions = [];
-    snapshot.forEach((childSnapshot) => {
-      const session = childSnapshot.val();
-      sessions.push(session);
-    });
-    
-    // Sort sessions by date descending
-    sessions.sort((a, b) => new Date(b.date) - new Date(a.date));
-
-    let tableHTML = `
-      <table class="stats-table">
-        <thead>
-          <tr>
-            <th>Date</th>
-            <th>Games Played</th>
-            <th>Wins</th>
-            <th>2nd Place</th>
-            <th>3rd Place</th>
-            <th>4th Place</th>
-            <th>5th Place</th>
-            <th>6th+ Place</th>
-          </tr>
-        </thead>
-        <tbody>
-    `;
-
-    let totalStats = {
-      gamesPlayed: 0,
-      wins: 0,
-      secondPlace: 0,
-      thirdPlace: 0,
-      fourthPlace: 0,
-      fifthPlace: 0,
-      sixthPlacePlus: 0
-    };
-
-    sessions.forEach((session) => {
-      const stats = calculateSessionStats(session.matches || {});
-      
-      // Add to totals
-      for (let key in totalStats) {
-        totalStats[key] += stats[key];
-      }
-
-      tableHTML += `
-        <tr>
-          <td>${formatDate(session.date)}</td>
-          <td>${stats.gamesPlayed}</td>
-          <td>${stats.wins} (${((stats.wins / stats.gamesPlayed) * 100).toFixed(1)}%)</td>
-          <td>${stats.secondPlace} (${((stats.secondPlace / stats.gamesPlayed) * 100).toFixed(1)}%)</td>
-          <td>${stats.thirdPlace} (${((stats.thirdPlace / stats.gamesPlayed) * 100).toFixed(1)}%)</td>
-          <td>${stats.fourthPlace} (${((stats.fourthPlace / stats.gamesPlayed) * 100).toFixed(1)}%)</td>
-          <td>${stats.fifthPlace} (${((stats.fifthPlace / stats.gamesPlayed) * 100).toFixed(1)}%)</td>
-          <td>${stats.sixthPlacePlus} (${((stats.sixthPlacePlus / stats.gamesPlayed) * 100).toFixed(1)}%)</td>
-        </tr>
-      `;
-    });
-
-    // Add total row
-    if (totalStats.gamesPlayed > 0) {
-      tableHTML += `
-        <tfoot>
-          <tr>
-            <td><strong>Total</strong></td>
-            <td><strong>${totalStats.gamesPlayed}</strong></td>
-            <td><strong>${totalStats.wins} (${((totalStats.wins / totalStats.gamesPlayed) * 100).toFixed(1)}%)</strong></td>
-            <td><strong>${totalStats.secondPlace} (${((totalStats.secondPlace / totalStats.gamesPlayed) * 100).toFixed(1)}%)</strong></td>
-            <td><strong>${totalStats.thirdPlace} (${((totalStats.thirdPlace / totalStats.gamesPlayed) * 100).toFixed(1)}%)</strong></td>
-            <td><strong>${totalStats.fourthPlace} (${((totalStats.fourthPlace / totalStats.gamesPlayed) * 100).toFixed(1)}%)</strong></td>
-            <td><strong>${totalStats.fifthPlace} (${((totalStats.fifthPlace / totalStats.gamesPlayed) * 100).toFixed(1)}%)</strong></td>
-            <td><strong>${totalStats.sixthPlacePlus} (${((totalStats.sixthPlacePlus / totalStats.gamesPlayed) * 100).toFixed(1)}%)</strong></td>
-          </tr>
-        </tfoot>
-      `;
-    }
-
-    tableHTML += '</tbody></table>';
-    statsTable.innerHTML = tableHTML;
-
-    if (snapshot.size === 0) {
-      statsTable.innerHTML = 'No game sessions found. Add some games first!';
-    }
-  });
-}
-
-function calculateSessionStats(matches) {
-  const stats = {
-    gamesPlayed: Object.keys(matches).length,
-    wins: 0,
-    secondPlace: 0,
-    thirdPlace: 0,
-    fourthPlace: 0,
-    fifthPlace: 0,
-    sixthPlacePlus: 0
-  };
-
-  Object.values(matches).forEach(match => {
-    switch(match.placement) {
-      case 1: stats.wins++; break;
-      case 2: stats.secondPlace++; break;
-      case 3: stats.thirdPlace++; break;
-      case 4: stats.fourthPlace++; break;
-      case 5: stats.fifthPlace++; break;
-      default: stats.sixthPlacePlus++;
-    }
-  });
-
-  return stats;
-}
-
-function formatDate(dateString) {
-  const date = new Date(dateString);
-  const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-  return date.toLocaleDateString(undefined, options);
-}
-
-// Initialize the app
-showTeamMembers();
-
-// Check connection
-const connectedRef = ref(database, ".info/connected");
-onValue(connectedRef, (snap) => {
-    if (snap.val() === true) {
-        console.log("Connected to Firebase");
-    } else {
-        console.log("Not connected to Firebase");
-    }
-});
-
-// Make showModal globally accessible
-window.showModal = function(action, id = null) {
-  modalContent.innerHTML = '';
-  switch(action) {
-    case 'addTeamMember':
-      modalContent.innerHTML = `
-        <h3>Add Team Member</h3>
-        <form id="teamMemberForm">
-          <input type="text" id="name" placeholder="Name" required>
-          <input type="text" id="gamertag" placeholder="Gamertag" required>
-          <input type="text" id="state" placeholder="State" required>
-          <input type="number" id="age" placeholder="Age" required>
-          <input type="text" id="favoriteSnack" placeholder="Favorite Snack" required>
-          <input type="file" id="photo" accept="image/*" required>
-          <button type="submit">Add Team Member</button>
-        </form>
-      `;
-      document.getElementById('teamMemberForm').addEventListener('submit', addOrUpdateTeamMember);
-      break;
-    case 'editTeamMember':
-      get(ref(database, `teamMembers/${id}`)).then((snapshot) => {
-        if (snapshot.exists()) {
-          const member = snapshot.val();
-          modalContent.innerHTML = `
-            <h3>Edit Team Member</h3>
-            <form id="teamMemberForm" data-id="${id}">
-              <input type="text" id="name" value="${member.name}" required>
-              <input type="text" id="gamertag" value="${member.gamertag}" required>
-              <input type="text" id="state" value="${member.state}" required>
-              <input type="number" id="age" value="${member.age}" required>
-              <input type="text" id="favoriteSnack" value="${member.favoriteSnack}" required>
-              <input type="file" id="photo" accept="image/*">
-              <button type="submit">Update Team Member</button>
-            </form>
-          `;
-          document.getElementById('teamMemberForm').addEventListener('submit', addOrUpdateTeamMember);
-        }
-      });
-      break;
-    case 'addGameSession':
-      modalContent.innerHTML = `
-        <h3>Add Game Session</h3>
-        <form id="gameSessionForm">
-          <input type="date" id="date" placeholder="Date" required>
-          <button type="submit">Add Game Session</button>
-        </form>
-      `;
-      document.getElementById('gameSessionForm').addEventListener('submit', addOrUpdateGameSession);
-      break;
-    case 'editGameSession':
-      get(ref(database, `gameSessions/${id}`)).then((snapshot) => {
-        if (snapshot.exists()) {
-          const session = snapshot.val();
-          modalContent.innerHTML = `
-            <h3>Edit Game Session</h3>
-            <form id="gameSessionForm" data-id="${id}">
-              <input type="date" id="date" value="${session.date}" required>
-              <button type="submit">Update Game Session</button>
-            </form>
-          `;
-          document.getElementById('gameSessionForm').addEventListener('submit', addOrUpdateGameSession);
-        }
-      });
-      break;
-    case 'addMatch':
-      modalContent.innerHTML = `
-        <h3>Add Match</h3>
-        <form id="matchForm" data-session-id="${id}">
-          <select id="gameMode" required>
-            <option value="">Select Game Mode</option>
-          </select>
-          <select id="map" required>
-            <option value="">Select Map</option>
-          </select>
-          <input type="number" id="placement" placeholder="Placement" required>
-      `;
-      
-      // Add kill count inputs for each player
-      onValue(ref(database, 'teamMembers'), (snapshot) => {
-        snapshot.forEach((childSnapshot) => {
-          const member = childSnapshot.val();
-          modalContent.innerHTML += `
-            <label for="kills-${member.gamertag}">${member.gamertag} Kills:</label>
-            <input type="number" id="kills-${member.gamertag}" placeholder="${member.gamertag} Kills">
-          `;
-        });
-        modalContent.innerHTML += `
-          <button type="submit">Add Match</button>
-        </form>
-        `;
-        document.getElementById('matchForm').addEventListener('submit', addMatch);
-      });
-
-      loadGameModesAndMaps();
-      break;
-  }
-  modal.style.display = "block";
-}
-
 // Helper function to load game modes and maps for the match form
 function loadGameModesAndMaps() {
   const gameModeSelect = document.getElementById('gameMode');
@@ -730,3 +588,180 @@ function loadGameModesAndMaps() {
     });
   });
 }
+
+// Statistics
+window.showStats = function() {
+  mainContent.innerHTML = `
+    <h2>Game Statistics</h2>
+    <div id="statsTable"></div>
+  `;
+  loadStats();
+}
+
+function loadStats() {
+  const statsTable = document.getElementById('statsTable');
+  statsTable.innerHTML = 'Loading statistics...';
+
+  get(ref(database, 'gameSessions')).then((snapshot) => {
+    const sessions = [];
+    snapshot.forEach((childSnapshot) => {
+      sessions.push({ id: childSnapshot.key, ...childSnapshot.val() });
+    });
+
+    sessions.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+    let tableHTML = `
+      <table class="stats-table">
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Games Played</th>
+            <th>Wins</th>
+            <th>2nd Place</th>
+            <th>3rd Place</th>
+            <th>4th Place</th>
+            <th>5th Place</th>
+            <th>6th+ Place</th>
+        `;
+
+    const teamMembersSnapshot = get(ref(database, 'teamMembers'));
+    teamMembersSnapshot.then((teamMembers) => {
+      teamMembers.forEach((memberSnapshot) => {
+        const member = memberSnapshot.val();
+        tableHTML += `<th>${member.gamertag}</th>`;
+      });
+
+      tableHTML += `
+          </tr>
+        </thead>
+        <tbody>
+      `;
+
+      let totalStats = {
+        gamesPlayed: 0,
+        wins: 0,
+        secondPlace: 0,
+        thirdPlace: 0,
+        fourthPlace: 0,
+        fifthPlace: 0,
+        sixthPlacePlus: 0,
+        kills: {}
+      };
+
+      teamMembers.forEach((memberSnapshot) => {
+        totalStats.kills[memberSnapshot.key] = 0;
+      });
+
+      sessions.forEach((session) => {
+        const stats = calculateSessionStats(session.matches || {}, teamMembers);
+
+        // Add to totals
+        totalStats.gamesPlayed += stats.gamesPlayed;
+        totalStats.wins += stats.wins;
+        totalStats.secondPlace += stats.secondPlace;
+        totalStats.thirdPlace += stats.thirdPlace;
+        totalStats.fourthPlace += stats.fourthPlace;
+        totalStats.fifthPlace += stats.fifthPlace;
+        totalStats.sixthPlacePlus += stats.sixthPlacePlus;
+
+        teamMembers.forEach((memberSnapshot) => {
+          const memberId = memberSnapshot.key;
+          totalStats.kills[memberId] += stats.kills[memberId] || 0;
+        });
+
+        tableHTML += `
+          <tr>
+            <td>${formatDate(session.date)}</td>
+            <td>${stats.gamesPlayed}</td>
+            <td>${stats.wins} (${((stats.wins / stats.gamesPlayed) * 100).toFixed(1)}%)</td>
+            <td>${stats.secondPlace} (${((stats.secondPlace / stats.gamesPlayed) * 100).toFixed(1)}%)</td>
+            <td>${stats.thirdPlace} (${((stats.thirdPlace / stats.gamesPlayed) * 100).toFixed(1)}%)</td>
+            <td>${stats.fourthPlace} (${((stats.fourthPlace / stats.gamesPlayed) * 100).toFixed(1)}%)</td>
+            <td>${stats.fifthPlace} (${((stats.fifthPlace / stats.gamesPlayed) * 100).toFixed(1)}%)</td>
+            <td>${stats.sixthPlacePlus} (${((stats.sixthPlacePlus / stats.gamesPlayed) * 100).toFixed(1)}%)</td>
+        `;
+
+        teamMembers.forEach((memberSnapshot) => {
+          const memberId = memberSnapshot.key;
+          const kills = stats.kills[memberId] || 0;
+          tableHTML += `<td>${kills}</td>`;
+        });
+
+        tableHTML += '</tr>';
+      });
+
+      // Add total row
+      if (totalStats.gamesPlayed > 0) {
+        tableHTML += `
+          <tfoot>
+            <tr>
+              <td><strong>Total</strong></td>
+              <td><strong>${totalStats.gamesPlayed}</strong></td>
+              <td><strong>${totalStats.wins} (${((totalStats.wins / totalStats.gamesPlayed) * 100).toFixed(1)}%)</strong></td>
+              <td><strong>${totalStats.secondPlace} (${((totalStats.secondPlace / totalStats.gamesPlayed) * 100).toFixed(1)}%)</strong></td>
+              <td><strong>${totalStats.thirdPlace} (${((totalStats.thirdPlace / totalStats.gamesPlayed) * 100).toFixed(1)}%)</strong></td>
+              <td><strong>${totalStats.fourthPlace} (${((totalStats.fourthPlace / totalStats.gamesPlayed) * 100).toFixed(1)}%)</strong></td>
+              <td><strong>${totalStats.fifthPlace} (${((totalStats.fifthPlace / totalStats.gamesPlayed) * 100).toFixed(1)}%)</strong></td>
+              <td><strong>${totalStats.sixthPlacePlus} (${((totalStats.sixthPlacePlus / totalStats.gamesPlayed) * 100).toFixed(1)}%)</strong></td>
+        `;
+
+        teamMembers.forEach((memberSnapshot) => {
+          const memberId = memberSnapshot.key;
+          const kills = totalStats.kills[memberId];
+          tableHTML += `<td><strong>${kills}</strong></td>`;
+        });
+
+        tableHTML += '</tr></tfoot>';
+      }
+
+      tableHTML += '</tbody></table>';
+      statsTable.innerHTML = tableHTML;
+
+      if (snapshot.size === 0) {
+        statsTable.innerHTML = 'No game sessions found. Add some games first!';
+      }
+    });
+  });
+}
+
+function calculateSessionStats(matches, teamMembers) {
+  const stats = {
+    gamesPlayed: Object.keys(matches).length,
+    wins: 0,
+    secondPlace: 0,
+    thirdPlace: 0,
+    fourthPlace: 0,
+    fifthPlace: 0,
+    sixthPlacePlus: 0,
+    kills: {}
+  };
+
+  teamMembers.forEach((memberSnapshot) => {
+    const memberId = memberSnapshot.key;
+    stats.kills[memberId] = 0;
+  });
+
+  Object.values(matches).forEach(match => {
+    switch(match.placement) {
+      case 1: stats.wins++; break;
+      case 2: stats.secondPlace++; break;
+      case 3: stats.thirdPlace++; break;
+      case 4: stats.fourthPlace++; break;
+      case 5: stats.fifthPlace++; break;
+      default: stats.sixthPlacePlus++;
+    }
+
+    teamMembers.forEach((memberSnapshot) => {
+      const memberId = memberSnapshot.key;
+      const kills = match.kills && match.kills[memberId] !== undefined
+        ? match.kills[memberId]
+        : 0;
+      stats.kills[memberId] += kills;
+    });
+  });
+
+  return stats;
+}
+
+// Initialize the app
+showStats();

@@ -1,4 +1,4 @@
-import { ref, onValue, push, update, remove, get } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-database.js";
+import { ref, onValue, push, update, remove, get, set } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-database.js";
 import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-storage.js";
 
 const database = window.database;
@@ -181,13 +181,10 @@ window.deleteTeamMember = function(id) {
 }
 
 // Game Sessions
-function showGameSessions() {
-  mainContent.innerHTML = `
-    <h2>Game Sessions</h2>
-    <button onclick="showModal('addGameSession')">Add Game Session</button>
-    <div id="sessionList"></div>
-  `;
-  loadGameSessions();
+function formatDate(dateString) {
+  const date = new Date(dateString);
+  const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+  return date.toLocaleDateString(undefined, options);
 }
 
 function loadGameSessions() {
@@ -201,12 +198,13 @@ function loadGameSessions() {
       const sessionId = childSnapshot.key;
       sessionList.innerHTML += `
         <div class="card">
-          <h3>Session on ${session.date}</h3>
+          <h3>${formatDate(session.date)}</h3>
           <p>Number of matches: ${session.matches ? Object.keys(session.matches).length : 0}</p>
-          <button onclick="showModal('viewMatches', '${sessionId}')">View Matches</button>
+          <button class="toggle-matches" onclick="toggleMatches('${sessionId}')">View Matches</button>
           <button onclick="showModal('addMatch', '${sessionId}')">Add Match</button>
           <button onclick="showModal('editGameSession', '${sessionId}')">Edit Session</button>
           <button onclick="deleteGameSession('${sessionId}')">Delete Session</button>
+          <div id="matches-${sessionId}" class="matches-container"></div>
         </div>
       `;
     });
@@ -216,62 +214,18 @@ function loadGameSessions() {
   });
 }
 
-function addOrUpdateGameSession(e) {
-  e.preventDefault();
-  const form = e.target;
-  const sessionId = form.dataset.id;
-  const sessionData = {
-    date: form.date.value,
-  };
-
-  const operation = sessionId
-    ? update(ref(database, `gameSessions/${sessionId}`), sessionData)
-    : push(ref(database, 'gameSessions'), sessionData);
-
-  operation
-    .then(() => {
-      loadGameSessions();
-      modal.style.display = "none";
-    })
-    .catch(error => {
-      console.error("Error adding/updating game session: ", error);
-      alert('Error adding/updating game session. Please try again.');
-    });
-}
-
-window.deleteGameSession = function(id) {
-  if (confirm('Are you sure you want to delete this game session?')) {
-    remove(ref(database, `gameSessions/${id}`))
-      .then(() => loadGameSessions())
-      .catch(error => {
-        console.error("Error deleting game session: ", error);
-        alert('Error deleting game session. Please try again.');
-      });
+function toggleMatches(sessionId) {
+  const matchesContainer = document.getElementById(`matches-${sessionId}`);
+  if (matchesContainer.style.display === 'none') {
+    loadMatches(sessionId);
+    matchesContainer.style.display = 'block';
+  } else {
+    matchesContainer.style.display = 'none';
   }
 }
 
-function addMatch(e) {
-  e.preventDefault();
-  const form = e.target;
-  const sessionId = form.dataset.sessionId;
-  const matchData = {
-    gameMode: form.gameMode.value,
-    map: form.map.value,
-    placement: parseInt(form.placement.value)
-  };
-
-  push(ref(database, `gameSessions/${sessionId}/matches`), matchData)
-    .then(() => {
-      loadGameSessions();
-      modal.style.display = "none";
-    })
-    .catch(error => {
-      console.error("Error adding match: ", error);
-      alert('Error adding match. Please try again.');
-    });
-}
-
-function viewMatches(sessionId) {
+function loadMatches(sessionId) {
+  const matchesContainer = document.getElementById(`matches-${sessionId}`);
   get(ref(database, `gameSessions/${sessionId}`)).then((snapshot) => {
     if (snapshot.exists()) {
       const session = snapshot.val();
@@ -292,133 +246,33 @@ function viewMatches(sessionId) {
       } else {
         matchesHtml += '<p>No matches found for this session.</p>';
       }
-      modalContent.innerHTML = matchesHtml;
+      matchesContainer.innerHTML = matchesHtml;
     }
   });
+}
+
+window.deleteGameSession = function(id) {
+  if (confirm('Are you sure you want to delete this game session?')) {
+    remove(ref(database, `gameSessions/${id}`))
+      .then(() => loadGameSessions())
+      .catch(error => {
+        console.error("Error deleting game session: ", error);
+        alert('Error deleting game session. Please try again.');
+      });
+  }
 }
 
 window.deleteMatch = function(sessionId, matchId) {
   if (confirm('Are you sure you want to delete this match?')) {
     remove(ref(database, `gameSessions/${sessionId}/matches/${matchId}`))
       .then(() => {
-        viewMatches(sessionId);
+        loadMatches(sessionId);
       })
       .catch(error => {
         console.error("Error deleting match: ", error);
         alert('Error deleting match. Please try again.');
       });
   }
-}
-
-// Statistics
-function showStats() {
-  mainContent.innerHTML = `
-    <h2>Game Statistics</h2>
-    <div id="statsTable"></div>
-  `;
-  loadStats();
-}
-
-function loadStats() {
-  const statsTable = document.getElementById('statsTable');
-  statsTable.innerHTML = 'Loading statistics...';
-
-  get(ref(database, 'gameSessions')).then((snapshot) => {
-    let tableHTML = `
-      <table>
-        <tr>
-          <th>Date</th>
-          <th>Games Played</th>
-          <th>Wins</th>
-          <th>2nd Place</th>
-          <th>3rd Place</th>
-          <th>4th Place</th>
-          <th>5th Place</th>
-          <th>6th+ Place</th>
-        </tr>
-    `;
-
-    let totalStats = {
-      gamesPlayed: 0,
-      wins: 0,
-      secondPlace: 0,
-      thirdPlace: 0,
-      fourthPlace: 0,
-      fifthPlace: 0,
-      sixthPlacePlus: 0
-    };
-
-    snapshot.forEach((childSnapshot) => {
-      const session = childSnapshot.val();
-      const stats = calculateSessionStats(session.matches || {});
-      
-      // Add to totals
-      for (let key in totalStats) {
-        totalStats[key] += stats[key];
-      }
-
-      tableHTML += `
-        <tr>
-          <td>${session.date}</td>
-          <td>${stats.gamesPlayed}</td>
-          <td>${stats.wins} (${((stats.wins / stats.gamesPlayed) * 100).toFixed(1)}%)</td>
-          <td>${stats.secondPlace} (${((stats.secondPlace / stats.gamesPlayed) * 100).toFixed(1)}%)</td>
-          <td>${stats.thirdPlace} (${((stats.thirdPlace / stats.gamesPlayed) * 100).toFixed(1)}%)</td>
-          <td>${stats.fourthPlace} (${((stats.fourthPlace / stats.gamesPlayed) * 100).toFixed(1)}%)</td>
-          <td>${stats.fifthPlace} (${((stats.fifthPlace / stats.gamesPlayed) * 100).toFixed(1)}%)</td>
-          <td>${stats.sixthPlacePlus} (${((stats.sixthPlacePlus / stats.gamesPlayed) * 100).toFixed(1)}%)</td>
-        </tr>
-      `;
-    });
-
-    // Add total row
-    if (totalStats.gamesPlayed > 0) {
-      tableHTML += `
-        <tr>
-          <td><strong>Total</strong></td>
-          <td><strong>${totalStats.gamesPlayed}</strong></td>
-          <td><strong>${totalStats.wins} (${((totalStats.wins / totalStats.gamesPlayed) * 100).toFixed(1)}%)</strong></td>
-          <td><strong>${totalStats.secondPlace} (${((totalStats.secondPlace / totalStats.gamesPlayed) * 100).toFixed(1)}%)</strong></td>
-          <td><strong>${totalStats.thirdPlace} (${((totalStats.thirdPlace / totalStats.gamesPlayed) * 100).toFixed(1)}%)</strong></td>
-          <td><strong>${totalStats.fourthPlace} (${((totalStats.fourthPlace / totalStats.gamesPlayed) * 100).toFixed(1)}%)</strong></td>
-          <td><strong>${totalStats.fifthPlace} (${((totalStats.fifthPlace / totalStats.gamesPlayed) * 100).toFixed(1)}%)</strong></td>
-          <td><strong>${totalStats.sixthPlacePlus} (${((totalStats.sixthPlacePlus / totalStats.gamesPlayed) * 100).toFixed(1)}%)</strong></td>
-        </tr>
-      `;
-    }
-
-    tableHTML += '</table>';
-    statsTable.innerHTML = tableHTML;
-
-    if (snapshot.size === 0) {
-      statsTable.innerHTML = 'No game sessions found. Add some games first!';
-    }
-  });
-}
-
-function calculateSessionStats(matches) {
-  const stats = {
-    gamesPlayed: Object.keys(matches).length,
-    wins: 0,
-    secondPlace: 0,
-    thirdPlace: 0,
-    fourthPlace: 0,
-    fifthPlace: 0,
-    sixthPlacePlus: 0
-  };
-
-  Object.values(matches).forEach(match => {
-    switch(match.placement) {
-      case 1: stats.wins++; break;
-      case 2: stats.secondPlace++; break;
-      case 3: stats.thirdPlace++; break;
-      case 4: stats.fourthPlace++; break;
-      case 5: stats.fifthPlace++; break;
-      default: stats.sixthPlacePlus++;
-    }
-  });
-
-  return stats;
 }
 
 // Initialize the app

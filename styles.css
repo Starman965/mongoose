@@ -1,156 +1,102 @@
 body {
+    background-color: #000000; /* Black background */
+    color: #ffffff; /* White text */
     font-family: Arial, sans-serif;
-    line-height: 1.6;
     margin: 0;
     padding: 0;
-    background-color: #f4f4f4;
 }
 
-#app {
-    max-width: 100%;
-    margin: 0 auto;
-    background-color: white;
+header {
+    text-align: center;
     padding: 20px;
-    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    background-color: #333333; /* Dark gray background */
+    border-bottom: 2px solid #FFD700; /* Gold border */
+}
+
+header .logo {
+    width: 150px; /* Adjust size as needed */
+    display: block;
+    margin: 0 auto;
 }
 
 h1 {
-    color: #333;
-    text-align: center;
+    color: #FFD700; /* Gold text */
+    margin: 0;
 }
 
-.container {
+nav {
     display: flex;
-    flex-wrap: wrap;
+    justify-content: center;
+    background-color: #444444; /* Slightly lighter gray */
+    padding: 10px 0;
 }
 
-.sidebar {
-    flex: 0 0 200px;
-    background-color: #f4f4f4;
-    padding: 20px;
-    box-shadow: 0 0 10px rgba(0,0,0,0.1);
-}
-
-.sidebar button {
-    display: block;
-    width: 100%;
-    padding: 10px;
-    margin-bottom: 10px;
-    background-color: #007bff;
-    color: white;
+nav button {
+    background-color: #FFD700; /* Gold buttons */
     border: none;
-    border-radius: 5px;
+    color: #000000; /* Black text */
+    padding: 10px 20px;
+    margin: 0 5px;
+    cursor: pointer;
+    font-size: 16px;
+}
+
+nav button:hover {
+    background-color: #FFA500; /* Darker gold on hover */
+}
+
+#mainContainer {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+#mainContent {
+    padding: 20px;
+    background-color: #222222; /* Very dark gray */
+    border-radius: 10px;
+}
+
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgb(0,0,0);
+    background-color: rgba(0,0,0,0.4);
+}
+
+.modal-content {
+    background-color: #333333;
+    margin: 15% auto;
+    padding: 20px;
+    border: 1px solid #888;
+    width: 80%;
+    color: #ffffff;
+}
+
+.close {
+    color: #aaa;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+}
+
+.close:hover,
+.close:focus {
+    color: #fff;
+    text-decoration: none;
     cursor: pointer;
 }
 
-.sidebar button:hover {
-    background-color: #0056b3;
-}
-
-main {
-    flex: 1;
-    padding: 20px;
-}
-
-.card {
-    background-color: #fff;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    padding: 15px;
-    margin-bottom: 15px;
-}
-
-.card h3 {
-    margin-top: 0;
-    color: #007bff;
-}
-
-form {
-    display: flex;
-    flex-direction: column;
-}
-
-form input, form select {
-    margin-bottom: 10px;
-    padding: 5px;
-}
-
-form button {
-    align-self: flex-start;
-}
-
-.team-photo {
-  width: 100px;
-  height: 100px;
-  border-radius: 50%;
-  object-fit: cover;
-  margin-bottom: 10px;
-}
-
-table {
-  width: 100%;
-  border-collapse: collapse;
-  margin-bottom: 20px;
-}
-
-th, td {
-  padding: 10px;
-  text-align: left;
-  border-bottom: 1px solid #ddd;
-}
-
-th {
-  background-color: #f4f4f4;
-}
-
-td:last-child {
-  text-align: right;
-}
-
-button {
-  padding: 5px 10px;
-  margin: 5px;
-  border: none;
-  background-color: #007bff;
-  color: white;
-  border-radius: 5px;
-  cursor: pointer;
-}
-
-button:hover {
-  background-color: #0056b3;
-}
-
-.matches-container {
-  margin-top: 10px;
-  display: none;
-}
-
-button.toggle-matches {
-  background-color: #007bff;
-  color: white;
-  border: none;
-  padding: 5px 10px;
-  cursor: pointer;
-  border-radius: 5px;
-  margin-bottom: 10px;
-}
-
-button.toggle-matches:hover {
-  background-color: #0056b3;
-}
-
-@media screen and (max-width: 768px) {
-    .container {
-        flex-direction: column;
-    }
-
-    .sidebar {
-        flex: 0 0 auto;
-        width: 100%;
-    }
-
-    main {
-        padding: 10px;
-    }
+footer {
+    text-align: center;
+    padding: 10px;
+    background-color: #333333; /* Dark gray */
+    color: #FFD700; /* Gold text */
+    border-top: 2px solid #FFD700; /* Gold border */
 }

@@ -79,6 +79,14 @@ form button {
     align-self: flex-start;
 }
 
+.team-photo {
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  object-fit: cover;
+  margin-bottom: 10px;
+}
+
 table {
   width: 100%;
   border-collapse: collapse;
@@ -126,11 +134,4 @@ button:hover {
     main {
         padding: 10px;
     }
-}
-.team-photo {
-  width: 100px;
-  height: 100px;
-  border-radius: 50%;
-  object-fit: cover;
-  margin-bottom: 10px;
 }

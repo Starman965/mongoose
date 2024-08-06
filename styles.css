@@ -224,31 +224,53 @@ footer {
     background-color: #FFA500;
 }
 
-* Updated Team List Layout */
+/* Updated Team List Layout */
 .team-list {
     display: flex;
-    flex-wrap: wrap;
-    justify-content: space-between;
+    flex-direction: column;
+    gap: 10px;
 }
 
 .team-list .card {
-    flex: 0 1 calc(33.333% - 10px); /* 3 cards per row with some margin */
-    margin: 5px;
-    box-sizing: border-box;
-    width: 100%; /* Ensure full width within the flex item */
-}
-
-/* New styles for team member actions */
-.team-list .card .actions {
     display: flex;
     justify-content: space-between;
-    width: 100%;
-    margin-top: 10px;
+    align-items: center;
+    padding: 10px;
+    background-color: #333333;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
-.team-list .card .actions .button {
-    flex: 1;
-    margin: 0 5px;
+.team-list .card .member-info {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.team-list .card .team-photo {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.team-list .card .member-details {
+    display: flex;
+    flex-direction: column;
+}
+
+.team-list .card .member-details h3 {
+    margin: 0;
+    color: #FFD700;
+}
+
+.team-list .card .member-details p {
+    margin: 2px 0;
+}
+
+.team-list .card .actions {
+    display: flex;
+    gap: 10px;
 }
 
 /* Styles for Game Sessions and Matches */

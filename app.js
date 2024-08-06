@@ -596,7 +596,7 @@ function loadGameModesAndMaps() {
 }
 
 // Initialize the app
-showTeamMembers();
+showStats();
 
 // Check connection
 const connectedRef = ref(database, ".info/connected");

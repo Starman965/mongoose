@@ -139,7 +139,7 @@ footer {
     border-top: 2px solid #FFD700; /* Gold border */
 }
 
-/* Base Button Style */
+/* Update general button styles */
 .button {
     background-color: #FFD700; /* Gold buttons */
     border: none;
@@ -152,6 +152,7 @@ footer {
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     transition: background-color 0.3s ease;
     white-space: nowrap;
+    text-align: center;
 }
 
 .button:hover {
@@ -223,7 +224,7 @@ footer {
     background-color: #FFA500;
 }
 
-/* Team List Layout */
+* Updated Team List Layout */
 .team-list {
     display: flex;
     flex-wrap: wrap;
@@ -234,6 +235,20 @@ footer {
     flex: 0 1 calc(33.333% - 10px); /* 3 cards per row with some margin */
     margin: 5px;
     box-sizing: border-box;
+    width: 100%; /* Ensure full width within the flex item */
+}
+
+/* New styles for team member actions */
+.team-list .card .actions {
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+    margin-top: 10px;
+}
+
+.team-list .card .actions .button {
+    flex: 1;
+    margin: 0 5px;
 }
 
 /* Styles for Game Sessions and Matches */

@@ -47,7 +47,7 @@ function showSection(section) {
   }
 }
 
-window.showGameSessions = function() {
+function showGameSessions() {
   mainContent.innerHTML = `
     <h2>Game Sessions</h2>
     <button onclick="showModal('addGameSession')">Add Game Session</button>
@@ -160,12 +160,66 @@ window.showModal = function(action, id = null) {
       loadGameModesAndMaps();
       document.getElementById('matchForm').addEventListener('submit', addMatch);
       break;
+    case 'addMap':
+      modalContent.innerHTML = `
+        <h3>Add Map</h3>
+        <form id="mapForm">
+          <input type="text" id="name" placeholder="Map Name" required>
+          <button type="submit">Add Map</button>
+        </form>
+      `;
+      document.getElementById('mapForm').addEventListener('submit', addOrUpdateMap);
+      break;
+    case 'editMap':
+      get(ref(database, `maps/${id}`)).then((snapshot) => {
+        if (snapshot.exists()) {
+          const map = snapshot.val();
+          modalContent.innerHTML = `
+            <h3>Edit Map</h3>
+            <form id="mapForm" data-id="${id}">
+              <input type="text" id="name" value="${map.name}" required>
+              <button type="submit">Update Map</button>
+            </form>
+          `;
+          document.getElementById('mapForm').addEventListener('submit', addOrUpdateMap);
+        }
+      });
+      break;
+    case 'addGameMode':
+      modalContent.innerHTML = `
+        <h3>Add Game Mode</h3>
+        <form id="gameModeForm">
+          <input type="text" id="name" placeholder="Game Mode Name" required>
+          <button type="submit">Add Game Mode</button>
+        </form>
+      `;
+      document.getElementById('gameModeForm').addEventListener('submit', addOrUpdateGameMode);
+      break;
+    case 'editGameMode':
+      get(ref(database, `gameModes/${id}`)).then((snapshot) => {
+        if (snapshot.exists()) {
+          const gameMode = snapshot.val();
+          modalContent.innerHTML = `
+            <h3>Edit Game Mode</h3>
+            <form id="gameModeForm" data-id="${id}">
+              <input type="text" id="name" value="${gameMode.name}" required>
+              <button type="submit">Update Game Mode</button>
+            </form>
+          `;
+          document.getElementById('gameModeForm').addEventListener('submit', addOrUpdateGameMode);
+        }
+      });
+      break;
     case 'viewMatches':
       viewMatches(id);
       break;
   }
   modal.style.display = "block";
 }
+
+// Ensure the form handling for adding/updating maps and game modes is properly set up
+document.getElementById('mapForm')?.addEventListener('submit', addOrUpdateMap);
+document.getElementById('gameModeForm')?.addEventListener('submit', addOrUpdateGameMode);
 
 function addOrUpdateGameSession(e) {
   e.preventDefault();
@@ -189,7 +243,6 @@ function addOrUpdateGameSession(e) {
       alert('Error adding/updating game session. Please try again.');
     });
 }
-
 
 // Team Members
 function showTeamMembers() {
@@ -217,8 +270,6 @@ function loadTeamMembers() {
           <p>State: ${member.state}</p>
           <p>Age: ${member.age}</p>
           <p>Favorite Snack: ${member.favoriteSnack}</p>
-          <p>Games Played: ${member.gamesPlayed || 0}</p>
-          <p>Total Kills: ${member.totalKills || 0}</p>
           <button onclick="showModal('editTeamMember', '${memberId}')">Edit</button>
           <button onclick="deleteTeamMember('${memberId}')">Delete</button>
         </div>
@@ -283,49 +334,52 @@ window.deleteTeamMember = function(id) {
   }
 }
 
+// Game Sessions
 function formatDate(dateString) {
+  // Create a date object from the date string
   const date = new Date(dateString);
+  
+  // Adjust the date for the correct time zone if necessary
+  const correctedDate = new Date(date.getTime() + date.getTimezoneOffset() * 60000);
+
+  // Define the format options
   const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-  return date.toLocaleDateString(undefined, options);
+  
+  // Return the formatted date string
+  return correctedDate.toLocaleDateString(undefined, options);
 }
 
-// Game Sessions
-
-window.loadGameSessions = function() {
+// Load game sessions and display formatted dates
+function loadGameSessions() {
   const sessionList = document.getElementById('sessionList');
   sessionList.innerHTML = 'Loading game sessions...';
-
-  get(ref(database, 'gameSessions')).then((snapshot) => {
+  
+  onValue(ref(database, 'gameSessions'), (snapshot) => {
     const sessions = [];
     snapshot.forEach((childSnapshot) => {
-      sessions.push({ id: childSnapshot.key, ...childSnapshot.val() });
+      const session = childSnapshot.val();
+      session.id = childSnapshot.key; // Save the session ID
+      sessions.push(session);
     });
 
-    sessions.sort((a, b) => new Date(b.date) - new Date(a.date));
+    // Sort sessions by date
+    sessions.sort((a, b) => new Date(a.date) - new Date(b.date));
 
     sessionList.innerHTML = '';
     sessions.forEach((session) => {
-      const sessionId = session.id;
       sessionList.innerHTML += `
         <div class="card">
-          <h3>${formatDate(session.date)} 
-            <span class="icon-button" onclick="showModal('editGameSession', '${sessionId}')">
-              <i class="fas fa-edit"></i>
-            </span>
-            <span class="icon-button" onclick="deleteGameSession('${sessionId}')">
-              <i class="fas fa-trash-alt"></i>
-            </span>
-          </h3>
+          <h3>${formatDate(session.date)}</h3>
           <p>Number of matches: ${session.matches ? Object.keys(session.matches).length : 0}</p>
-          <div class="button-container">
-            <button class="small-button" onclick="toggleMatches('${sessionId}')">View Matches</button>
-            <button class="small-button" onclick="showModal('addMatch', '${sessionId}')">Add Match</button>
-          </div>
-          <div id="matches-${sessionId}" class="matches-container"></div>
+          <button class="toggle-matches" onclick="toggleMatches('${session.id}')">View Matches</button>
+          <button onclick="showModal('addMatch', '${session.id}')">Add Match</button>
+          <button onclick="showModal('editGameSession', '${session.id}')">Edit Session</button>
+          <button onclick="deleteGameSession('${session.id}')">Delete Session</button>
+          <div id="matches-${session.id}" class="matches-container"></div>
         </div>
       `;
     });
-
+    
     if (sessionList.innerHTML === '') {
       sessionList.innerHTML = 'No game sessions found. Add some!';
     }
@@ -342,72 +396,33 @@ window.toggleMatches = function(sessionId) {
   }
 }
 
-window.loadMatches = function(sessionId) {
-  const matchesContainer = document.getElementById(`matches-${sessionId}`);
-  get(ref(database, `gameSessions/${sessionId}`)).then((snapshot) => {
-    if (snapshot.exists()) {
-      const session = snapshot.val();
-      let matchesHtml = '<h3>Matches</h3>';
-      if (session.matches) {
-        matchesHtml += `
-          <table class="matches-table">
-            <thead>
-              <tr>
-                <th>Game Mode</th>
-                <th>Map</th>
-                <th>Placement</th>
-        `;
-
-        const teamMembersSnapshot = get(ref(database, 'teamMembers'));
-        teamMembersSnapshot.then((teamMembers) => {
-          teamMembers.forEach((memberSnapshot) => {
-            const member = memberSnapshot.val();
-            matchesHtml += `<th>${member.gamertag}</th>`;
-          });
-
-          matchesHtml += `
-                <th>Action</th>
-              </tr>
-            </thead>
-            <tbody>
-          `;
-
-          Object.entries(session.matches).forEach(([matchId, match]) => {
-            matchesHtml += `
-              <tr>
-                <td>${match.gameMode}</td>
-                <td>${match.map}</td>
-                <td>${match.placement}</td>
-            `;
-
-            teamMembers.forEach((memberSnapshot) => {
-              const member = memberSnapshot.val();
-              const kills = match.kills && match.kills[memberSnapshot.key] !== undefined
-                ? match.kills[memberSnapshot.key]
-                : '';
-              matchesHtml += `<td>${kills}</td>`;
-            });
-
-            matchesHtml += `
-                <td><button class="small-button" onclick="deleteMatch('${sessionId}', '${matchId}')">Delete Match</button></td>
-              </tr>
-            `;
-          });
-
-          matchesHtml += `
-            </tbody>
-          </table>
-          `;
-
-          matchesContainer.innerHTML = matchesHtml;
-        });
-      } else {
-        matchesHtml += '<p>No matches found for this session.</p>';
-        matchesContainer.innerHTML = matchesHtml;
-      }
-    }
-  });
+function loadMatches(sessionId) {
+    const matchesContainer = document.getElementById(`matches-${sessionId}`);
+    get(ref(database, `gameSessions/${sessionId}`)).then((snapshot) => {
+        if (snapshot.exists()) {
+            const session = snapshot.val();
+            let matchesHtml = '<h3>Matches</h3>';
+            if (session.matches) {
+                matchesHtml += '<table class="matches-table"><tr><th>Game Mode</th><th>Map</th><th>Placement</th></tr>';
+                Object.entries(session.matches).forEach(([matchId, match]) => {
+                    matchesHtml += `
+                        <tr>
+                            <td>${match.gameMode}</td>
+                            <td>${match.map}</td>
+                            <td>${match.placement}</td>
+                            <td><button onclick="deleteMatch('${sessionId}', '${matchId}')">Delete Match</button></td>
+                        </tr>
+                    `;
+                });
+                matchesHtml += '</table>';
+            } else {
+                matchesHtml += '<p>No matches found for this session.</p>';
+            }
+            matchesContainer.innerHTML = matchesHtml;
+        }
+    });
 }
+
 
 window.deleteGameSession = function(id) {
   if (confirm('Are you sure you want to delete this game session?')) {
@@ -589,8 +604,21 @@ function loadGameModesAndMaps() {
   });
 }
 
+// Initialize the app
+showTeamMembers();
+
+// Check connection
+const connectedRef = ref(database, ".info/connected");
+onValue(connectedRef, (snap) => {
+    if (snap.val() === true) {
+        console.log("Connected to Firebase");
+    } else {
+        console.log("Not connected to Firebase");
+    }
+});
+
 // Statistics
-window.showStats = function() {
+function showStats() {
   mainContent.innerHTML = `
     <h2>Game Statistics</h2>
     <div id="statsTable"></div>
@@ -605,10 +633,12 @@ function loadStats() {
   get(ref(database, 'gameSessions')).then((snapshot) => {
     const sessions = [];
     snapshot.forEach((childSnapshot) => {
-      sessions.push({ id: childSnapshot.key, ...childSnapshot.val() });
+      const session = childSnapshot.val();
+      sessions.push(session);
     });
 
-    sessions.sort((a, b) => new Date(b.date) - new Date(a.date));
+    // Sort sessions by date
+    sessions.sort((a, b) => new Date(a.date) - new Date(b.date));
 
     let tableHTML = `
       <table class="stats-table">
@@ -622,109 +652,71 @@ function loadStats() {
             <th>4th Place</th>
             <th>5th Place</th>
             <th>6th+ Place</th>
-        `;
-
-    const teamMembersSnapshot = get(ref(database, 'teamMembers'));
-    teamMembersSnapshot.then((teamMembers) => {
-      teamMembers.forEach((memberSnapshot) => {
-        const member = memberSnapshot.val();
-        tableHTML += `<th>${member.gamertag}</th>`;
-      });
-
-      tableHTML += `
           </tr>
         </thead>
         <tbody>
+    `;
+
+    let totalStats = {
+      gamesPlayed: 0,
+      wins: 0,
+      secondPlace: 0,
+      thirdPlace: 0,
+      fourthPlace: 0,
+      fifthPlace: 0,
+      sixthPlacePlus: 0
+    };
+
+    sessions.forEach((session) => {
+      const stats = calculateSessionStats(session.matches || {});
+      
+      // Add to totals
+      for (let key in totalStats) {
+        totalStats[key] += stats[key];
+      }
+
+      tableHTML += `
+        <tr>
+          <td>${formatDate(session.date)}</td>
+          <td>${stats.gamesPlayed}</td>
+          <td>${stats.wins} (${((stats.wins / stats.gamesPlayed) * 100).toFixed(1)}%)</td>
+          <td>${stats.secondPlace} (${((stats.secondPlace / stats.gamesPlayed) * 100).toFixed(1)}%)</td>
+          <td>${stats.thirdPlace} (${((stats.thirdPlace / stats.gamesPlayed) * 100).toFixed(1)}%)</td>
+          <td>${stats.fourthPlace} (${((stats.fourthPlace / stats.gamesPlayed) * 100).toFixed(1)}%)</td>
+          <td>${stats.fifthPlace} (${((stats.fifthPlace / stats.gamesPlayed) * 100).toFixed(1)}%)</td>
+          <td>${stats.sixthPlacePlus} (${((stats.sixthPlacePlus / stats.gamesPlayed) * 100).toFixed(1)}%)</td>
+        </tr>
       `;
-
-      let totalStats = {
-        gamesPlayed: 0,
-        wins: 0,
-        secondPlace: 0,
-        thirdPlace: 0,
-        fourthPlace: 0,
-        fifthPlace: 0,
-        sixthPlacePlus: 0,
-        kills: {}
-      };
-
-      teamMembers.forEach((memberSnapshot) => {
-        totalStats.kills[memberSnapshot.key] = 0;
-      });
-
-      sessions.forEach((session) => {
-        const stats = calculateSessionStats(session.matches || {}, teamMembers);
-
-        // Add to totals
-        totalStats.gamesPlayed += stats.gamesPlayed;
-        totalStats.wins += stats.wins;
-        totalStats.secondPlace += stats.secondPlace;
-        totalStats.thirdPlace += stats.thirdPlace;
-        totalStats.fourthPlace += stats.fourthPlace;
-        totalStats.fifthPlace += stats.fifthPlace;
-        totalStats.sixthPlacePlus += stats.sixthPlacePlus;
-
-        teamMembers.forEach((memberSnapshot) => {
-          const memberId = memberSnapshot.key;
-          totalStats.kills[memberId] += stats.kills[memberId] || 0;
-        });
-
-        tableHTML += `
-          <tr>
-            <td>${formatDate(session.date)}</td>
-            <td>${stats.gamesPlayed}</td>
-            <td>${stats.wins} (${((stats.wins / stats.gamesPlayed) * 100).toFixed(1)}%)</td>
-            <td>${stats.secondPlace} (${((stats.secondPlace / stats.gamesPlayed) * 100).toFixed(1)}%)</td>
-            <td>${stats.thirdPlace} (${((stats.thirdPlace / stats.gamesPlayed) * 100).toFixed(1)}%)</td>
-            <td>${stats.fourthPlace} (${((stats.fourthPlace / stats.gamesPlayed) * 100).toFixed(1)}%)</td>
-            <td>${stats.fifthPlace} (${((stats.fifthPlace / stats.gamesPlayed) * 100).toFixed(1)}%)</td>
-            <td>${stats.sixthPlacePlus} (${((stats.sixthPlacePlus / stats.gamesPlayed) * 100).toFixed(1)}%)</td>
-        `;
-
-        teamMembers.forEach((memberSnapshot) => {
-          const memberId = memberSnapshot.key;
-          const kills = stats.kills[memberId] || 0;
-          tableHTML += `<td>${kills}</td>`;
-        });
-
-        tableHTML += '</tr>';
-      });
-
-      // Add total row
-      if (totalStats.gamesPlayed > 0) {
-        tableHTML += `
-          <tfoot>
-            <tr>
-              <td><strong>Total</strong></td>
-              <td><strong>${totalStats.gamesPlayed}</strong></td>
-              <td><strong>${totalStats.wins} (${((totalStats.wins / totalStats.gamesPlayed) * 100).toFixed(1)}%)</strong></td>
-              <td><strong>${totalStats.secondPlace} (${((totalStats.secondPlace / totalStats.gamesPlayed) * 100).toFixed(1)}%)</strong></td>
-              <td><strong>${totalStats.thirdPlace} (${((totalStats.thirdPlace / totalStats.gamesPlayed) * 100).toFixed(1)}%)</strong></td>
-              <td><strong>${totalStats.fourthPlace} (${((totalStats.fourthPlace / totalStats.gamesPlayed) * 100).toFixed(1)}%)</strong></td>
-              <td><strong>${totalStats.fifthPlace} (${((totalStats.fifthPlace / totalStats.gamesPlayed) * 100).toFixed(1)}%)</strong></td>
-              <td><strong>${totalStats.sixthPlacePlus} (${((totalStats.sixthPlacePlus / totalStats.gamesPlayed) * 100).toFixed(1)}%)</strong></td>
-        `;
-
-        teamMembers.forEach((memberSnapshot) => {
-          const memberId = memberSnapshot.key;
-          const kills = totalStats.kills[memberId];
-          tableHTML += `<td><strong>${kills}</strong></td>`;
-        });
-
-        tableHTML += '</tr></tfoot>';
-      }
-
-      tableHTML += '</tbody></table>';
-      statsTable.innerHTML = tableHTML;
-
-      if (snapshot.size === 0) {
-        statsTable.innerHTML = 'No game sessions found. Add some games first!';
-      }
     });
+
+    // Add total row
+    if (totalStats.gamesPlayed > 0) {
+      tableHTML += `
+        <tfoot>
+          <tr>
+            <td><strong>Total</strong></td>
+            <td><strong>${totalStats.gamesPlayed}</strong></td>
+            <td><strong>${totalStats.wins} (${((totalStats.wins / totalStats.gamesPlayed) * 100).toFixed(1)}%)</strong></td>
+            <td><strong>${totalStats.secondPlace} (${((totalStats.secondPlace / totalStats.gamesPlayed) * 100).toFixed(1)}%)</strong></td>
+            <td><strong>${totalStats.thirdPlace} (${((totalStats.thirdPlace / totalStats.gamesPlayed) * 100).toFixed(1)}%)</strong></td>
+            <td><strong>${totalStats.fourthPlace} (${((totalStats.fourthPlace / totalStats.gamesPlayed) * 100).toFixed(1)}%)</strong></td>
+            <td><strong>${totalStats.fifthPlace} (${((totalStats.fifthPlace / totalStats.gamesPlayed) * 100).toFixed(1)}%)</strong></td>
+            <td><strong>${totalStats.sixthPlacePlus} (${((totalStats.sixthPlacePlus / totalStats.gamesPlayed) * 100).toFixed(1)}%)</strong></td>
+          </tr>
+        </tfoot>
+      `;
+    }
+
+    tableHTML += '</tbody></table>';
+    statsTable.innerHTML = tableHTML;
+
+    if (sessions.length === 0) {
+      statsTable.innerHTML = 'No game sessions found. Add some games first!';
+    }
   });
 }
 
-function calculateSessionStats(matches, teamMembers) {
+function calculateSessionStats(matches) {
   const stats = {
     gamesPlayed: Object.keys(matches).length,
     wins: 0,
@@ -732,14 +724,8 @@ function calculateSessionStats(matches, teamMembers) {
     thirdPlace: 0,
     fourthPlace: 0,
     fifthPlace: 0,
-    sixthPlacePlus: 0,
-    kills: {}
+    sixthPlacePlus: 0
   };
-
-  teamMembers.forEach((memberSnapshot) => {
-    const memberId = memberSnapshot.key;
-    stats.kills[memberId] = 0;
-  });
 
   Object.values(matches).forEach(match => {
     switch(match.placement) {
@@ -750,18 +736,7 @@ function calculateSessionStats(matches, teamMembers) {
       case 5: stats.fifthPlace++; break;
       default: stats.sixthPlacePlus++;
     }
-
-    teamMembers.forEach((memberSnapshot) => {
-      const memberId = memberSnapshot.key;
-      const kills = match.kills && match.kills[memberId] !== undefined
-        ? match.kills[memberId]
-        : 0;
-      stats.kills[memberId] += kills;
-    });
   });
 
   return stats;
 }
-
-// Initialize the app
-showStats();

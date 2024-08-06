@@ -248,7 +248,7 @@ function addOrUpdateGameSession(e) {
 function showTeamMembers() {
     mainContent.innerHTML = `
         <h2>Team Members</h2>
-        <button onclick="showModal('addTeamMember')">Add Team Member</button>
+        <button class="button" onclick="showModal('addTeamMember')">Add Team Member</button>
         <div id="teamList" class="team-list"></div>
     `;
     loadTeamMembers();
@@ -270,8 +270,10 @@ function loadTeamMembers() {
                     <p>State: ${member.state}</p>
                     <p>Age: ${member.age}</p>
                     <p>Favorite Snack: ${member.favoriteSnack}</p>
-                    <button onclick="showModal('editTeamMember', '${memberId}')">Edit</button>
-                    <button onclick="deleteTeamMember('${memberId}')">Delete</button>
+                    <div class="actions">
+                        <button class="button" onclick="showModal('editTeamMember', '${memberId}')">Edit</button>
+                        <button class="button" onclick="deleteTeamMember('${memberId}')">Delete</button>
+                    </div>
                 </div>
             `;
         });

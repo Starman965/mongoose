@@ -1,11 +1,19 @@
 // Firebase configuration
 const firebaseConfig = {
-    // Your Firebase configuration here
+  apiKey: "AIzaSyCsW2O4WMxcHKMsIBJE4qHhkcTBdqYNZTk",
+  authDomain: "mongoose-a1fec.firebaseapp.com",
+  databaseURL: "https://mongoose-a1fec-default-rtdb.firebaseio.com",
+  projectId: "mongoose-a1fec",
+  storageBucket: "mongoose-a1fec.appspot.com",
+  messagingSenderId: "504377946463",
+  appId: "1:504377946463:web:863aee9ddf559239bb06ea",
+  measurementId: "G-31E63T2391"
 };
 
 // Initialize Firebase
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
+const analytics = firebase.analytics();
 
 // DOM elements
 const mainContent = document.getElementById('mainContent');

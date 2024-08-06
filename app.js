@@ -677,7 +677,7 @@ function loadStats() {
 
     sessions.forEach((session) => {
       const stats = calculateSessionStats(session.matches || {});
-      
+
       // Add to totals
       for (let key in totalStats) {
         totalStats[key] += stats[key];

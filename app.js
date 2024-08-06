@@ -639,8 +639,8 @@ function loadStats() {
       sessions.push(session);
     });
 
-    // Sort sessions by date
-    sessions.sort((a, b) => new Date(a.date) - new Date(b.date));
+    // Sort sessions by date in descending order
+    sessions.sort((a, b) => new Date(b.date) - new Date(a.date));
 
     let tableHTML = `
       <table class="stats-table">

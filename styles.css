@@ -275,6 +275,7 @@ footer {
 .card .button-group button:hover {
     background-color: #FFA500;
 }
+
 .team-list {
     display: flex;
     flex-wrap: wrap;
@@ -310,7 +311,7 @@ footer {
     cursor: pointer;
     font-size: 16px;
     border-radius: 5px;
-    width: 90%;
+    width: calc(33.333% - 10px); /* Fixed width for buttons */
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     transition: background-color 0.3s ease;
 }

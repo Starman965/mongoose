@@ -121,20 +121,6 @@ button:hover {
   background-color: #0056b3;
 }
 
-@media screen and (max-width: 768px) {
-    .container {
-        flex-direction: column;
-    }
-
-    .sidebar {
-        flex: 0 0 auto;
-        width: 100%;
-    }
-
-    main {
-        padding: 10px;
-    }
-}
 .matches-container {
   margin-top: 10px;
   display: none;
@@ -154,3 +140,17 @@ button.toggle-matches:hover {
   background-color: #0056b3;
 }
 
+@media screen and (max-width: 768px) {
+    .container {
+        flex-direction: column;
+    }
+
+    .sidebar {
+        flex: 0 0 auto;
+        width: 100%;
+    }
+
+    main {
+        padding: 10px;
+    }
+}

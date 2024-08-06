@@ -350,42 +350,53 @@ function formatDate(dateString) {
 }
 
 // Load game sessions and display formatted dates
-function loadGameSessions() {
-  const sessionList = document.getElementById('sessionList');
-  sessionList.innerHTML = 'Loading game sessions...';
-  
-  onValue(ref(database, 'gameSessions'), (snapshot) => {
-    const sessions = [];
-    snapshot.forEach((childSnapshot) => {
-      const session = childSnapshot.val();
-      session.id = childSnapshot.key; // Save the session ID
-      sessions.push(session);
-    });
 
-    // Sort sessions by date in descending order
-    sessions.sort((a, b) => new Date(b.date) - new Date(a.date));
-
-    sessionList.innerHTML = '';
-    sessions.forEach((session) => {
-      sessionList.innerHTML += `
-        <div class="card">
-          <h3>${formatDate(session.date)}</h3>
-          <p>Number of matches: ${session.matches ? Object.keys(session.matches).length : 0}</p>
-          <button class="toggle-matches" onclick="toggleMatches('${session.id}')">View Matches</button>
-          <button onclick="showModal('addMatch', '${session.id}')">Add Match</button>
-          <button onclick="showModal('editGameSession', '${session.id}')">Edit Session</button>
-          <button onclick="deleteGameSession('${session.id}')">Delete Session</button>
-          <div id="matches-${session.id}" class="matches-container"></div>
-        </div>
-      `;
-    });
-    
-    if (sessionList.innerHTML === '') {
-      sessionList.innerHTML = 'No game sessions found. Add some!';
+// Define the toggleMatches function globally
+window.toggleMatches = function(sessionId) {
+    const matchesContainer = document.getElementById(`matches-${sessionId}`);
+    if (matchesContainer.style.display === 'none' || matchesContainer.style.display === '') {
+        loadMatches(sessionId);
+        matchesContainer.style.display = 'block';
+    } else {
+        matchesContainer.style.display = 'none';
     }
-  });
 }
 
+function loadGameSessions() {
+    const sessionList = document.getElementById('sessionList');
+    sessionList.innerHTML = 'Loading game sessions...';
+
+    onValue(ref(database, 'gameSessions'), (snapshot) => {
+        const sessions = [];
+        snapshot.forEach((childSnapshot) => {
+            const session = childSnapshot.val();
+            session.id = childSnapshot.key; // Save the session ID
+            sessions.push(session);
+        });
+
+        // Sort sessions by date in descending order
+        sessions.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+        sessionList.innerHTML = '';
+        sessions.forEach((session) => {
+            sessionList.innerHTML += `
+                <div class="card">
+                    <h3>${formatDate(session.date)}</h3>
+                    <p>Number of matches: ${session.matches ? Object.keys(session.matches).length : 0}</p>
+                    <button class="toggle-matches" onclick="toggleMatches('${session.id}')">View Matches</button>
+                    <button onclick="showModal('addMatch', '${session.id}')">Add Match</button>
+                    <button onclick="showModal('editGameSession', '${session.id}')">Edit Session</button>
+                    <button onclick="deleteGameSession('${session.id}')">Delete Session</button>
+                    <div id="matches-${session.id}" class="matches-container"></div>
+                </div>
+            `;
+        });
+
+        if (sessionList.innerHTML === '') {
+            sessionList.innerHTML = 'No game sessions found. Add some!';
+        }
+    });
+}
 
 function loadMatches(sessionId) {
     const matchesContainer = document.getElementById(`matches-${sessionId}`);

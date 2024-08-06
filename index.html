@@ -6,32 +6,54 @@
     <title>Mongoose Omelette Game Session Manager</title>
     <link rel="stylesheet" href="styles.css">
     <link rel="icon" href="favicon.ico" type="image/x-icon"> <!-- Favicon line of code -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
+        import { getDatabase } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-database.js";
+        import { getAnalytics } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-analytics.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCOoX8dx7-GVlbYjNaKArUpc7hbZSm3gnw",
+            authDomain: "gamenight-37cc6.firebaseapp.com",
+            databaseURL: "https://gamenight-37cc6-default-rtdb.firebaseio.com",
+            projectId: "gamenight-37cc6",
+            storageBucket: "gamenight-37cc6.appspot.com",
+            messagingSenderId: "31368693363",
+            appId: "1:31368693363:web:a2c0702234977a07dbcc06"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const database = getDatabase(app);
+        const analytics = getAnalytics(app);
+
+        window.database = database;
+    </script>
 </head>
 <body>
-    <div id="mainContainer">
+    <div id="app">
         <header>
             <img src="2022-group-logo.png" alt="Mongoose Omelette Logo" class="logo">
             <h1>Mongoose Omelette Game Session Manager</h1>
         </header>
-        <nav>
-            <button id="teamNav">Team Members</button>
-            <button id="modesNav">Game Modes</button>
-            <button id="mapsNav">Maps</button>
-            <button id="sessionsNav">Game Sessions</button>
-            <button id="statsNav">Statistics</button>
-        </nav>
-        <div id="mainContent">
-            <!-- Dynamic content will be loaded here -->
+        <div class="container">
+            <nav class="sidebar">
+                <button id="teamNav">Team Members</button>
+                <button id="modesNav">Game Modes</button>
+                <button id="mapsNav">Maps</button>
+                <button id="sessionsNav">Game Sessions</button>
+                <button id="statsNav">Statistics</button>
+            </nav>
+            <main id="mainContent"></main>
         </div>
         <div id="modal" class="modal">
-            <div class="modal-content" id="modalContent">
+            <div class="modal-content">
                 <span class="close">&times;</span>
+                <div id="modalContent"></div>
             </div>
         </div>
-        <footer>
-            <p>&copy; 2024 Mongoose Omelette. All rights reserved.</p>
-        </footer>
     </div>
-    <script src="app.js"></script>
+    <footer>
+        <p>&copy; 2024 Mongoose Omelette Squad. All rights reserved.</p>
+    </footer>
+    <script src="app.js" type="module"></script>
 </body>
 </html>

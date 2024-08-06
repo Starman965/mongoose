@@ -47,149 +47,6 @@ function showSection(section) {
   }
 }
 
-function showModal(action, id = null) {
-  modalContent.innerHTML = '';
-  switch(action) {
-    case 'addTeamMember':
-      modalContent.innerHTML = `
-        <h3>Add Team Member</h3>
-        <form id="teamMemberForm">
-          <input type="text" id="name" placeholder="Name" required>
-          <input type="text" id="gamertag" placeholder="Gamertag" required>
-          <input type="text" id="state" placeholder="State" required>
-          <input type="number" id="age" placeholder="Age" required>
-          <input type="text" id="favoriteSnack" placeholder="Favorite Snack" required>
-          <input type="file" id="photo" accept="image/*" required>
-          <button type="submit">Add Team Member</button>
-        </form>
-      `;
-      document.getElementById('teamMemberForm').addEventListener('submit', addOrUpdateTeamMember);
-      break;
-    case 'editTeamMember':
-      get(ref(database, `teamMembers/${id}`)).then((snapshot) => {
-        if (snapshot.exists()) {
-          const member = snapshot.val();
-          modalContent.innerHTML = `
-            <h3>Edit Team Member</h3>
-            <form id="teamMemberForm" data-id="${id}">
-              <input type="text" id="name" value="${member.name}" required>
-              <input type="text" id="gamertag" value="${member.gamertag}" required>
-              <input type="text" id="state" value="${member.state}" required>
-              <input type="number" id="age" value="${member.age}" required>
-              <input type="text" id="favoriteSnack" value="${member.favoriteSnack}" required>
-              <input type="file" id="photo" accept="image/*">
-              <button type="submit">Update Team Member</button>
-            </form>
-          `;
-          document.getElementById('teamMemberForm').addEventListener('submit', addOrUpdateTeamMember);
-        }
-      });
-      break;
-    case 'addGameSession':
-      modalContent.innerHTML = `
-        <h3>Add Game Session</h3>
-        <form id="gameSessionForm">
-          <input type="date" id="date" placeholder="Date" required>
-          <button type="submit">Add Game Session</button>
-        </form>
-      `;
-      document.getElementById('gameSessionForm').addEventListener('submit', addOrUpdateGameSession);
-      break;
-    case 'editGameSession':
-      get(ref(database, `gameSessions/${id}`)).then((snapshot) => {
-        if (snapshot.exists()) {
-          const session = snapshot.val();
-          modalContent.innerHTML = `
-            <h3>Edit Game Session</h3>
-            <form id="gameSessionForm" data-id="${id}">
-              <input type="date" id="date" value="${session.date}" required>
-              <button type="submit">Update Game Session</button>
-            </form>
-          `;
-          document.getElementById('gameSessionForm').addEventListener('submit', addOrUpdateGameSession);
-        }
-      });
-      break;
-    case 'addMatch':
-      modalContent.innerHTML = `
-        <h3>Add Match</h3>
-        <form id="matchForm" data-session-id="${id}">
-          <select id="gameMode" required>
-            <option value="">Select Game Mode</option>
-          </select>
-          <select id="map" required>
-            <option value="">Select Map</option>
-          </select>
-          <input type="number" id="placement" placeholder="Placement" required>
-          <input type="number" id="kills-player1" placeholder="Kills Player 1">
-          <input type="number" id="kills-player2" placeholder="Kills Player 2">
-          <input type="number" id="kills-player3" placeholder="Kills Player 3">
-          <input type="number" id="kills-player4" placeholder="Kills Player 4">
-          <input type="number" id="kills-player5" placeholder="Kills Player 5">
-          <button type="submit">Add Match</button>
-        </form>
-      `;
-      loadGameModesAndMaps();
-      document.getElementById('matchForm').addEventListener('submit', addMatch);
-      break;
-    case 'viewMatches':
-      viewMatches(id);
-      break;
-  }
-  modal.style.display = "block";
-}
-
-function addOrUpdateGameSession(e) {
-  e.preventDefault();
-  const form = e.target;
-  const sessionId = form.dataset.id;
-  const sessionData = {
-    date: form.date.value,
-  };
-
-  const operation = sessionId
-    ? update(ref(database, `gameSessions/${sessionId}`), sessionData)
-    : push(ref(database, 'gameSessions'), sessionData);
-
-  operation
-    .then(() => {
-      loadGameSessions();
-      modal.style.display = "none";
-    })
-    .catch(error => {
-      console.error("Error adding/updating game session: ", error);
-      alert('Error adding/updating game session. Please try again.');
-    });
-}
-
-function addMatch(e) {
-  e.preventDefault();
-  const form = e.target;
-  const sessionId = form.dataset.sessionId;
-  const matchData = {
-    gameMode: form.gameMode.value,
-    map: form.map.value,
-    placement: parseInt(form.placement.value),
-    killsPlayer1: form['kills-player1'].value ? parseInt(form['kills-player1'].value) : null,
-    killsPlayer2: form['kills-player2'].value ? parseInt(form['kills-player2'].value) : null,
-    killsPlayer3: form['kills-player3'].value ? parseInt(form['kills-player3'].value) : null,
-    killsPlayer4: form['kills-player4'].value ? parseInt(form['kills-player4'].value) : null,
-    killsPlayer5: form['kills-player5'].value ? parseInt(form['kills-player5'].value) : null,
-  };
-
-  const matchRef = push(ref(database, `gameSessions/${sessionId}/matches`), matchData);
-
-  matchRef
-    .then(() => {
-      loadMatches(sessionId);
-      modal.style.display = "none";
-    })
-    .catch(error => {
-      console.error("Error adding match: ", error);
-      alert('Error adding match. Please try again.');
-    });
-}
-
 // Team Members
 function showTeamMembers() {
   mainContent.innerHTML = `
@@ -278,121 +135,6 @@ window.deleteTeamMember = function(id) {
       .catch(error => {
         console.error("Error deleting team member: ", error);
         alert('Error deleting team member. Please try again.');
-      });
-  }
-}
-
-function formatDate(dateString) {
-  const date = new Date(dateString);
-  const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-  return date.toLocaleDateString(undefined, options);
-}
-
-// Game Sessions
-function loadGameSessions() {
-  const sessionList = document.getElementById('sessionList');
-  sessionList.innerHTML = 'Loading game sessions...';
-  
-  onValue(ref(database, 'gameSessions'), (snapshot) => {
-    const sessions = [];
-    snapshot.forEach((childSnapshot) => {
-      const session = childSnapshot.val();
-      session.id = childSnapshot.key; // Save the session ID
-      sessions.push(session);
-    });
-
-    // Sort sessions by date in descending order
-    sessions.sort((a, b) => new Date(b.date) - new Date(a.date));
-
-    sessionList.innerHTML = '';
-    sessions.forEach((session) => {
-      sessionList.innerHTML += `
-        <div class="card">
-          <div class="session-header">
-            <h3>${formatDate(session.date)}</h3>
-            <div class="session-actions">
-              <i class="fas fa-pencil-alt" onclick="showModal('editGameSession', '${session.id}')"></i>
-              <i class="fas fa-trash" onclick="deleteGameSession('${session.id}')"></i>
-            </div>
-          </div>
-          <p>Number of matches: ${session.matches ? Object.keys(session.matches).length : 0}</p>
-          <div class="session-buttons">
-            <button onclick="toggleMatches('${session.id}')">View Matches</button>
-            <button onclick="showModal('addMatch', '${session.id}')">Add Match</button>
-          </div>
-          <div id="matches-${session.id}" class="matches-container"></div>
-        </div>
-      `;
-    });
-    
-    if (sessionList.innerHTML === '') {
-      sessionList.innerHTML = 'No game sessions found. Add some!';
-    }
-  });
-}
-
-function toggleMatches(sessionId) {
-  const matchesContainer = document.getElementById(`matches-${sessionId}`);
-  if (matchesContainer.style.display === 'none' || matchesContainer.style.display === '') {
-    loadMatches(sessionId);
-    matchesContainer.style.display = 'block';
-  } else {
-    matchesContainer.style.display = 'none';
-  }
-}
-
-function loadMatches(sessionId) {
-  const matchesContainer = document.getElementById(`matches-${sessionId}`);
-  get(ref(database, `gameSessions/${sessionId}`)).then((snapshot) => {
-    if (snapshot.exists()) {
-      const session = snapshot.val();
-      let matchesHtml = '<h3>Matches</h3>';
-      if (session.matches) {
-        matchesHtml += '<table><tr><th>Game Mode</th><th>Map</th><th>Placement</th><th>Kills Player 1</th><th>Kills Player 2</th><th>Kills Player 3</th><th>Kills Player 4</th><th>Kills Player 5</th></tr>';
-        Object.entries(session.matches).forEach(([matchId, match]) => {
-          matchesHtml += `
-            <tr>
-              <td>${match.gameMode}</td>
-              <td>${match.map}</td>
-              <td>${match.placement}</td>
-              <td>${match.killsPlayer1 !== null && match.killsPlayer1 !== undefined ? match.killsPlayer1 : ''}</td>
-              <td>${match.killsPlayer2 !== null && match.killsPlayer2 !== undefined ? match.killsPlayer2 : ''}</td>
-              <td>${match.killsPlayer3 !== null && match.killsPlayer3 !== undefined ? match.killsPlayer3 : ''}</td>
-              <td>${match.killsPlayer4 !== null && match.killsPlayer4 !== undefined ? match.killsPlayer4 : ''}</td>
-              <td>${match.killsPlayer5 !== null && match.killsPlayer5 !== undefined ? match.killsPlayer5 : ''}</td>
-              <td><button onclick="deleteMatch('${sessionId}', '${matchId}')">Delete Match</button></td>
-            </tr>
-          `;
-        });
-        matchesHtml += '</table>';
-      } else {
-        matchesHtml += '<p>No matches found for this session.</p>';
-      }
-      matchesContainer.innerHTML = matchesHtml;
-    }
-  });
-}
-
-window.deleteGameSession = function(id) {
-  if (confirm('Are you sure you want to delete this game session?')) {
-    remove(ref(database, `gameSessions/${id}`))
-      .then(() => loadGameSessions())
-      .catch(error => {
-        console.error("Error deleting game session: ", error);
-        alert('Error deleting game session. Please try again.');
-      });
-  }
-}
-
-window.deleteMatch = function(sessionId, matchId) {
-  if (confirm('Are you sure you want to delete this match?')) {
-    remove(ref(database, `gameSessions/${sessionId}/matches/${matchId}`))
-      .then(() => {
-        loadMatches(sessionId);
-      })
-      .catch(error => {
-        console.error("Error deleting match: ", error);
-        alert('Error deleting match. Please try again.');
       });
   }
 }
@@ -531,42 +273,209 @@ window.deleteMap = function(id) {
   }
 }
 
-// Helper function to load game modes and maps for the match form
-function loadGameModesAndMaps() {
-  const gameModeSelect = document.getElementById('gameMode');
-  const mapSelect = document.getElementById('map');
+// Game Sessions
+function showGameSessions() {
+  mainContent.innerHTML = `
+    <h2>Game Sessions</h2>
+    <button onclick="showModal('addGameSession')">Add Game Session</button>
+    <div id="sessionList"></div>
+  `;
+  loadGameSessions();
+}
 
-  get(ref(database, 'gameModes')).then((snapshot) => {
-    gameModeSelect.innerHTML = '<option value="">Select Game Mode</option>';
+function loadGameSessions() {
+  const sessionList = document.getElementById('sessionList');
+  sessionList.innerHTML = 'Loading game sessions...';
+  
+  onValue(ref(database, 'gameSessions'), (snapshot) => {
+    const sessions = [];
     snapshot.forEach((childSnapshot) => {
-      const gameMode = childSnapshot.val();
-      gameModeSelect.innerHTML += `<option value="${gameMode.name}">${gameMode.name}</option>`;
+      const session = childSnapshot.val();
+      const sessionId = childSnapshot.key;
+      sessions.push({ ...session, id: sessionId });
     });
-  });
+    
+    // Sort sessions by date descending
+    sessions.sort((a, b) => new Date(b.date) - new Date(a.date));
 
-  get(ref(database, 'maps')).then((snapshot) => {
-    mapSelect.innerHTML = '<option value="">Select Map</option>';
-    snapshot.forEach((childSnapshot) => {
-      const map = childSnapshot.val();
-      mapSelect.innerHTML += `<option value="${map.name}">${map.name}</option>`;
+    sessionList.innerHTML = '';
+    sessions.forEach((session) => {
+      sessionList.innerHTML += `
+        <div class="card">
+          <h3>
+            ${formatDate(session.date)}
+            <button onclick="showModal('editGameSession', '${session.id}')" class="icon-button">&#9998;</button>
+            <button onclick="deleteGameSession('${session.id}')" class="icon-button">&#128465;</button>
+          </h3>
+          <p>Number of matches: ${session.matches ? Object.keys(session.matches).length : 0}</p>
+          <div class="button-group">
+            <button onclick="toggleMatches('${session.id}')">View Matches</button>
+            <button onclick="showModal('addMatch', '${session.id}')">Add Match</button>
+          </div>
+          <div id="matches-${session.id}" class="matches-container"></div>
+        </div>
+      `;
     });
+
+    if (sessionList.innerHTML === '') {
+      sessionList.innerHTML = 'No game sessions found. Add some!';
+    }
   });
 }
 
-// Initialize the app
-showTeamMembers();
+function addOrUpdateGameSession(e) {
+  e.preventDefault();
+  const form = e.target;
+  const sessionId = form.dataset.id;
+  const sessionData = {
+    date: form.date.value,
+  };
 
-// Check connection
-const connectedRef = ref(database, ".info/connected");
-onValue(connectedRef, (snap) => {
-    if (snap.val() === true) {
-        console.log("Connected to Firebase");
-    } else {
-        console.log("Not connected to Firebase");
+  const operation = sessionId
+    ? update(ref(database, `gameSessions/${sessionId}`), sessionData)
+    : push(ref(database, 'gameSessions'), sessionData);
+
+  operation
+    .then(() => {
+      loadGameSessions();
+      modal.style.display = "none";
+    })
+    .catch(error => {
+      console.error("Error adding/updating game session: ", error);
+      alert('Error adding/updating game session. Please try again.');
+    });
+}
+
+function toggleMatches(sessionId) {
+  const matchesContainer = document.getElementById(`matches-${sessionId}`);
+  if (matchesContainer.style.display === 'none' || matchesContainer.style.display === '') {
+    loadMatches(sessionId);
+    matchesContainer.style.display = 'block';
+  } else {
+    matchesContainer.style.display = 'none';
+  }
+}
+
+function loadMatches(sessionId) {
+  const matchesContainer = document.getElementById(`matches-${sessionId}`);
+  get(ref(database, `gameSessions/${sessionId}`)).then((snapshot) => {
+    if (snapshot.exists()) {
+      const session = snapshot.val();
+      let matchesHtml = '<h3>Matches</h3>';
+      if (session.matches) {
+        matchesHtml += '<table class="matches-table"><tr><th>Game Mode</th><th>Map</th><th>Placement</th>';
+        
+        // Add headers for each player
+        onValue(ref(database, 'teamMembers'), (snapshot) => {
+          snapshot.forEach((childSnapshot) => {
+            const member = childSnapshot.val();
+            matchesHtml += `<th>${member.gamertag}</th>`;
+          });
+        });
+        
+        matchesHtml += '</tr>';
+        
+        Object.entries(session.matches).forEach(([matchId, match]) => {
+          matchesHtml += `
+            <tr>
+              <td>${match.gameMode}</td>
+              <td>${match.map}</td>
+              <td>${match.placement}</td>
+          `;
+          
+          // Add kill counts for each player
+          onValue(ref(database, 'teamMembers'), (snapshot) => {
+            snapshot.forEach((childSnapshot) => {
+              const member = childSnapshot.val();
+              matchesHtml += `<td>${match.kills && match.kills[member.gamertag] !== undefined ? match.kills[member.gamertag] : ''}</td>`;
+            });
+          });
+
+          matchesHtml += `
+              <td><button onclick="deleteMatch('${sessionId}', '${matchId}')">Delete Match</button></td>
+            </tr>
+          `;
+        });
+        matchesHtml += '</table>';
+      } else {
+        matchesHtml += '<p>No matches found for this session.</p>';
+      }
+      matchesContainer.innerHTML = matchesHtml;
     }
-});
+  });
+}
+
+function addMatch(e) {
+  e.preventDefault();
+  const form = e.target;
+  const sessionId = form.dataset.sessionId;
+  const matchData = {
+    gameMode: form.gameMode.value,
+    map: form.map.value,
+    placement: parseInt(form.placement.value),
+    kills: {}
+  };
+
+  // Collect kill counts for each player
+  onValue(ref(database, 'teamMembers'), (snapshot) => {
+    snapshot.forEach((childSnapshot) => {
+      const member = childSnapshot.val();
+      const killsInput = form[`kills-${member.gamertag}`];
+      if (killsInput) {
+        const kills = parseInt(killsInput.value);
+        if (!isNaN(kills)) {
+          matchData.kills[member.gamertag] = kills;
+        }
+      }
+    });
+  });
+
+  const matchRef = push(ref(database, `gameSessions/${sessionId}/matches`), matchData);
+
+  matchRef
+    .then(() => {
+      loadMatches(sessionId);
+      modal.style.display = "none";
+    })
+    .catch(error => {
+      console.error("Error adding match: ", error);
+      alert('Error adding match. Please try again.');
+    });
+}
+
+window.deleteGameSession = function(id) {
+  if (confirm('Are you sure you want to delete this game session?')) {
+    remove(ref(database, `gameSessions/${id}`))
+      .then(() => loadGameSessions())
+      .catch(error => {
+        console.error("Error deleting game session: ", error);
+        alert('Error deleting game session. Please try again.');
+      });
+  }
+}
+
+window.deleteMatch = function(sessionId, matchId) {
+  if (confirm('Are you sure you want to delete this match?')) {
+    remove(ref(database, `gameSessions/${sessionId}/matches/${matchId}`))
+      .then(() => {
+        loadMatches(sessionId);
+      })
+      .catch(error => {
+        console.error("Error deleting match: ", error);
+        alert('Error deleting match. Please try again.');
+      });
+  }
+}
 
 // Statistics
+function showStats() {
+  mainContent.innerHTML = `
+    <h2>Game Statistics</h2>
+    <div id="statsTable"></div>
+  `;
+  loadStats();
+}
+
 function loadStats() {
   const statsTable = document.getElementById('statsTable');
   statsTable.innerHTML = 'Loading statistics...';
@@ -575,11 +484,10 @@ function loadStats() {
     const sessions = [];
     snapshot.forEach((childSnapshot) => {
       const session = childSnapshot.val();
-      session.id = childSnapshot.key; // Save the session ID
       sessions.push(session);
     });
-
-    // Sort sessions by date in descending order
+    
+    // Sort sessions by date descending
     sessions.sort((a, b) => new Date(b.date) - new Date(a.date));
 
     let tableHTML = `
@@ -594,11 +502,6 @@ function loadStats() {
             <th>4th Place</th>
             <th>5th Place</th>
             <th>6th+ Place</th>
-            <th>Kills Player 1</th>
-            <th>Kills Player 2</th>
-            <th>Kills Player 3</th>
-            <th>Kills Player 4</th>
-            <th>Kills Player 5</th>
           </tr>
         </thead>
         <tbody>
@@ -611,17 +514,12 @@ function loadStats() {
       thirdPlace: 0,
       fourthPlace: 0,
       fifthPlace: 0,
-      sixthPlacePlus: 0,
-      killsPlayer1: 0,
-      killsPlayer2: 0,
-      killsPlayer3: 0,
-      killsPlayer4: 0,
-      killsPlayer5: 0,
+      sixthPlacePlus: 0
     };
 
     sessions.forEach((session) => {
       const stats = calculateSessionStats(session.matches || {});
-
+      
       // Add to totals
       for (let key in totalStats) {
         totalStats[key] += stats[key];
@@ -637,11 +535,6 @@ function loadStats() {
           <td>${stats.fourthPlace} (${((stats.fourthPlace / stats.gamesPlayed) * 100).toFixed(1)}%)</td>
           <td>${stats.fifthPlace} (${((stats.fifthPlace / stats.gamesPlayed) * 100).toFixed(1)}%)</td>
           <td>${stats.sixthPlacePlus} (${((stats.sixthPlacePlus / stats.gamesPlayed) * 100).toFixed(1)}%)</td>
-          <td>${stats.killsPlayer1}</td>
-          <td>${stats.killsPlayer2}</td>
-          <td>${stats.killsPlayer3}</td>
-          <td>${stats.killsPlayer4}</td>
-          <td>${stats.killsPlayer5}</td>
         </tr>
       `;
     });
@@ -659,11 +552,6 @@ function loadStats() {
             <td><strong>${totalStats.fourthPlace} (${((totalStats.fourthPlace / totalStats.gamesPlayed) * 100).toFixed(1)}%)</strong></td>
             <td><strong>${totalStats.fifthPlace} (${((totalStats.fifthPlace / totalStats.gamesPlayed) * 100).toFixed(1)}%)</strong></td>
             <td><strong>${totalStats.sixthPlacePlus} (${((totalStats.sixthPlacePlus / totalStats.gamesPlayed) * 100).toFixed(1)}%)</strong></td>
-            <td><strong>${totalStats.killsPlayer1}</strong></td>
-            <td><strong>${totalStats.killsPlayer2}</strong></td>
-            <td><strong>${totalStats.killsPlayer3}</strong></td>
-            <td><strong>${totalStats.killsPlayer4}</strong></td>
-            <td><strong>${totalStats.killsPlayer5}</strong></td>
           </tr>
         </tfoot>
       `;
@@ -686,12 +574,7 @@ function calculateSessionStats(matches) {
     thirdPlace: 0,
     fourthPlace: 0,
     fifthPlace: 0,
-    sixthPlacePlus: 0,
-    killsPlayer1: 0,
-    killsPlayer2: 0,
-    killsPlayer3: 0,
-    killsPlayer4: 0,
-    killsPlayer5: 0,
+    sixthPlacePlus: 0
   };
 
   Object.values(matches).forEach(match => {
@@ -703,12 +586,147 @@ function calculateSessionStats(matches) {
       case 5: stats.fifthPlace++; break;
       default: stats.sixthPlacePlus++;
     }
-    if (match.killsPlayer1) stats.killsPlayer1 += match.killsPlayer1;
-    if (match.killsPlayer2) stats.killsPlayer2 += match.killsPlayer2;
-    if (match.killsPlayer3) stats.killsPlayer3 += match.killsPlayer3;
-    if (match.killsPlayer4) stats.killsPlayer4 += match.killsPlayer4;
-    if (match.killsPlayer5) stats.killsPlayer5 += match.killsPlayer5;
   });
 
   return stats;
+}
+
+function formatDate(dateString) {
+  const date = new Date(dateString);
+  const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+  return date.toLocaleDateString(undefined, options);
+}
+
+// Initialize the app
+showTeamMembers();
+
+// Check connection
+const connectedRef = ref(database, ".info/connected");
+onValue(connectedRef, (snap) => {
+    if (snap.val() === true) {
+        console.log("Connected to Firebase");
+    } else {
+        console.log("Not connected to Firebase");
+    }
+});
+
+// Make showModal globally accessible
+window.showModal = function(action, id = null) {
+  modalContent.innerHTML = '';
+  switch(action) {
+    case 'addTeamMember':
+      modalContent.innerHTML = `
+        <h3>Add Team Member</h3>
+        <form id="teamMemberForm">
+          <input type="text" id="name" placeholder="Name" required>
+          <input type="text" id="gamertag" placeholder="Gamertag" required>
+          <input type="text" id="state" placeholder="State" required>
+          <input type="number" id="age" placeholder="Age" required>
+          <input type="text" id="favoriteSnack" placeholder="Favorite Snack" required>
+          <input type="file" id="photo" accept="image/*" required>
+          <button type="submit">Add Team Member</button>
+        </form>
+      `;
+      document.getElementById('teamMemberForm').addEventListener('submit', addOrUpdateTeamMember);
+      break;
+    case 'editTeamMember':
+      get(ref(database, `teamMembers/${id}`)).then((snapshot) => {
+        if (snapshot.exists()) {
+          const member = snapshot.val();
+          modalContent.innerHTML = `
+            <h3>Edit Team Member</h3>
+            <form id="teamMemberForm" data-id="${id}">
+              <input type="text" id="name" value="${member.name}" required>
+              <input type="text" id="gamertag" value="${member.gamertag}" required>
+              <input type="text" id="state" value="${member.state}" required>
+              <input type="number" id="age" value="${member.age}" required>
+              <input type="text" id="favoriteSnack" value="${member.favoriteSnack}" required>
+              <input type="file" id="photo" accept="image/*">
+              <button type="submit">Update Team Member</button>
+            </form>
+          `;
+          document.getElementById('teamMemberForm').addEventListener('submit', addOrUpdateTeamMember);
+        }
+      });
+      break;
+    case 'addGameSession':
+      modalContent.innerHTML = `
+        <h3>Add Game Session</h3>
+        <form id="gameSessionForm">
+          <input type="date" id="date" placeholder="Date" required>
+          <button type="submit">Add Game Session</button>
+        </form>
+      `;
+      document.getElementById('gameSessionForm').addEventListener('submit', addOrUpdateGameSession);
+      break;
+    case 'editGameSession':
+      get(ref(database, `gameSessions/${id}`)).then((snapshot) => {
+        if (snapshot.exists()) {
+          const session = snapshot.val();
+          modalContent.innerHTML = `
+            <h3>Edit Game Session</h3>
+            <form id="gameSessionForm" data-id="${id}">
+              <input type="date" id="date" value="${session.date}" required>
+              <button type="submit">Update Game Session</button>
+            </form>
+          `;
+          document.getElementById('gameSessionForm').addEventListener('submit', addOrUpdateGameSession);
+        }
+      });
+      break;
+    case 'addMatch':
+      modalContent.innerHTML = `
+        <h3>Add Match</h3>
+        <form id="matchForm" data-session-id="${id}">
+          <select id="gameMode" required>
+            <option value="">Select Game Mode</option>
+          </select>
+          <select id="map" required>
+            <option value="">Select Map</option>
+          </select>
+          <input type="number" id="placement" placeholder="Placement" required>
+      `;
+      
+      // Add kill count inputs for each player
+      onValue(ref(database, 'teamMembers'), (snapshot) => {
+        snapshot.forEach((childSnapshot) => {
+          const member = childSnapshot.val();
+          modalContent.innerHTML += `
+            <label for="kills-${member.gamertag}">${member.gamertag} Kills:</label>
+            <input type="number" id="kills-${member.gamertag}" placeholder="${member.gamertag} Kills">
+          `;
+        });
+        modalContent.innerHTML += `
+          <button type="submit">Add Match</button>
+        </form>
+        `;
+        document.getElementById('matchForm').addEventListener('submit', addMatch);
+      });
+
+      loadGameModesAndMaps();
+      break;
+  }
+  modal.style.display = "block";
+}
+
+// Helper function to load game modes and maps for the match form
+function loadGameModesAndMaps() {
+  const gameModeSelect = document.getElementById('gameMode');
+  const mapSelect = document.getElementById('map');
+
+  get(ref(database, 'gameModes')).then((snapshot) => {
+    gameModeSelect.innerHTML = '<option value="">Select Game Mode</option>';
+    snapshot.forEach((childSnapshot) => {
+      const gameMode = childSnapshot.val();
+      gameModeSelect.innerHTML += `<option value="${gameMode.name}">${gameMode.name}</option>`;
+    });
+  });
+
+  get(ref(database, 'maps')).then((snapshot) => {
+    mapSelect.innerHTML = '<option value="">Select Map</option>';
+    snapshot.forEach((childSnapshot) => {
+      const map = childSnapshot.val();
+      mapSelect.innerHTML += `<option value="${map.name}">${map.name}</option>`;
+    });
+  });
 }

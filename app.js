@@ -265,14 +265,13 @@ function loadTeamMembers() {
             const memberId = childSnapshot.key;
             teamList.innerHTML += `
                 <div class="card">
-                    <div class="member-info">
-                        <img src="${member.photoURL}" alt="${member.name}" class="team-photo">
-                        <div class="member-details">
-                            <h3>${member.name} (${member.gamertag})</h3>
-                            <p>State: ${member.state}</p>
-                            <p>Age: ${member.age}</p>
-                            <p>Favorite Snack: ${member.favoriteSnack}</p>
-                        </div>
+                    <img src="${member.photoURL}" alt="${member.name}" class="team-photo">
+                    <div class="member-details">
+                        <h3>${member.name}</h3>
+                        <p><strong>Gamertag:</strong> ${member.gamertag}</p>
+                        <p><strong>State:</strong> ${member.state}</p>
+                        <p><strong>Age:</strong> ${member.age}</p>
+                        <p><strong>Favorite Snack:</strong> ${member.favoriteSnack}</p>
                     </div>
                     <div class="actions">
                         <button class="button" onclick="showModal('editTeamMember', '${memberId}')">Edit</button>
@@ -286,6 +285,7 @@ function loadTeamMembers() {
         }
     });
 }
+
 function addOrUpdateTeamMember(e) {
   e.preventDefault();
   const form = e.target;

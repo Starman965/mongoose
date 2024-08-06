@@ -24,37 +24,40 @@ h1 {
     margin: 0;
 }
 
-nav {
+.container {
     display: flex;
-    justify-content: center;
-    background-color: #444444; /* Slightly lighter gray */
-    padding: 10px 0;
+    height: calc(100vh - 60px); /* Full height minus header */
 }
 
-nav button {
+.sidebar {
+    background-color: #444444; /* Slightly lighter gray */
+    padding: 10px;
+    min-width: 200px;
+    display: flex;
+    flex-direction: column;
+}
+
+.sidebar button {
     background-color: #FFD700; /* Gold buttons */
     border: none;
     color: #000000; /* Black text */
-    padding: 10px 20px;
-    margin: 0 5px;
+    padding: 10px;
+    margin: 5px 0;
     cursor: pointer;
     font-size: 16px;
+    border-radius: 5px;
 }
 
-nav button:hover {
+.sidebar button:hover {
     background-color: #FFA500; /* Darker gold on hover */
 }
 
-#mainContainer {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 20px;
-}
-
-#mainContent {
+main {
+    flex-grow: 1;
     padding: 20px;
     background-color: #222222; /* Very dark gray */
     border-radius: 10px;
+    overflow-y: auto;
 }
 
 .modal {

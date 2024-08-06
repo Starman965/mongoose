@@ -47,15 +47,6 @@ function showSection(section) {
   }
 }
 
-function showGameSessions() {
-  mainContent.innerHTML = `
-    <h2>Game Sessions</h2>
-    <button onclick="showModal('addGameSession')">Add Game Session</button>
-    <div id="sessionList"></div>
-  `;
-  loadGameSessions();
-}
-
 function addMatch(e) {
   e.preventDefault();
   const form = e.target;
@@ -376,7 +367,6 @@ window.deleteMatch = function(sessionId, matchId) {
   }
 }
 
-// Game Modes
 // Game Sessions
 function showGameSessions() {
   mainContent.innerHTML = `

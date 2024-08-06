@@ -267,7 +267,7 @@ footer {
     cursor: pointer;
     font-size: 16px;
     border-radius: 5px;
-    width: 30%; /* Fixed width for buttons */
+    width: 23%; /* Adjust width to fit 4 buttons per row with some margin */
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     transition: background-color 0.3s ease;
 }

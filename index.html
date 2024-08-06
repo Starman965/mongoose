@@ -6,42 +6,46 @@
     <title>Call of Duty Team Tracker</title>
     <link rel="stylesheet" href="styles.css">
     <!-- Firebase App (the core Firebase SDK) is always required and must be listed first -->
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-    <!-- Add Firebase products that you want to use -->
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-analytics-compat.js"></script>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
+        import { getDatabase } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-database.js";
+        import { getAnalytics } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-analytics.js";
+
+        // Your Firebase configuration object here
+        const firebaseConfig = {
+            // Your config here
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const database = getDatabase(app);
+        const analytics = getAnalytics(app);
+
+        // Make database accessible globally
+        window.database = database;
+    </script>
 </head>
 <body>
-    <header>
+    <div id="app">
         <h1>Call of Duty Team Tracker</h1>
-    </header>
-
-    <nav id="main-nav">
-        <button id="teamNav">Team Members</button>
-        <button id="modesNav">Game Modes</button>
-        <button id="mapsNav">Maps</button>
-        <button id="sessionsNav">Game Sessions</button>
-        <button id="statsNav">Statistics</button>
-    </nav>
-
-    <main id="mainContent">
-        <!-- Main content will be dynamically inserted here by JavaScript -->
-    </main>
-
-    <div id="modal" class="modal">
-        <div class="modal-content">
-            <span class="close">&times;</span>
-            <div id="modalContent"></div>
+        <nav>
+            <button id="teamNav">Team Members</button>
+            <button id="modesNav">Game Modes</button>
+            <button id="mapsNav">Maps</button>
+            <button id="sessionsNav">Game Sessions</button>
+            <button id="statsNav">Statistics</button>
+        </nav>
+        <main id="mainContent"></main>
+        <div id="modal" class="modal">
+            <div class="modal-content">
+                <span class="close">&times;</span>
+                <div id="modalContent"></div>
+            </div>
         </div>
     </div>
-
     <footer>
         <p>&copy; 2024 Call of Duty Team Tracker. All rights reserved.</p>
     </footer>
-
-    <!-- Your custom JavaScript file -->
-    <button onclick="showModal('addTeamMember')">Add Team Member</button>
-    <button onclick="showModal('addGameSession')">Add Game Session</button>
-    <script src="app.js"></script>
+    <script src="app.js" type="module"></script>
 </body>
 </html>

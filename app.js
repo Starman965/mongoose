@@ -641,17 +641,20 @@ function loadStats() {
     sessions.sort((a, b) => new Date(a.date) - new Date(b.date));
 
     let tableHTML = `
-      <table>
-        <tr>
-          <th>Date</th>
-          <th>Games Played</th>
-          <th>Wins</th>
-          <th>2nd Place</th>
-          <th>3rd Place</th>
-          <th>4th Place</th>
-          <th>5th Place</th>
-          <th>6th+ Place</th>
-        </tr>
+      <table class="stats-table">
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Games Played</th>
+            <th>Wins</th>
+            <th>2nd Place</th>
+            <th>3rd Place</th>
+            <th>4th Place</th>
+            <th>5th Place</th>
+            <th>6th+ Place</th>
+          </tr>
+        </thead>
+        <tbody>
     `;
 
     let totalStats = {
@@ -689,20 +692,22 @@ function loadStats() {
     // Add total row
     if (totalStats.gamesPlayed > 0) {
       tableHTML += `
-        <tr>
-          <td><strong>Total</strong></td>
-          <td><strong>${totalStats.gamesPlayed}</strong></td>
-          <td><strong>${totalStats.wins} (${((totalStats.wins / totalStats.gamesPlayed) * 100).toFixed(1)}%)</strong></td>
-          <td><strong>${totalStats.secondPlace} (${((totalStats.secondPlace / totalStats.gamesPlayed) * 100).toFixed(1)}%)</strong></td>
-          <td><strong>${totalStats.thirdPlace} (${((totalStats.thirdPlace / totalStats.gamesPlayed) * 100).toFixed(1)}%)</strong></td>
-          <td><strong>${totalStats.fourthPlace} (${((totalStats.fourthPlace / totalStats.gamesPlayed) * 100).toFixed(1)}%)</strong></td>
-          <td><strong>${totalStats.fifthPlace} (${((totalStats.fifthPlace / totalStats.gamesPlayed) * 100).toFixed(1)}%)</strong></td>
-          <td><strong>${totalStats.sixthPlacePlus} (${((totalStats.sixthPlacePlus / totalStats.gamesPlayed) * 100).toFixed(1)}%)</strong></td>
-        </tr>
+        <tfoot>
+          <tr>
+            <td><strong>Total</strong></td>
+            <td><strong>${totalStats.gamesPlayed}</strong></td>
+            <td><strong>${totalStats.wins} (${((totalStats.wins / totalStats.gamesPlayed) * 100).toFixed(1)}%)</strong></td>
+            <td><strong>${totalStats.secondPlace} (${((totalStats.secondPlace / totalStats.gamesPlayed) * 100).toFixed(1)}%)</strong></td>
+            <td><strong>${totalStats.thirdPlace} (${((totalStats.thirdPlace / totalStats.gamesPlayed) * 100).toFixed(1)}%)</strong></td>
+            <td><strong>${totalStats.fourthPlace} (${((totalStats.fourthPlace / totalStats.gamesPlayed) * 100).toFixed(1)}%)</strong></td>
+            <td><strong>${totalStats.fifthPlace} (${((totalStats.fifthPlace / totalStats.gamesPlayed) * 100).toFixed(1)}%)</strong></td>
+            <td><strong>${totalStats.sixthPlacePlus} (${((totalStats.sixthPlacePlus / totalStats.gamesPlayed) * 100).toFixed(1)}%)</strong></td>
+          </tr>
+        </tfoot>
       `;
     }
 
-    tableHTML += '</table>';
+    tableHTML += '</tbody></table>';
     statsTable.innerHTML = tableHTML;
 
     if (sessions.length === 0) {
@@ -710,7 +715,6 @@ function loadStats() {
     }
   });
 }
-
 
 function calculateSessionStats(matches) {
   const stats = {

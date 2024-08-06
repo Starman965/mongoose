@@ -5,13 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Call of Duty Team Tracker</title>
     <link rel="stylesheet" href="styles.css">
-    <!-- Firebase App (the core Firebase SDK) is always required and must be listed first -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
         import { getDatabase } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-database.js";
         import { getAnalytics } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-analytics.js";
 
-        // Your Firebase configuration object here
         const firebaseConfig = {
             apiKey: "AIzaSyCOoX8dx7-GVlbYjNaKArUpc7hbZSm3gnw",
             authDomain: "gamenight-37cc6.firebaseapp.com",
@@ -22,26 +20,26 @@
             appId: "1:31368693363:web:a2c0702234977a07dbcc06"
         };
 
-        // Initialize Firebase
         const app = initializeApp(firebaseConfig);
         const database = getDatabase(app);
         const analytics = getAnalytics(app);
 
-        // Make database accessible globally
         window.database = database;
     </script>
 </head>
 <body>
     <div id="app">
         <h1>Call of Duty Team Tracker</h1>
-        <nav>
-            <button id="teamNav">Team Members</button>
-            <button id="modesNav">Game Modes</button>
-            <button id="mapsNav">Maps</button>
-            <button id="sessionsNav">Game Sessions</button>
-            <button id="statsNav">Statistics</button>
-        </nav>
-        <main id="mainContent"></main>
+        <div class="container">
+            <nav class="sidebar">
+                <button id="teamNav">Team Members</button>
+                <button id="modesNav">Game Modes</button>
+                <button id="mapsNav">Maps</button>
+                <button id="sessionsNav">Game Sessions</button>
+                <button id="statsNav">Statistics</button>
+            </nav>
+            <main id="mainContent"></main>
+        </div>
         <div id="modal" class="modal">
             <div class="modal-content">
                 <span class="close">&times;</span>

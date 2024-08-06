@@ -295,15 +295,6 @@ function formatDate(dateString) {
   return correctedDate.toLocaleDateString(undefined, options);
 }
 
-
-// Format date to correct for time zone issues
-function formatDate(dateString) {
-  const date = new Date(dateString);
-  const correctedDate = new Date(date.getTime() + date.getTimezoneOffset() * 60000);
-  const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-  return correctedDate.toLocaleDateString(undefined, options);
-}
-
 // Load game sessions and display formatted dates
 function loadGameSessions() {
   const sessionList = document.getElementById('sessionList');

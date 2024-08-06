@@ -377,19 +377,19 @@ function loadGameSessions() {
         // Sort sessions by date in descending order
         sessions.sort((a, b) => new Date(b.date) - new Date(a.date));
 
-        sessionList.innerHTML = '';
-        sessions.forEach((session) => {
-            sessionList.innerHTML += `
-                <div class="card">
-                    <h3>${formatDate(session.date)}</h3>
-                    <p>Number of matches: ${session.matches ? Object.keys(session.matches).length : 0}</p>
-                    <button class="toggle-matches" onclick="toggleMatches('${session.id}')">View Matches</button>
-                    <button onclick="showModal('addMatch', '${session.id}')">Add Match</button>
-                    <button onclick="showModal('editGameSession', '${session.id}')">Edit Session</button>
-                    <button onclick="deleteGameSession('${session.id}')">Delete Session</button>
-                    <div id="matches-${session.id}" class="matches-container"></div>
-                </div>
-            `;
+        sessionList.innerHTML += `
+    <div class="card">
+        <h3>${formatDate(session.date)}</h3>
+        <p>Number of matches: ${session.matches ? Object.keys(session.matches).length : 0}</p>
+        <div class="button-group">
+            <button class="toggle-matches" onclick="toggleMatches('${session.id}')">View Matches</button>
+            <button onclick="showModal('addMatch', '${session.id}')">Add Match</button>
+            <button onclick="showModal('editGameSession', '${session.id}')">Edit Session</button>
+            <button onclick="deleteGameSession('${session.id}')">Delete Session</button>
+        </div>
+        <div id="matches-${session.id}" class="matches-container"></div>
+    </div>
+`;
         });
 
         if (sessionList.innerHTML === '') {

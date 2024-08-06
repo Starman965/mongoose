@@ -351,30 +351,32 @@ function formatDate(dateString) {
 
 // Load game sessions and display formatted dates
 function loadGameSessions() {
-  const sessionList = document.getElementById('sessionList');
-  sessionList.innerHTML = 'Loading game sessions...';
-  
-  onValue(ref(database, 'gameSessions'), (snapshot) => {
-    sessionList.innerHTML = '';
-    snapshot.forEach((childSnapshot) => {
-      const session = childSnapshot.val();
-      const sessionId = childSnapshot.key;
-      sessionList.innerHTML += `
-        <div class="card">
-          <h3>${formatDate(session.date)}</h3>
-          <p>Number of matches: ${session.matches ? Object.keys(session.matches).length : 0}</p>
-          <button class="toggle-matches" onclick="toggleMatches('${sessionId}')">View Matches</button>
-          <button onclick="showModal('addMatch', '${sessionId}')">Add Match</button>
-          <button onclick="showModal('editGameSession', '${sessionId}')">Edit Session</button>
-          <button onclick="deleteGameSession('${sessionId}')">Delete Session</button>
-          <div id="matches-${sessionId}" class="matches-container"></div>
-        </div>
-      `;
+    const sessionList = document.getElementById('sessionList');
+    sessionList.innerHTML = 'Loading game sessions...';
+    
+    onValue(ref(database, 'gameSessions'), (snapshot) => {
+        sessionList.innerHTML = '';
+        snapshot.forEach((childSnapshot) => {
+            const session = childSnapshot.val();
+            const sessionId = childSnapshot.key;
+            sessionList.innerHTML += `
+                <div class="card">
+                    <h3>${formatDate(session.date)}</h3>
+                    <p>Number of matches: ${session.matches ? Object.keys(session.matches).length : 0}</p>
+                    <div class="session-buttons">
+                        <button onclick="toggleMatches('${sessionId}')">View Matches</button>
+                        <button onclick="showModal('addMatch', '${sessionId}')">Add Match</button>
+                        <button onclick="showModal('editGameSession', '${sessionId}')">Edit Session</button>
+                        <button onclick="deleteGameSession('${sessionId}')">Delete Session</button>
+                    </div>
+                    <div id="matches-${sessionId}" class="matches-container"></div>
+                </div>
+            `;
+        });
+        if (sessionList.innerHTML === '') {
+            sessionList.innerHTML = 'No game sessions found. Add some!';
+        }
     });
-    if (sessionList.innerHTML === '') {
-      sessionList.innerHTML = 'No game sessions found. Add some!';
-    }
-  });
 }
 
 window.toggleMatches = function(sessionId) {

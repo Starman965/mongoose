@@ -351,32 +351,39 @@ function formatDate(dateString) {
 
 // Load game sessions and display formatted dates
 function loadGameSessions() {
-    const sessionList = document.getElementById('sessionList');
-    sessionList.innerHTML = 'Loading game sessions...';
-    
-    onValue(ref(database, 'gameSessions'), (snapshot) => {
-        sessionList.innerHTML = '';
-        snapshot.forEach((childSnapshot) => {
-            const session = childSnapshot.val();
-            const sessionId = childSnapshot.key;
-            sessionList.innerHTML += `
-                <div class="card">
-                    <h3>${formatDate(session.date)}</h3>
-                    <p>Number of matches: ${session.matches ? Object.keys(session.matches).length : 0}</p>
-                    <div class="session-buttons">
-                        <button onclick="toggleMatches('${sessionId}')">View Matches</button>
-                        <button onclick="showModal('addMatch', '${sessionId}')">Add Match</button>
-                        <button onclick="showModal('editGameSession', '${sessionId}')">Edit Session</button>
-                        <button onclick="deleteGameSession('${sessionId}')">Delete Session</button>
-                    </div>
-                    <div id="matches-${sessionId}" class="matches-container"></div>
-                </div>
-            `;
-        });
-        if (sessionList.innerHTML === '') {
-            sessionList.innerHTML = 'No game sessions found. Add some!';
-        }
+  const sessionList = document.getElementById('sessionList');
+  sessionList.innerHTML = 'Loading game sessions...';
+  
+  onValue(ref(database, 'gameSessions'), (snapshot) => {
+    const sessions = [];
+    snapshot.forEach((childSnapshot) => {
+      const session = childSnapshot.val();
+      session.id = childSnapshot.key; // Save the session ID
+      sessions.push(session);
     });
+
+    // Sort sessions by date
+    sessions.sort((a, b) => new Date(a.date) - new Date(b.date));
+
+    sessionList.innerHTML = '';
+    sessions.forEach((session) => {
+      sessionList.innerHTML += `
+        <div class="card">
+          <h3>${formatDate(session.date)}</h3>
+          <p>Number of matches: ${session.matches ? Object.keys(session.matches).length : 0}</p>
+          <button class="toggle-matches" onclick="toggleMatches('${session.id}')">View Matches</button>
+          <button onclick="showModal('addMatch', '${session.id}')">Add Match</button>
+          <button onclick="showModal('editGameSession', '${session.id}')">Edit Session</button>
+          <button onclick="deleteGameSession('${session.id}')">Delete Session</button>
+          <div id="matches-${session.id}" class="matches-container"></div>
+        </div>
+      `;
+    });
+    
+    if (sessionList.innerHTML === '') {
+      sessionList.innerHTML = 'No game sessions found. Add some!';
+    }
+  });
 }
 
 window.toggleMatches = function(sessionId) {
@@ -624,21 +631,27 @@ function loadStats() {
   statsTable.innerHTML = 'Loading statistics...';
 
   get(ref(database, 'gameSessions')).then((snapshot) => {
+    const sessions = [];
+    snapshot.forEach((childSnapshot) => {
+      const session = childSnapshot.val();
+      sessions.push(session);
+    });
+
+    // Sort sessions by date
+    sessions.sort((a, b) => new Date(a.date) - new Date(b.date));
+
     let tableHTML = `
-      <table class="stats-table">
-        <thead>
-          <tr>
-            <th>Date</th>
-            <th>Games Played</th>
-            <th>Wins</th>
-            <th>2nd Place</th>
-            <th>3rd Place</th>
-            <th>4th Place</th>
-            <th>5th Place</th>
-            <th>6th+ Place</th>
-          </tr>
-        </thead>
-        <tbody>
+      <table>
+        <tr>
+          <th>Date</th>
+          <th>Games Played</th>
+          <th>Wins</th>
+          <th>2nd Place</th>
+          <th>3rd Place</th>
+          <th>4th Place</th>
+          <th>5th Place</th>
+          <th>6th+ Place</th>
+        </tr>
     `;
 
     let totalStats = {
@@ -651,8 +664,7 @@ function loadStats() {
       sixthPlacePlus: 0
     };
 
-    snapshot.forEach((childSnapshot) => {
-      const session = childSnapshot.val();
+    sessions.forEach((session) => {
       const stats = calculateSessionStats(session.matches || {});
       
       // Add to totals
@@ -677,29 +689,28 @@ function loadStats() {
     // Add total row
     if (totalStats.gamesPlayed > 0) {
       tableHTML += `
-        <tfoot>
-          <tr>
-            <td><strong>Total</strong></td>
-            <td><strong>${totalStats.gamesPlayed}</strong></td>
-            <td><strong>${totalStats.wins} (${((totalStats.wins / totalStats.gamesPlayed) * 100).toFixed(1)}%)</strong></td>
-            <td><strong>${totalStats.secondPlace} (${((totalStats.secondPlace / totalStats.gamesPlayed) * 100).toFixed(1)}%)</strong></td>
-            <td><strong>${totalStats.thirdPlace} (${((totalStats.thirdPlace / totalStats.gamesPlayed) * 100).toFixed(1)}%)</strong></td>
-            <td><strong>${totalStats.fourthPlace} (${((totalStats.fourthPlace / totalStats.gamesPlayed) * 100).toFixed(1)}%)</strong></td>
-            <td><strong>${totalStats.fifthPlace} (${((totalStats.fifthPlace / totalStats.gamesPlayed) * 100).toFixed(1)}%)</strong></td>
-            <td><strong>${totalStats.sixthPlacePlus} (${((totalStats.sixthPlacePlus / totalStats.gamesPlayed) * 100).toFixed(1)}%)</strong></td>
-          </tr>
-        </tfoot>
+        <tr>
+          <td><strong>Total</strong></td>
+          <td><strong>${totalStats.gamesPlayed}</strong></td>
+          <td><strong>${totalStats.wins} (${((totalStats.wins / totalStats.gamesPlayed) * 100).toFixed(1)}%)</strong></td>
+          <td><strong>${totalStats.secondPlace} (${((totalStats.secondPlace / totalStats.gamesPlayed) * 100).toFixed(1)}%)</strong></td>
+          <td><strong>${totalStats.thirdPlace} (${((totalStats.thirdPlace / totalStats.gamesPlayed) * 100).toFixed(1)}%)</strong></td>
+          <td><strong>${totalStats.fourthPlace} (${((totalStats.fourthPlace / totalStats.gamesPlayed) * 100).toFixed(1)}%)</strong></td>
+          <td><strong>${totalStats.fifthPlace} (${((totalStats.fifthPlace / totalStats.gamesPlayed) * 100).toFixed(1)}%)</strong></td>
+          <td><strong>${totalStats.sixthPlacePlus} (${((totalStats.sixthPlacePlus / totalStats.gamesPlayed) * 100).toFixed(1)}%)</strong></td>
+        </tr>
       `;
     }
 
-    tableHTML += '</tbody></table>';
+    tableHTML += '</table>';
     statsTable.innerHTML = tableHTML;
 
-    if (snapshot.size === 0) {
+    if (sessions.length === 0) {
       statsTable.innerHTML = 'No game sessions found. Add some games first!';
     }
   });
 }
+
 
 function calculateSessionStats(matches) {
   const stats = {

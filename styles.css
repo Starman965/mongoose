@@ -178,3 +178,34 @@ footer {
 .table-row .actions button:hover {
     background-color: #FFA500;
 }
+.stats-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+}
+
+.stats-table th, .stats-table td {
+    border: 1px solid #444444;
+    padding: 12px 15px;
+    text-align: center;
+}
+
+.stats-table th {
+    background-color: #333333;
+    color: #FFD700;
+    font-weight: bold;
+}
+
+.stats-table td {
+    background-color: #222222;
+    color: #FFFFFF;
+}
+
+.stats-table tr:nth-child(even) td {
+    background-color: #2A2A2A;
+}
+
+.stats-table tfoot td {
+    font-weight: bold;
+    background-color: #333333;
+}

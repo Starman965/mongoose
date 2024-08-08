@@ -69,6 +69,7 @@ function loadTeamMembers() {
             const member = childSnapshot.val();
             const memberId = childSnapshot.key;
             const age = calculateAge(member.birthdate);
+            console.log(`Loading member ${member.name}:`, member);
             teamList.innerHTML += `
                 <div class="card">
                     <img src="${member.photoURL}" alt="${member.name}" class="team-photo">
@@ -78,8 +79,8 @@ function loadTeamMembers() {
                         <p><strong>State:</strong> ${member.state}</p>
                         <p><strong>Birthdate:</strong> ${member.birthdate} (Age: ${age})</p>
                         <p><strong>Favorite Snack:</strong> ${member.favoriteSnack}</p>
-                        <p><strong>BR PR:</strong> ${member.brPR || 'N/A'}</p>
-                        <p><strong>MP PR:</strong> ${member.mpPR || 'N/A'}</p>
+                        <p><strong>BR PR:</strong> ${member.brPR !== undefined ? member.brPR : 'N/A'}</p>
+                        <p><strong>MP PR:</strong> ${member.mpPR !== undefined ? member.mpPR : 'N/A'}</p>
                     </div>
                     <div class="actions">
                         <button class="button" onclick="showModal('editTeamMember', '${memberId}')">Edit</button>
@@ -93,7 +94,6 @@ function loadTeamMembers() {
         }
     });
 }
-
 function calculateAge(birthdate) {
     const today = new Date();
     const birthDate = new Date(birthdate);

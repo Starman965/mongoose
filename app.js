@@ -345,50 +345,60 @@ window.deleteGameSession = function(id) {
   }
 }
 
-function addMatch(e) {
-  e.preventDefault();
-  const form = e.target;
-  const sessionId = form.dataset.sessionId;
-  const matchId = form.dataset.matchId;
-  const matchData = {
-    gameMode: form.gameMode.value,
-    map: form.map.value,
-    placement: parseInt(form.placement.value),
-    totalKills: parseInt(form.totalKills.value) || 0,
-    kills: {
-      STARMAN: parseInt(form.killsSTARMAN.value) || 0,
-      RSKILLA: parseInt(form.killsRSKILLA.value) || 0,
-      SWFTSWORD: parseInt(form.killsSWFTSWORD.value) || 0,
-      VAIDED: parseInt(form.killsVAIDED.value) || 0,
-      MOWGLI: parseInt(form.killsMOWGLI.value) || 0
-    }
-  };
-  const highlightVideo = form.highlightVideo.files[0];
-  if (highlightVideo) {
-    const videoRef = storageRef(storage, `highlights/${sessionId}/${highlightVideo.name}`);
-    uploadBytes(videoRef, highlightVideo).then(snapshot => {
-      getDownloadURL(snapshot.ref).then(url => {
-        matchData.highlightURL = url;
-        saveMatch(sessionId, matchId, matchData);
-      });
-    });
-  } else {
-    // If updating and no new video is provided, keep the existing highlightURL
-    if (matchId) {
-      get(ref(database, `gameSessions/${sessionId}/matches/${matchId}`)).then((snapshot) => {
-        if (snapshot.exists()) {
-          const existingMatch = snapshot.val();
-          if (existingMatch.highlightURL) {
-            matchData.highlightURL = existingMatch.highlightURL;
-          }
-        }
-        saveMatch(sessionId, matchId, matchData);
-      });
-    } else {
-      saveMatch(sessionId, matchId, matchData);
-    }
-  }
-}
+case 'addMatch':
+  modalContent.innerHTML = `
+    <h3>Add Match</h3>
+    <form id="matchForm" data-session-id="${id}" class="vertical-form">
+      <div class="form-group">
+        <label for="gameMode">Game Mode</label>
+        <select id="gameMode" required>
+          <option value="">Select Game Mode</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label for="map">Map</label>
+        <select id="map" required>
+          <option value="">Select Map</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label for="placement">Placement</label>
+        <input type="number" id="placement" required>
+      </div>
+      <div class="form-group">
+        <label for="totalKills">Total Kills</label>
+        <input type="number" id="totalKills">
+      </div>
+      <div class="form-group">
+        <label for="killsSTARMAN">Kills (STARMAN)</label>
+        <input type="number" id="killsSTARMAN">
+      </div>
+      <div class="form-group">
+        <label for="killsRSKILLA">Kills (RSKILLA)</label>
+        <input type="number" id="killsRSKILLA">
+      </div>
+      <div class="form-group">
+        <label for="killsSWFTSWORD">Kills (SWFTSWORD)</label>
+        <input type="number" id="killsSWFTSWORD">
+      </div>
+      <div class="form-group">
+        <label for="killsVAIDED">Kills (VAIDED)</label>
+        <input type="number" id="killsVAIDED">
+      </div>
+      <div class="form-group">
+        <label for="killsMOWGLI">Kills (MOWGLI)</label>
+        <input type="number" id="killsMOWGLI">
+      </div>
+      <div class="form-group">
+        <label for="highlightVideo">Highlight Video</label>
+        <input type="file" id="highlightVideo" accept="video/*">
+      </div>
+      <button type="submit" class="button">Add Match</button>
+    </form>
+  `;
+  loadGameModesAndMaps();
+  document.getElementById('matchForm').addEventListener('submit', addMatch);
+  break;
 
 function saveMatch(sessionId, matchId, matchData) {
   let operation;

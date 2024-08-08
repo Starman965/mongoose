@@ -1,96 +1,88 @@
 body {
-    background-color: #000000; /* Black background */
-    color: #ffffff; /* White text */
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    margin: 0;
-    padding: 0;
-}
-
-header {
-    text-align: center;
-    padding: 20px;
-    background-color: #333333; /* Dark gray background */
-    border-bottom: 2px solid #FFD700; /* Gold border */
-}
-
-header .logo {
-    width: 100px; /* Adjust size as needed */
-    display: block;
-    margin: 0 auto;
+    font-family: Arial, sans-serif;
+    background-color: #1e1e1e;
+    color: #fff;
 }
 
 h1 {
-    color: #FFD700; /* Gold text */
-    margin: 0;
-    font-size: 1.5em;
+    text-align: center;
+    margin: 20px 0;
+    font-size: 2em;
 }
 
 .container {
     display: flex;
-    height: calc(100vh - 100px); /* Full height minus header */
+    flex-direction: row;
 }
 
 .sidebar {
-    background-color: #444444; /* Slightly lighter gray */
-    padding: 10px;
-    min-width: 200px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 10px;
-    border-right: 2px solid #FFD700; /* Gold border */
+    width: 200px;
+    background-color: #333;
+    padding: 20px;
 }
 
 .sidebar button {
-    background-color: #FFD700; /* Gold buttons */
-    border: none;
-    color: #000000; /* Black text */
+    width: 100%;
     padding: 10px;
-    margin: 5px 0;
+    margin-bottom: 10px;
+    background-color: #ffcc00;
+    color: #000;
+    border: none;
     cursor: pointer;
-    font-size: 16px;
-    border-radius: 5px;
-    width: 100%; /* Full width buttons */
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    transition: background-color 0.3s ease;
+    text-align: left;
 }
 
 .sidebar button:hover {
-    background-color: #FFA500; /* Darker gold on hover */
+    background-color: #ffd633;
 }
 
 main {
     flex-grow: 1;
     padding: 20px;
-    background-color: #222222; /* Very dark gray */
-    border-radius: 10px;
-    overflow-y: auto;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
 .card {
-    background-color: #333333; /* Dark gray background for cards */
-    padding: 15px;
+    background-color: #333;
+    padding: 20px;
     margin: 10px 0;
-    border-radius: 8px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
+    border-radius: 5px;
 }
 
-.card img.team-photo {
-    width: 100px; /* Set a fixed width */
-    height: 100px; /* Set a fixed height */
-    object-fit: cover; /* Ensure the image covers the area without distorting */
-    border-radius: 50%; /* Make the images circular */
-    display: block;
-    margin: 0 auto 10px auto;
+.team-photo {
+    width: 100%;
+    border-radius: 5px;
 }
 
-.card h3, .card p {
+.member-details {
+    margin-top: 10px;
+}
+
+.member-details h3 {
+    margin: 0;
+    font-size: 1.5em;
+}
+
+.member-details p {
     margin: 5px 0;
-    text-align: center;
+}
+
+.actions {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 10px;
+}
+
+.button {
+    background-color: #ffcc00;
+    color: #000;
+    border: none;
+    padding: 10px;
+    cursor: pointer;
+    border-radius: 5px;
+}
+
+.button:hover {
+    background-color: #ffd633;
 }
 
 .modal {
@@ -102,19 +94,16 @@ main {
     width: 100%;
     height: 100%;
     overflow: auto;
-    background-color: rgb(0,0,0);
-    background-color: rgba(0,0,0,0.4);
+    background-color: rgba(0, 0, 0, 0.8);
 }
 
 .modal-content {
-    background-color: #333333;
+    background-color: #333;
     margin: 15% auto;
     padding: 20px;
     border: 1px solid #888;
     width: 80%;
-    color: #ffffff;
-    border-radius: 10px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    border-radius: 5px;
 }
 
 .close {
@@ -131,248 +120,50 @@ main {
     cursor: pointer;
 }
 
-footer {
-    text-align: center;
-    padding: 10px;
-    background-color: #333333; /* Dark gray */
-    color: #FFD700; /* Gold text */
-    border-top: 2px solid #FFD700; /* Gold border */
-}
-
-/* Update general button styles */
-.button {
-    background-color: #FFD700; /* Gold buttons */
-    border: none;
-    color: #000000; /* Black text */
-    padding: 10px;
-    margin: 5px;
-    cursor: pointer;
-    font-size: 16px;
-    border-radius: 5px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    transition: background-color 0.3s ease;
-    white-space: nowrap;
-    text-align: center;
-}
-
-.button:hover {
-    background-color: #FFA500; /* Darker gold on hover */
-}
-
-/* Ensure button groups are in a row */
-.button-group {
-    display: flex;
-    gap: 10px;
-    flex-wrap: wrap;
-    justify-content: center;
-}
-
-.button-group .button {
-    flex: 1 1 auto;
-}
-
-/* Specific Button Styles */
-.sidebar-button {
-    width: 100%;
-}
-
-.card-button-group .button {
-    width: 23%; /* Adjust width to fit 4 buttons per row with some margin */
-}
-
-.table-row .actions .button {
-    width: 48%; /* Adjust width to fit 2 buttons per row with some margin */
-}
-
-/* New styles for Maps and Modes pages */
-.table-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 10px;
-    background-color: #333333; /* Dark gray background */
-    margin: 10px 0;
-    border-radius: 8px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-}
-
-.table-row .name {
-    flex: 2;
-    color: #FFD700; /* Gold text */
-}
-
-.table-row .actions {
-    flex: 1;
-    display: flex;
-    justify-content: space-around;
-}
-
-.table-row .actions .button {
-    background-color: #FFD700;
-    border: none;
-    color: #000000;
-    padding: 10px;
-    margin: 0 5px;
-    cursor: pointer;
-    font-size: 16px;
-    border-radius: 5px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    transition: background-color 0.3s ease;
-}
-
-.table-row .actions .button:hover {
-    background-color: #FFA500;
-}
-
-/* Updated Team List Layout */
-.team-list {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-    gap: 20px;
-    padding: 20px;
-}
-
-.team-list .card {
-    background-color: #333333;
-    border-radius: 10px;
-    overflow: hidden;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding-bottom: 15px;
-}
-
-.team-list .card .team-photo {
-    width: 100%;
-    height: 200px;
-    object-fit: cover;
-}
-
-.team-list .card .member-details {
-    padding: 15px;
-    text-align: center;
-}
-
-.team-list .card .member-details h3 {
-    margin: 0 0 10px 0;
-    color: #FFD700;
-    font-size: 1.2em;
-}
-
-.team-list .card .member-details p {
-    margin: 5px 0;
-    font-size: 0.9em;
-}
-
-.team-list .card .actions {
-    display: flex;
-    justify-content: center;
-    gap: 10px;
-    margin-top: 10px;
-}
-
-.team-list .card .actions .button {
-    padding: 8px 15px;
-    font-size: 0.9em;
-}
-
-
-/* Styles for Game Sessions and Matches */
-.session-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    width: 100%;
-}
-
-.session-actions {
-    display: flex;
-    gap: 10px;
-}
-
-.session-actions i {
-    cursor: pointer;
-    color: #FFD700; /* Gold icons */
-    font-size: 20px;
-}
-
-.session-actions i:hover {
-    color: #FFA500; /* Darker gold on hover */
-}
-
-.session-buttons {
-    display: flex;
-    justify-content: space-between;
-    gap: 10px;
-    width: 100%;
-}
-
-.session-buttons .button {
-    flex-grow: 1;
-}
-
+.highlights-table,
+.stats-table,
 .matches-table {
     width: 100%;
     border-collapse: collapse;
-    margin-top: 10px;
 }
 
-.matches-table th, .matches-table td {
-    border: 1px solid #444444;
+.highlights-table th,
+.stats-table th,
+.matches-table th,
+.highlights-table td,
+.stats-table td,
+.matches-table td {
+    border: 1px solid #555;
     padding: 10px;
-    text-align: center;
+    text-align: left;
 }
 
+.highlights-table th,
+.stats-table th,
 .matches-table th {
-    background-color: #333333;
-    color: #FFD700;
+    background-color: #444;
 }
 
-.matches-table td .button {
-    background-color: #FFD700;
-    border: none;
-    color: #000000;
-    padding: 5px 10px;
-    cursor: pointer;
-    font-size: 14px;
-    border-radius: 3px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    transition: background-color 0.3s ease;
+.highlights-table tr:nth-child(even),
+.stats-table tr:nth-child(even),
+.matches-table tr:nth-child(even) {
+    background-color: #2a2a2a;
 }
 
-.matches-table td .button:hover {
-    background-color: #FFA500;
+.highlights-table tr:hover,
+.stats-table tr:hover,
+.matches-table tr:hover {
+    background-color: #444;
 }
 
-.stats-table {
+textarea {
     width: 100%;
-    border-collapse: collapse;
-    margin-top: 20px;
-}
-
-.stats-table th, .stats-table td {
-    border: 1px solid #444444;
-    padding: 12px 15px;
-    text-align: center;
-}
-
-.stats-table th {
-    background-color: #333333;
-    color: #FFD700;
-    font-weight: bold;
-}
-
-.stats-table td {
-    background-color: #222222;
-    color: #FFFFFF;
-}
-
-.stats-table tr:nth-child(even) td {
-    background-color: #2A2A2A;
-}
-
-.stats-table tfoot td {
-    font-weight: bold;
-    background-color: #333333;
+    height: 100px;
+    margin-top: 10px;
+    padding: 10px;
+    border: 1px solid #444;
+    border-radius: 5px;
+    background-color: #222;
+    color: #fff;
+    resize: vertical;
 }

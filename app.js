@@ -391,6 +391,39 @@ window.viewHighlight = function(highlightURL) {
   `;
   modal.style.display = "block";
 }
+function addMatch(e) {
+  e.preventDefault();
+  const form = e.target;
+  const sessionId = form.dataset.sessionId;
+  const matchId = form.dataset.matchId;
+  const matchData = {
+    gameMode: form.gameMode.value,
+    map: form.map.value,
+    placement: parseInt(form.placement.value),
+    totalKills: parseInt(form.totalKills.value) || 0,
+    kills: {
+      STARMAN: parseInt(form.killsSTARMAN.value) || 0,
+      RSKILLA: parseInt(form.killsRSKILLA.value) || 0,
+      SWFTSWORD: parseInt(form.killsSWFTSWORD.value) || 0,
+      VAIDED: parseInt(form.killsVAIDED.value) || 0,
+      MOWGLI: parseInt(form.killsMOWGLI.value) || 0
+    }
+  };
+
+  const highlightVideo = form.highlightVideo.files[0];
+  if (highlightVideo) {
+    const videoRef = storageRef(storage, `highlights/${sessionId}/${highlightVideo.name}`);
+    uploadBytes(videoRef, highlightVideo).then(snapshot => {
+      getDownloadURL(snapshot.ref).then(url => {
+        matchData.highlightURL = url;
+        saveMatch(sessionId, matchId, matchData);
+      });
+    });
+  } else {
+    saveMatch(sessionId, matchId, matchData);
+  }
+}
+
 function showGameModes() {
   mainContent.innerHTML = `
     <h2>Game Modes</h2>

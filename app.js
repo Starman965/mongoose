@@ -61,7 +61,7 @@ function showTeamMembers() {
     mainContent.innerHTML = `
         <h2>Team Members</h2>
         <button class="button" onclick="showModal('addTeamMember')">Add Team Member</button>
-        <button class="button" onclick="manualPRRecalculation()">Recalculate PR Values</button>
+     //    <button class="button" onclick="manualPRRecalculation()">Recalculate PR Values</button> 
         <div id="teamList" class="team-list"></div>
     `;
     loadTeamMembers();

@@ -946,29 +946,60 @@ window.showModal = function(action, id = null, subId = null) {
       loadGameModesAndMaps();
       document.getElementById('matchForm').addEventListener('submit', addMatch);
       break;
-   case 'editMatch':
+      
+case 'editMatch':
   get(ref(database, `gameSessions/${id}/matches/${subId}`)).then((snapshot) => {
     if (snapshot.exists()) {
       const match = snapshot.val();
       modalContent.innerHTML = `
         <h3>Edit Match</h3>
-          <form id="matchForm" data-session-id="${id}" data-match-id="${subId}">
+        <form id="matchForm" data-session-id="${id}" data-match-id="${subId}" class="vertical-form">
+          <div class="form-group">
+            <label for="gameMode">Game Mode</label>
             <select id="gameMode" required>
-            <option value="">Select Game Mode</option>
-          </select>
-          <select id="map" required>
-            <option value="">Select Map</option>
-          </select>
-          <input type="number" id="placement" value="${match.placement}" required>
-          <input type="number" id="totalKills" value="${match.totalKills || ''}" placeholder="Total Kills">
-          <input type="number" id="killsSTARMAN" value="${match.kills?.STARMAN || ''}" placeholder="Kills (STARMAN)">
-          <input type="number" id="killsRSKILLA" value="${match.kills?.RSKILLA || ''}" placeholder="Kills (RSKILLA)">
-          <input type="number" id="killsSWFTSWORD" value="${match.kills?.SWFTSWORD || ''}" placeholder="Kills (SWFTSWORD)">
-          <input type="number" id="killsVAIDED" value="${match.kills?.VAIDED || ''}" placeholder="Kills (VAIDED)">
-          <input type="number" id="killsMOWGLI" value="${match.kills?.MOWGLI || ''}" placeholder="Kills (MOWGLI)">
-          <input type="file" id="highlightVideo" accept="video/*">
+              <option value="">Select Game Mode</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="map">Map</label>
+            <select id="map" required>
+              <option value="">Select Map</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="placement">Placement</label>
+            <input type="number" id="placement" value="${match.placement}" required>
+          </div>
+          <div class="form-group">
+            <label for="totalKills">Total Kills</label>
+            <input type="number" id="totalKills" value="${match.totalKills || ''}">
+          </div>
+          <div class="form-group">
+            <label for="killsSTARMAN">Kills (STARMAN)</label>
+            <input type="number" id="killsSTARMAN" value="${match.kills?.STARMAN || ''}">
+          </div>
+          <div class="form-group">
+            <label for="killsRSKILLA">Kills (RSKILLA)</label>
+            <input type="number" id="killsRSKILLA" value="${match.kills?.RSKILLA || ''}">
+          </div>
+          <div class="form-group">
+            <label for="killsSWFTSWORD">Kills (SWFTSWORD)</label>
+            <input type="number" id="killsSWFTSWORD" value="${match.kills?.SWFTSWORD || ''}">
+          </div>
+          <div class="form-group">
+            <label for="killsVAIDED">Kills (VAIDED)</label>
+            <input type="number" id="killsVAIDED" value="${match.kills?.VAIDED || ''}">
+          </div>
+          <div class="form-group">
+            <label for="killsMOWGLI">Kills (MOWGLI)</label>
+            <input type="number" id="killsMOWGLI" value="${match.kills?.MOWGLI || ''}">
+          </div>
+          <div class="form-group">
+            <label for="highlightVideo">Highlight Video</label>
+            <input type="file" id="highlightVideo" accept="video/*">
+          </div>
           ${match.highlightURL ? '<p>A highlight video is already uploaded. Uploading a new one will replace it.</p>' : ''}
-          <button type="submit">Update Match</button>
+          <button type="submit" class="button">Update Match</button>
         </form>
       `;
       loadGameModesAndMaps();
@@ -982,6 +1013,7 @@ window.showModal = function(action, id = null, subId = null) {
     }
   });
   break;
+      
     case 'addMap':
       modalContent.innerHTML = `
         <h3>Add Map</h3>

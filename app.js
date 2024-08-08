@@ -54,6 +54,7 @@ function showTeamMembers() {
     mainContent.innerHTML = `
         <h2>Team Members</h2>
         <button class="button" onclick="showModal('addTeamMember')">Add Team Member</button>
+        <button class="button" onclick="manualPRRecalculation()">Recalculate PR Values</button>
         <div id="teamList" class="team-list"></div>
     `;
     loadTeamMembers();
@@ -106,11 +107,13 @@ function calculateAge(birthdate) {
 }
 // Add this function definition after calculateAge function
 function calculatePRValues() {
+  console.log("Starting PR value calculation");
   get(ref(database, 'gameModes')).then((gameModeSnapshot) => {
     const gameModes = {};
     gameModeSnapshot.forEach(child => {
       gameModes[child.val().name] = child.val().type;
     });
+    console.log("Game Modes:", gameModes);
 
     get(ref(database, 'gameSessions')).then((sessionsSnapshot) => {
       const prValues = {};
@@ -119,23 +122,30 @@ function calculatePRValues() {
         const session = sessionSnapshot.val();
         if (session.matches) {
           Object.values(session.matches).forEach((match) => {
+            console.log("Processing match:", match);
             const gameType = gameModes[match.gameMode] === 'Battle Royale' ? 'brPR' : 'mpPR';
+            console.log("Game Type:", gameType);
             
             Object.entries(match.kills || {}).forEach(([player, kills]) => {
               if (!prValues[player]) {
                 prValues[player] = { brPR: 0, mpPR: 0 };
               }
               prValues[player][gameType] = Math.max(prValues[player][gameType], kills);
+              console.log(`Updated ${player} ${gameType} to ${prValues[player][gameType]}`);
             });
           });
         }
       });
 
+      console.log("Final PR Values:", prValues);
+
       // Update PR values for each team member
       get(ref(database, 'teamMembers')).then((membersSnapshot) => {
         membersSnapshot.forEach((memberSnapshot) => {
           const memberId = memberSnapshot.key;
-          const memberPR = prValues[memberSnapshot.val().gamertag] || { brPR: 0, mpPR: 0 };
+          const member = memberSnapshot.val();
+          const memberPR = prValues[member.gamertag] || { brPR: 0, mpPR: 0 };
+          console.log(`Updating ${member.name} (${member.gamertag}) PR values:`, memberPR);
           update(ref(database, `teamMembers/${memberId}`), memberPR);
         });
       });

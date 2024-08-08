@@ -420,7 +420,20 @@ function addMatch(e) {
       });
     });
   } else {
-    saveMatch(sessionId, matchId, matchData);
+    // If updating and no new video is provided, keep the existing highlightURL
+    if (matchId) {
+      get(ref(database, `gameSessions/${sessionId}/matches/${matchId}`)).then((snapshot) => {
+        if (snapshot.exists()) {
+          const existingMatch = snapshot.val();
+          if (existingMatch.highlightURL) {
+            matchData.highlightURL = existingMatch.highlightURL;
+          }
+        }
+        saveMatch(sessionId, matchId, matchData);
+      });
+    } else {
+      saveMatch(sessionId, matchId, matchData);
+    }
   }
 }
 

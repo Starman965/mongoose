@@ -652,7 +652,7 @@ function loadStats() {
       tableHTML += `
         <tr>
           <td>${formatDate(session.date)}</td>
-          <td><a href="#" onclick="showSessionMatches('${session.id}')">${stats.gamesPlayed}</a></td>
+          <td>${stats.gamesPlayed}</td>
           <td>${stats.wins} (${((stats.wins / stats.gamesPlayed) * 100).toFixed(1)}%)</td>
           <td>${stats.secondPlace} (${((stats.secondPlace / stats.gamesPlayed) * 100).toFixed(1)}%)</td>
           <td>${stats.thirdPlace} (${((stats.thirdPlace / stats.gamesPlayed) * 100).toFixed(1)}%)</td>
@@ -847,12 +847,12 @@ window.showModal = function(action, id = null, subId = null) {
             <option value="">Select Map</option>
           </select>
           <input type="number" id="placement" placeholder="Placement" required>
-          <input type="number" id="totalKills" placeholder="Total Kills" required>
-          <input type="number" id="killsSTARMAN" placeholder="Kills (STARMAN)" required>
-          <input type="number" id="killsRSKILLA" placeholder="Kills (RSKILLA)" required>
-          <input type="number" id="killsSWFTSWORD" placeholder="Kills (SWFTSWORD)" required>
-          <input type="number" id="killsVAIDED" placeholder="Kills (VAIDED)" required>
-          <input type="number" id="killsMOWGLI" placeholder="Kills (MOWGLI)" required>
+          <input type="number" id="totalKills" placeholder="Total Kills">
+    <input type="number" id="killsSTARMAN" placeholder="Kills (STARMAN)">
+<input type="number" id="killsRSKILLA" placeholder="Kills (RSKILLA)">
+<input type="number" id="killsSWFTSWORD" placeholder="Kills (SWFTSWORD)">
+<input type="number" id="killsVAIDED" placeholder="Kills (VAIDED)">
+<input type="number" id="killsMOWGLI" placeholder="Kills (MOWGLI)">
           <input type="file" id="highlightVideo" accept="video/*">
           <button type="submit">Add Match</button>
         </form>
@@ -860,37 +860,42 @@ window.showModal = function(action, id = null, subId = null) {
       loadGameModesAndMaps();
       document.getElementById('matchForm').addEventListener('submit', addMatch);
       break;
-    case 'editMatch':
-      get(ref(database, `gameSessions/${id}/matches/${subId}`)).then((snapshot) => {
-        if (snapshot.exists()) {
-          const match = snapshot.val();
-          modalContent.innerHTML = `
-            <h3>Edit Match</h3>
-            <form id="matchForm" data-session-id="${id}" data-match-id="${subId}">
-              <select id="gameMode" required>
-                <option value="">Select Game Mode</option>
-              </select>
-              <select id="map" required>
-                <option value="">Select Map</option>
-              </select>
-              <input type="number" id="placement" value="${match.placement}" required>
-              <input type="number" id="totalKills" value="${match.totalKills}" required>
-              <input type="number" id="killsSTARMAN" value="${match.kills?.STARMAN || 0}" required>
-              <input type="number" id="killsRSKILLA" value="${match.kills?.RSKILLA || 0}" required>
-              <input type="number" id="killsSWFTSWORD" value="${match.kills?.SWFTSWORD || 0}" required>
-              <input type="number" id="killsVAIDED" value="${match.kills?.VAIDED || 0}" required>
-              <input type="number" id="killsMOWGLI" value="${match.kills?.MOWGLI || 0}" required>
-              <input type="file" id="highlightVideo" accept="video/*">
-              <button type="submit">Update Match</button>
-            </form>
-          `;
-          loadGameModesAndMaps();
-          document.getElementById('matchForm').addEventListener('submit', addMatch);
-          document.getElementById('gameMode').value = match.gameMode;
-          document.getElementById('map').value = match.map;
-        }
-      });
-      break;
+   case 'editMatch':
+  get(ref(database, `gameSessions/${id}/matches/${subId}`)).then((snapshot) => {
+    if (snapshot.exists()) {
+      const match = snapshot.val();
+      modalContent.innerHTML = `
+        <h3>Edit Match</h3>
+        <form id="matchForm" data-session-id="${id}" data-match-id="${subId}">
+          <select id="gameMode" required>
+            <option value="">Select Game Mode</option>
+          </select>
+          <select id="map" required>
+            <option value="">Select Map</option>
+          </select>
+          <input type="number" id="placement" value="${match.placement}" required>
+          <input type="number" id="totalKills" value="${match.totalKills || ''}" placeholder="Total Kills">
+          <input type="number" id="killsSTARMAN" value="${match.kills?.STARMAN || ''}" placeholder="Kills (STARMAN)">
+          <input type="number" id="killsRSKILLA" value="${match.kills?.RSKILLA || ''}" placeholder="Kills (RSKILLA)">
+          <input type="number" id="killsSWFTSWORD" value="${match.kills?.SWFTSWORD || ''}" placeholder="Kills (SWFTSWORD)">
+          <input type="number" id="killsVAIDED" value="${match.kills?.VAIDED || ''}" placeholder="Kills (VAIDED)">
+          <input type="number" id="killsMOWGLI" value="${match.kills?.MOWGLI || ''}" placeholder="Kills (MOWGLI)">
+          <input type="file" id="highlightVideo" accept="video/*">
+          ${match.highlightURL ? '<p>A highlight video is already uploaded. Uploading a new one will replace it.</p>' : ''}
+          <button type="submit">Update Match</button>
+        </form>
+      `;
+      loadGameModesAndMaps();
+      document.getElementById('matchForm').addEventListener('submit', addMatch);
+      
+      // Set the game mode and map after options are loaded
+      setTimeout(() => {
+        document.getElementById('gameMode').value = match.gameMode;
+        document.getElementById('map').value = match.map;
+      }, 100);
+    }
+  });
+  break;
     case 'addMap':
       modalContent.innerHTML = `
         <h3>Add Map</h3>

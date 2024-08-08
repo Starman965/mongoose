@@ -26,6 +26,7 @@ document.getElementById('modesNav').addEventListener('click', () => showSection(
 document.getElementById('mapsNav').addEventListener('click', () => showSection('maps'));
 document.getElementById('sessionsNav').addEventListener('click', () => showSection('sessions'));
 document.getElementById('statsNav').addEventListener('click', () => showSection('stats'));
+document.getElementById('highlightsNav').addEventListener('click', () => showSection('highlights'));
 
 function showSection(section) {
   switch(section) {
@@ -44,6 +45,9 @@ function showSection(section) {
     case 'stats':
       showStats();
       break;
+    case 'highlights':
+      showHighlights();
+      break;
   }
 }
 
@@ -60,10 +64,18 @@ function addMatch(e) {
   e.preventDefault();
   const form = e.target;
   const sessionId = form.dataset.sessionId;
+  const killsByPlayerInput = form.killsByPlayer.value.split(',').reduce((acc, playerKill) => {
+    const [player, kills] = playerKill.split(':').map(item => item.trim());
+    acc[player] = parseInt(kills);
+    return acc;
+  }, {});
+
   const matchData = {
     gameMode: form.gameMode.value,
     map: form.map.value,
     placement: parseInt(form.placement.value),
+    totalKills: parseInt(form.totalKills.value),
+    killsByPlayer: killsByPlayerInput,
   };
 
   const matchRef = push(ref(database, `gameSessions/${sessionId}/matches`), matchData);
@@ -90,7 +102,9 @@ window.showModal = function(action, id = null) {
           <input type="text" id="name" placeholder="Name" required>
           <input type="text" id="gamertag" placeholder="Gamertag" required>
           <input type="text" id="state" placeholder="State" required>
-          <input type="number" id="age" placeholder="Age" required>
+          <input type="date" id="birthdate" placeholder="Birthdate" required>
+          <input type="number" id="personalRecordBR" placeholder="BR Personal Record" required>
+          <input type="number" id="personalRecordMP" placeholder="MP Personal Record" required>
           <input type="text" id="favoriteSnack" placeholder="Favorite Snack" required>
           <input type="file" id="photo" accept="image/*" required>
           <button type="submit">Add Team Member</button>
@@ -108,7 +122,9 @@ window.showModal = function(action, id = null) {
               <input type="text" id="name" value="${member.name}" required>
               <input type="text" id="gamertag" value="${member.gamertag}" required>
               <input type="text" id="state" value="${member.state}" required>
-              <input type="number" id="age" value="${member.age}" required>
+              <input type="date" id="birthdate" value="${member.birthdate}" required>
+              <input type="number" id="personalRecordBR" value="${member.personalRecordBR}" required>
+              <input type="number" id="personalRecordMP" value="${member.personalRecordMP}" required>
               <input type="text" id="favoriteSnack" value="${member.favoriteSnack}" required>
               <input type="file" id="photo" accept="image/*">
               <button type="submit">Update Team Member</button>
@@ -154,11 +170,38 @@ window.showModal = function(action, id = null) {
             <option value="">Select Map</option>
           </select>
           <input type="number" id="placement" placeholder="Placement" required>
+          <input type="number" id="totalKills" placeholder="Total Kills" required>
+          <textarea id="killsByPlayer" placeholder="Kills by Player (format: player1: 10, player2: 5)" required></textarea>
           <button type="submit">Add Match</button>
         </form>
       `;
       loadGameModesAndMaps();
       document.getElementById('matchForm').addEventListener('submit', addMatch);
+      break;
+    case 'editMatch':
+      get(ref(database, `gameSessions/${id.sessionId}/matches/${id.matchId}`)).then((snapshot) => {
+        if (snapshot.exists()) {
+          const match = snapshot.val();
+          modalContent.innerHTML = `
+            <h3>Edit Match</h3>
+            <form id="matchForm" data-session-id="${id.sessionId}" data-match-id="${id.matchId}">
+              <select id="gameMode" required>
+                <option value="${match.gameMode}" selected>${match.gameMode}</option>
+              </select>
+              <select id="map" required>
+                <option value="${match.map}" selected>${match.map}</option>
+              </select>
+              <input type="number" id="placement" value="${match.placement}" placeholder="Placement" required>
+              <input type="number" id="totalKills" value="${match.totalKills}" placeholder="Total Kills" required>
+              <textarea id="killsByPlayer" placeholder="Kills by Player (format: player1: 10, player2: 5)" required>${Object.entries(match.killsByPlayer).map(([player, kills]) => `${player}: ${kills}`).join(', ')}</textarea>
+              <input type="file" id="highlight" accept="video/*">
+              <button type="submit">Update Match</button>
+            </form>
+          `;
+          loadGameModesAndMaps();
+          document.getElementById('matchForm').addEventListener('submit', updateMatch);
+        }
+      });
       break;
     case 'addMap':
       modalContent.innerHTML = `
@@ -190,6 +233,11 @@ window.showModal = function(action, id = null) {
         <h3>Add Game Mode</h3>
         <form id="gameModeForm">
           <input type="text" id="name" placeholder="Game Mode Name" required>
+          <select id="modeType" required>
+            <option value="">Select Mode Type</option>
+            <option value="Battle Royale">Battle Royale</option>
+            <option value="Multiplayer">Multiplayer</option>
+          </select>
           <button type="submit">Add Game Mode</button>
         </form>
       `;
@@ -203,6 +251,11 @@ window.showModal = function(action, id = null) {
             <h3>Edit Game Mode</h3>
             <form id="gameModeForm" data-id="${id}">
               <input type="text" id="name" value="${gameMode.name}" required>
+              <select id="modeType" required>
+                <option value="${gameMode.modeType}" selected>${gameMode.modeType}</option>
+                <option value="Battle Royale">Battle Royale</option>
+                <option value="Multiplayer">Multiplayer</option>
+              </select>
               <button type="submit">Update Game Mode</button>
             </form>
           `;
@@ -244,6 +297,53 @@ function addOrUpdateGameSession(e) {
     });
 }
 
+function updateMatch(e) {
+  e.preventDefault();
+  const form = e.target;
+  const sessionId = form.dataset.sessionId;
+  const matchId = form.dataset.matchId;
+  const killsByPlayerInput = form.killsByPlayer.value.split(',').reduce((acc, playerKill) => {
+    const [player, kills] = playerKill.split(':').map(item => item.trim());
+    acc[player] = parseInt(kills);
+    return acc;
+  }, {});
+
+  const matchData = {
+    gameMode: form.gameMode.value,
+    map: form.map.value,
+    placement: parseInt(form.placement.value),
+    totalKills: parseInt(form.totalKills.value),
+    killsByPlayer: killsByPlayerInput,
+  };
+
+  const operation = update(ref(database, `gameSessions/${sessionId}/matches/${matchId}`), matchData);
+
+  if (form.highlight.files[0]) {
+    const highlight = form.highlight.files[0];
+    const highlightRef = storageRef(storage, `highlights/${sessionId}-${matchId}-${highlight.name}`);
+    uploadBytes(highlightRef, highlight).then(snapshot => {
+      getDownloadURL(snapshot.ref).then(url => {
+        matchData.highlightURL = url;
+        operation.then(() => {
+          loadMatches(sessionId);
+          modal.style.display = "none";
+        }).catch(error => {
+          console.error("Error updating match: ", error);
+          alert('Error updating match. Please try again.');
+        });
+      });
+    });
+  } else {
+    operation.then(() => {
+      loadMatches(sessionId);
+      modal.style.display = "none";
+    }).catch(error => {
+      console.error("Error updating match: ", error);
+      alert('Error updating match. Please try again.');
+    });
+  }
+}
+
 // Team Members
 function showTeamMembers() {
     mainContent.innerHTML = `
@@ -263,6 +363,7 @@ function loadTeamMembers() {
         snapshot.forEach((childSnapshot) => {
             const member = childSnapshot.val();
             const memberId = childSnapshot.key;
+            const age = calculateAge(member.birthdate);
             teamList.innerHTML += `
                 <div class="card">
                     <img src="${member.photoURL}" alt="${member.name}" class="team-photo">
@@ -270,8 +371,10 @@ function loadTeamMembers() {
                         <h3>${member.name}</h3>
                         <p><strong>Gamertag:</strong> ${member.gamertag}</p>
                         <p><strong>State:</strong> ${member.state}</p>
-                        <p><strong>Age:</strong> ${member.age}</p>
+                        <p><strong>Birthdate:</strong> ${member.birthdate}, Age: ${age}</p>
                         <p><strong>Favorite Snack:</strong> ${member.favoriteSnack}</p>
+                        <p><strong>BR Personal Record:</strong> ${member.personalRecordBR}</p>
+                        <p><strong>MP Personal Record:</strong> ${member.personalRecordMP}</p>
                     </div>
                     <div class="actions">
                         <button class="button" onclick="showModal('editTeamMember', '${memberId}')">Edit</button>
@@ -294,7 +397,9 @@ function addOrUpdateTeamMember(e) {
     name: form.name.value,
     gamertag: form.gamertag.value,
     state: form.state.value,
-    age: parseInt(form.age.value),
+    birthdate: form.birthdate.value,
+    personalRecordBR: parseInt(form.personalRecordBR.value),
+    personalRecordMP: parseInt(form.personalRecordMP.value),
     favoriteSnack: form.favoriteSnack.value
   };
 
@@ -406,32 +511,55 @@ function loadGameSessions() {
 }
 
 function loadMatches(sessionId) {
-    const matchesContainer = document.getElementById(`matches-${sessionId}`);
-    get(ref(database, `gameSessions/${sessionId}`)).then((snapshot) => {
-        if (snapshot.exists()) {
-            const session = snapshot.val();
-            let matchesHtml = '<h3>Matches</h3>';
-            if (session.matches) {
-                matchesHtml += '<table class="matches-table"><tr><th>Game Mode</th><th>Map</th><th>Placement</th></tr>';
-                Object.entries(session.matches).forEach(([matchId, match]) => {
-                    matchesHtml += `
-                        <tr>
-                            <td>${match.gameMode}</td>
-                            <td>${match.map}</td>
-                            <td>${match.placement}</td>
-                            <td><button onclick="deleteMatch('${sessionId}', '${matchId}')">Delete Match</button></td>
-                        </tr>
-                    `;
-                });
-                matchesHtml += '</table>';
-            } else {
-                matchesHtml += '<p>No matches found for this session.</p>';
-            }
-            matchesContainer.innerHTML = matchesHtml;
-        }
-    });
+  const matchesContainer = document.getElementById(`matches-${sessionId}`);
+  get(ref(database, `gameSessions/${sessionId}`)).then((snapshot) => {
+      if (snapshot.exists()) {
+          const session = snapshot.val();
+          let matchesHtml = '<h3>Matches</h3>';
+          if (session.matches) {
+              matchesHtml += `
+                <table class="matches-table">
+                  <tr>
+                    <th>Game Mode</th>
+                    <th>Map</th>
+                    <th>Placement</th>
+                    <th>Total Kills</th>
+                    <th>Ron</th>
+                    <th>David</th>
+                    <th>Brad</th>
+                    <th>Dan</th>
+                    <th>Usman</th>
+                    <th>Actions</th>
+                  </tr>
+              `;
+              Object.entries(session.matches).forEach(([matchId, match]) => {
+                  matchesHtml += `
+                      <tr>
+                          <td>${match.gameMode}</td>
+                          <td>${match.map}</td>
+                          <td>${match.placement}</td>
+                          <td>${match.totalKills}</td>
+                          <td>${match.killsByPlayer['Ron'] || ''}</td>
+                          <td>${match.killsByPlayer['David'] || ''}</td>
+                          <td>${match.killsByPlayer['Brad'] || ''}</td>
+                          <td>${match.killsByPlayer['Dan'] || ''}</td>
+                          <td>${match.killsByPlayer['Usman'] || ''}</td>
+                          <td>
+                            <button onclick="showModal('editMatch', { sessionId: '${sessionId}', matchId: '${matchId}' })">Edit Match</button>
+                            <button onclick="deleteMatch('${sessionId}', '${matchId}')">Delete Match</button>
+                            ${match.highlightURL ? `<button onclick="viewHighlight('${match.highlightURL}')">View Highlight</button>` : ''}
+                          </td>
+                      </tr>
+                  `;
+              });
+              matchesHtml += '</table>';
+          } else {
+              matchesHtml += '<p>No matches found for this session.</p>';
+          }
+          matchesContainer.innerHTML = matchesHtml;
+      }
+  });
 }
-
 
 window.deleteGameSession = function(id) {
   if (confirm('Are you sure you want to delete this game session?')) {
@@ -457,6 +585,10 @@ window.deleteMatch = function(sessionId, matchId) {
   }
 }
 
+window.viewHighlight = function(url) {
+  window.open(url, '_blank');
+}
+
 // Game Modes
 function showGameModes() {
   mainContent.innerHTML = `
@@ -473,19 +605,26 @@ function loadGameModes() {
   
   onValue(ref(database, 'gameModes'), (snapshot) => {
     gameModeList.innerHTML = '';
+    const gameModes = [];
     snapshot.forEach((childSnapshot) => {
       const gameMode = childSnapshot.val();
-      const gameModeId = childSnapshot.key;
+      gameModes.push({ id: childSnapshot.key, ...gameMode });
+    });
+
+    gameModes.sort((a, b) => a.name.localeCompare(b.name));
+
+    gameModes.forEach((gameMode) => {
       gameModeList.innerHTML += `
         <div class="table-row">
           <div class="name">${gameMode.name}</div>
           <div class="actions">
-            <button onclick="showModal('editGameMode', '${gameModeId}')">Edit</button>
-            <button onclick="deleteGameMode('${gameModeId}')">Delete</button>
+            <button onclick="showModal('editGameMode', '${gameMode.id}')">Edit</button>
+            <button onclick="deleteGameMode('${gameMode.id}')">Delete</button>
           </div>
         </div>
       `;
     });
+
     if (gameModeList.innerHTML === '') {
       gameModeList.innerHTML = 'No game modes found. Add some!';
     }
@@ -498,6 +637,7 @@ function addOrUpdateGameMode(e) {
   const gameModeId = form.dataset.id;
   const gameModeData = {
     name: form.name.value,
+    modeType: form.modeType.value,
   };
 
   const operation = gameModeId
@@ -542,19 +682,26 @@ function loadMaps() {
   
   onValue(ref(database, 'maps'), (snapshot) => {
     mapList.innerHTML = '';
+    const maps = [];
     snapshot.forEach((childSnapshot) => {
       const map = childSnapshot.val();
-      const mapId = childSnapshot.key;
+      maps.push({ id: childSnapshot.key, ...map });
+    });
+
+    maps.sort((a, b) => a.name.localeCompare(b.name));
+
+    maps.forEach((map) => {
       mapList.innerHTML += `
         <div class="table-row">
           <div class="name">${map.name}</div>
           <div class="actions">
-            <button onclick="showModal('editMap', '${mapId}')">Edit</button>
-            <button onclick="deleteMap('${mapId}')">Delete</button>
+            <button onclick="showModal('editMap', '${map.id}')">Edit</button>
+            <button onclick="deleteMap('${map.id}')">Delete</button>
           </div>
         </div>
       `;
     });
+
     if (mapList.innerHTML === '') {
       mapList.innerHTML = 'No maps found. Add some!';
     }
@@ -634,6 +781,7 @@ onValue(connectedRef, (snap) => {
 function showStats() {
   mainContent.innerHTML = `
     <h2>Game Statistics</h2>
+    <p>* Note: Total Kills and Average Kills are based solely on Battle Royale style games.</p>
     <div id="statsTable"></div>
   `;
   loadStats();
@@ -659,6 +807,8 @@ function loadStats() {
           <tr>
             <th>Date</th>
             <th>Games Played</th>
+            <th>Total Kills</th>
+            <th>Average Kills</th>
             <th>Wins</th>
             <th>2nd Place</th>
             <th>3rd Place</th>
@@ -672,6 +822,7 @@ function loadStats() {
 
     let totalStats = {
       gamesPlayed: 0,
+      totalKills: 0,
       wins: 0,
       secondPlace: 0,
       thirdPlace: 0,
@@ -681,17 +832,21 @@ function loadStats() {
     };
 
     sessions.forEach((session) => {
-      const stats = calculateSessionStats(session.matches || {});
+      const stats = calculateSessionStats(session.matches || {}, 'Battle Royale');
 
       // Add to totals
       for (let key in totalStats) {
         totalStats[key] += stats[key];
       }
 
+      const averageKills = (stats.totalKills / stats.gamesPlayed).toFixed(1);
+
       tableHTML += `
         <tr>
           <td>${formatDate(session.date)}</td>
-          <td>${stats.gamesPlayed}</td>
+          <td><a href="#" onclick="toggleMatches('${session.id}')">${stats.gamesPlayed}</a></td>
+          <td>${stats.totalKills}</td>
+          <td>${averageKills}</td>
           <td>${stats.wins} (${((stats.wins / stats.gamesPlayed) * 100).toFixed(1)}%)</td>
           <td>${stats.secondPlace} (${((stats.secondPlace / stats.gamesPlayed) * 100).toFixed(1)}%)</td>
           <td>${stats.thirdPlace} (${((stats.thirdPlace / stats.gamesPlayed) * 100).toFixed(1)}%)</td>
@@ -704,11 +859,14 @@ function loadStats() {
 
     // Add total row
     if (totalStats.gamesPlayed > 0) {
+      const totalAverageKills = (totalStats.totalKills / totalStats.gamesPlayed).toFixed(1);
       tableHTML += `
         <tfoot>
           <tr>
             <td><strong>Total</strong></td>
             <td><strong>${totalStats.gamesPlayed}</strong></td>
+            <td><strong>${totalStats.totalKills}</strong></td>
+            <td><strong>${totalAverageKills}</strong></td>
             <td><strong>${totalStats.wins} (${((totalStats.wins / totalStats.gamesPlayed) * 100).toFixed(1)}%)</strong></td>
             <td><strong>${totalStats.secondPlace} (${((totalStats.secondPlace / totalStats.gamesPlayed) * 100).toFixed(1)}%)</strong></td>
             <td><strong>${totalStats.thirdPlace} (${((totalStats.thirdPlace / totalStats.gamesPlayed) * 100).toFixed(1)}%)</strong></td>
@@ -729,9 +887,10 @@ function loadStats() {
   });
 }
 
-function calculateSessionStats(matches) {
+function calculateSessionStats(matches, modeType) {
   const stats = {
-    gamesPlayed: Object.keys(matches).length,
+    gamesPlayed: 0,
+    totalKills: 0,
     wins: 0,
     secondPlace: 0,
     thirdPlace: 0,
@@ -741,15 +900,91 @@ function calculateSessionStats(matches) {
   };
 
   Object.values(matches).forEach(match => {
-    switch(match.placement) {
-      case 1: stats.wins++; break;
-      case 2: stats.secondPlace++; break;
-      case 3: stats.thirdPlace++; break;
-      case 4: stats.fourthPlace++; break;
-      case 5: stats.fifthPlace++; break;
-      default: stats.sixthPlacePlus++;
+    if (match.modeType === modeType) {
+      stats.gamesPlayed++;
+      stats.totalKills += match.totalKills;
+      switch(match.placement) {
+        case 1: stats.wins++; break;
+        case 2: stats.secondPlace++; break;
+        case 3: stats.thirdPlace++; break;
+        case 4: stats.fourthPlace++; break;
+        case 5: stats.fifthPlace++; break;
+        default: stats.sixthPlacePlus++;
+      }
     }
   });
 
   return stats;
+}
+
+// Highlights
+function showHighlights() {
+  mainContent.innerHTML = `
+    <h2>Highlights</h2>
+    <div id="highlightsTable"></div>
+  `;
+  loadHighlights();
+}
+
+function loadHighlights() {
+  const highlightsTable = document.getElementById('highlightsTable');
+  highlightsTable.innerHTML = 'Loading highlights...';
+
+  get(ref(database, 'gameSessions')).then((snapshot) => {
+    const sessions = [];
+    snapshot.forEach((childSnapshot) => {
+      const session = childSnapshot.val();
+      session.id = childSnapshot.key; // Save the session ID
+      if (session.matches) {
+        Object.entries(session.matches).forEach(([matchId, match]) => {
+          if (match.highlightURL) {
+            sessions.push({ date: session.date, gameMode: match.gameMode, map: match.map, highlightURL: match.highlightURL });
+          }
+        });
+      }
+    });
+
+    // Sort highlights by date in descending order
+    sessions.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+    highlightsTable.innerHTML = ''; // Clear loading message
+    let tableHTML = `
+      <table class="highlights-table">
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Game Mode</th>
+            <th>Map</th>
+            <th>Highlight</th>
+          </tr>
+        </thead>
+        <tbody>
+    `;
+
+    sessions.forEach((session) => {
+      tableHTML += `
+        <tr>
+          <td>${formatDate(session.date)}</td>
+          <td>${session.gameMode}</td>
+          <td>${session.map}</td>
+          <td><a href="${session.highlightURL}" target="_blank">View Highlight</a></td>
+        </tr>
+      `;
+    });
+
+    tableHTML += '</tbody></table>';
+    highlightsTable.innerHTML = tableHTML;
+
+    if (sessions.length === 0) {
+      highlightsTable.innerHTML = 'No highlights found.';
+    }
+  });
+}
+
+// Utility functions
+function calculateAge(birthdate) {
+  const birthDate = new Date(birthdate);
+  const ageDifMs = Date.now() - birthDate.getTime();
+  const ageDate = new Date(ageDifMs);
+  return Math.abs(ageDate.getUTCFullYear() - 1970);
 }

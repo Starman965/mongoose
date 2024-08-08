@@ -336,17 +336,7 @@ footer {
     margin: 20px auto;
     display: block;
 }
-.modal-content {
-  background-color: #333333;
-  margin: 5% auto;
-  padding: 20px;
-  border: 1px solid #888;
-  width: 90%;
-  max-width: 400px;
-  color: #ffffff;
-  border-radius: 10px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-}
+
 .vertical-form {
   display: flex;
   flex-direction: column;

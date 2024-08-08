@@ -1,91 +1,102 @@
 body {
-    font-family: Arial, sans-serif;
-    background-color: #1e1e1e;
-    color: #fff;
+    background-color: #000000;
+    color: #ffffff;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    margin: 0;
+    padding: 0;
+}
+
+#app {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+header {
+    text-align: center;
+    padding: 20px;
+    background-color: #333333;
+    border-bottom: 2px solid #FFD700;
+}
+
+header .logo {
+    width: 100px;
+    display: block;
+    margin: 0 auto;
 }
 
 h1 {
-    text-align: center;
-    margin: 20px 0;
-    font-size: 2em;
+    color: #FFD700;
+    margin: 0;
+    font-size: 1.5em;
 }
 
 .container {
     display: flex;
-    flex-direction: row;
+    height: calc(100vh - 100px);
 }
 
 .sidebar {
-    width: 200px;
-    background-color: #333;
-    padding: 20px;
+    background-color: #444444;
+    padding: 10px;
+    min-width: 200px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    border-right: 2px solid #FFD700;
 }
 
 .sidebar button {
-    width: 100%;
-    padding: 10px;
-    margin-bottom: 10px;
-    background-color: #ffcc00;
-    color: #000;
+    background-color: #FFD700;
     border: none;
+    color: #000000;
+    padding: 10px;
+    margin: 5px 0;
     cursor: pointer;
-    text-align: left;
+    font-size: 16px;
+    border-radius: 5px;
+    width: 100%;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    transition: background-color 0.3s ease;
 }
 
 .sidebar button:hover {
-    background-color: #ffd633;
+    background-color: #FFA500;
 }
 
 main {
     flex-grow: 1;
     padding: 20px;
+    background-color: #222222;
+    border-radius: 10px;
+    overflow-y: auto;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
 .card {
-    background-color: #333;
-    padding: 20px;
+    background-color: #333333;
+    padding: 15px;
     margin: 10px 0;
-    border-radius: 5px;
-    display: inline-block;
-    width: calc(33% - 20px);
-    vertical-align: top;
-}
-
-.team-photo {
-    width: 100%;
-    border-radius: 5px;
-}
-
-.member-details {
-    margin-top: 10px;
-}
-
-.member-details h3 {
-    margin: 0;
-    font-size: 1.5em;
-}
-
-.member-details p {
-    margin: 5px 0;
-}
-
-.actions {
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     display: flex;
-    justify-content: space-between;
-    margin-top: 10px;
+    flex-direction: column;
+    align-items: center;
 }
 
-.button {
-    background-color: #ffcc00;
-    color: #000;
-    border: none;
-    padding: 10px;
-    cursor: pointer;
-    border-radius: 5px;
+.card img.team-photo {
+    width: 100px;
+    height: 100px;
+    object-fit: cover;
+    border-radius: 50%;
+    display: block;
+    margin: 0 auto 10px auto;
 }
 
-.button:hover {
-    background-color: #ffd633;
+.card h3, .card p {
+    margin: 5px 0;
+    text-align: center;
 }
 
 .modal {
@@ -97,16 +108,19 @@ main {
     width: 100%;
     height: 100%;
     overflow: auto;
-    background-color: rgba(0, 0, 0, 0.8);
+    background-color: rgb(0,0,0);
+    background-color: rgba(0,0,0,0.4);
 }
 
 .modal-content {
-    background-color: #333;
+    background-color: #333333;
     margin: 15% auto;
     padding: 20px;
     border: 1px solid #888;
     width: 80%;
-    border-radius: 5px;
+    color: #ffffff;
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
 .close {
@@ -123,62 +137,211 @@ main {
     cursor: pointer;
 }
 
-.highlights-table,
-.stats-table,
-.matches-table,
-.game-modes-table,
-.maps-table {
+footer {
+    text-align: center;
+    padding: 10px;
+    background-color: #333333;
+    color: #FFD700;
+    border-top: 2px solid #FFD700;
+}
+
+.button {
+    background-color: #FFD700;
+    border: none;
+    color: #000000;
+    padding: 10px;
+    margin: 5px;
+    cursor: pointer;
+    font-size: 16px;
+    border-radius: 5px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    transition: background-color 0.3s ease;
+    white-space: nowrap;
+    text-align: center;
+}
+
+.button:hover {
+    background-color: #FFA500;
+}
+
+.button-group {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.button-group .button {
+    flex: 1 1 auto;
+}
+
+.sidebar-button {
+    width: 100%;
+}
+
+.card-button-group .button {
+    width: 23%;
+}
+
+.table-row .actions .button {
+    width: 48%;
+}
+
+.table-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px;
+    background-color: #333333;
+    margin: 10px 0;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.table-row .name {
+    flex: 2;
+    color: #FFD700;
+}
+
+.table-row .actions {
+    flex: 1;
+    display: flex;
+    justify-content: space-around;
+}
+
+.team-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 20px;
+    padding: 20px;
+}
+
+.team-list .card {
+    background-color: #333333;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding-bottom: 15px;
+}
+
+.team-list .card .team-photo {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+}
+
+.team-list .card .member-details {
+    padding: 15px;
+    text-align: center;
+}
+
+.team-list .card .member-details h3 {
+    margin: 0 0 10px 0;
+    color: #FFD700;
+    font-size: 1.2em;
+}
+
+.team-list .card .member-details p {
+    margin: 5px 0;
+    font-size: 0.9em;
+}
+
+.team-list .card .actions {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.team-list .card .actions .button {
+    padding: 8px 15px;
+    font-size: 0.9em;
+}
+
+.session-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+}
+
+.session-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.session-actions i {
+    cursor: pointer;
+    color: #FFD700;
+    font-size: 20px;
+}
+
+.session-actions i:hover {
+    color: #FFA500;
+}
+
+.session-buttons {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    width: 100%;
+}
+
+.session-buttons .button {
+    flex-grow: 1;
+}
+
+.stats-table, .highlights-table, .matches-table {
     width: 100%;
     border-collapse: collapse;
+    margin-top: 20px;
 }
 
-.highlights-table th,
-.stats-table th,
-.matches-table th,
-.game-modes-table th,
-.maps-table th,
-.highlights-table td,
-.stats-table td,
-.matches-table td,
-.game-modes-table td,
-.maps-table td {
-    border: 1px solid #555;
-    padding: 10px;
-    text-align: left;
+.stats-table th, .stats-table td,
+.highlights-table th, .highlights-table td,
+.matches-table th, .matches-table td {
+    border: 1px solid #444444;
+    padding: 12px 15px;
+    text-align: center;
 }
 
-.highlights-table th,
-.stats-table th,
-.matches-table th,
-.game-modes-table th,
-.maps-table th {
-    background-color: #444;
+.stats-table th, .highlights-table th, .matches-table th {
+    background-color: #333333;
+    color: #FFD700;
+    font-weight: bold;
 }
 
-.highlights-table tr:nth-child(even),
-.stats-table tr:nth-child(even),
-.matches-table tr:nth-child(even),
-.game-modes-table tr:nth-child(even),
-.maps-table tr:nth-child(even) {
-    background-color: #2a2a2a;
+.stats-table td, .highlights-table td, .matches-table td {
+    background-color: #222222;
 }
 
-.highlights-table tr:hover,
-.stats-table tr:hover,
-.matches-table tr:hover,
-.game-modes-table tr:hover,
-.maps-table tr:hover {
-    background-color: #444;
+.stats-table tr:nth-child(even) td,
+.highlights-table tr:nth-child(even) td,
+.matches-table tr:nth-child(even) td {
+    background-color: #2A2A2A;
 }
 
-textarea {
+.stats-table tfoot td {
+    font-weight: bold;
+    background-color: #333333;
+}
+
+.pagination {
+    display: flex;
+    justify-content: center;
+    margin-top: 20px;
+}
+
+.pagination button {
+    margin: 0 5px;
+}
+
+#highlightsVideo {
     width: 100%;
-    height: 100px;
-    margin-top: 10px;
-    padding: 10px;
-    border: 1px solid #444;
-    border-radius: 5px;
-    background-color: #222;
-    color: #fff;
-    resize: vertical;
+    max-width: 600px;
+    margin: 20px auto;
+    display: block;
 }

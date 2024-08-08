@@ -852,250 +852,180 @@ onValue(connectedRef, (snap) => {
 
 // Make showModal function globally accessible
 window.showModal = function(action, id = null, subId = null) {
-  modalContent.innerHTML = '';
+  modalContent.innerHTML = '';  // Clear previous content
+
+  // Helper function to generate input fields
+  function generateInputField(label, id, type = 'text', value = '', required = false, placeholder = '') {
+    return `
+      <div class="form-group">
+        <label for="${id}">${label}</label>
+        <input type="${type}" id="${id}" value="${value}" placeholder="${placeholder}" ${required ? 'required' : ''}>
+      </div>
+    `;
+  }
+
   switch(action) {
     case 'addTeamMember':
       modalContent.innerHTML = `
         <h3>Add Team Member</h3>
-        <form id="teamMemberForm">
-          <input type="text" id="name" placeholder="Name" required>
-          <input type="text" id="gamertag" placeholder="Gamertag" required>
-          <input type="text" id="state" placeholder="State" required>
-          <input type="date" id="birthdate" required>
-          <input type="text" id="favoriteSnack" placeholder="Favorite Snack" required>
-          <input type="file" id="photo" accept="image/*" required>
-          <button type="submit">Add Team Member</button>
+        <form id="teamMemberForm" class="vertical-form">
+          ${generateInputField('Name', 'name', 'text', '', true, 'Name')}
+          ${generateInputField('Gamertag', 'gamertag', 'text', '', true, 'Gamertag')}
+          ${generateInputField('State', 'state', 'text', '', true, 'State')}
+          ${generateInputField('Birthdate', 'birthdate', 'date', '', true)}
+          ${generateInputField('Favorite Snack', 'favoriteSnack', 'text', '', true, 'Favorite Snack')}
+          ${generateInputField('Photo', 'photo', 'file', '', true)}
+          <button type="submit" class="button">Add Team Member</button>
         </form>
       `;
       document.getElementById('teamMemberForm').addEventListener('submit', addOrUpdateTeamMember);
       break;
+
     case 'editTeamMember':
       get(ref(database, `teamMembers/${id}`)).then((snapshot) => {
         if (snapshot.exists()) {
           const member = snapshot.val();
           modalContent.innerHTML = `
             <h3>Edit Team Member</h3>
-            <form id="teamMemberForm" data-id="${id}">
-              <input type="text" id="name" value="${member.name}" required>
-              <input type="text" id="gamertag" value="${member.gamertag}" required>
-              <input type="text" id="state" value="${member.state}" required>
-              <input type="date" id="birthdate" value="${member.birthdate}" required>
-              <input type="text" id="favoriteSnack" value="${member.favoriteSnack}" required>
-              <input type="file" id="photo" accept="image/*">
-              <button type="submit">Update Team Member</button>
+            <form id="teamMemberForm" data-id="${id}" class="vertical-form">
+              ${generateInputField('Name', 'name', 'text', member.name, true)}
+              ${generateInputField('Gamertag', 'gamertag', 'text', member.gamertag, true)}
+              ${generateInputField('State', 'state', 'text', member.state, true)}
+              ${generateInputField('Birthdate', 'birthdate', 'date', member.birthdate, true)}
+              ${generateInputField('Favorite Snack', 'favoriteSnack', 'text', member.favoriteSnack, true)}
+              ${generateInputField('Photo', 'photo', 'file')}
+              <button type="submit" class="button">Update Team Member</button>
             </form>
           `;
           document.getElementById('teamMemberForm').addEventListener('submit', addOrUpdateTeamMember);
         }
       });
       break;
+
     case 'addGameSession':
       modalContent.innerHTML = `
         <h3>Add Game Session</h3>
-        <form id="gameSessionForm">
-          <input type="date" id="date" required>
-          <button type="submit">Add Game Session</button>
+        <form id="gameSessionForm" class="vertical-form">
+          ${generateInputField('Date', 'date', 'date', '', true)}
+          <button type="submit" class="button">Add Game Session</button>
         </form>
       `;
       document.getElementById('gameSessionForm').addEventListener('submit', addOrUpdateGameSession);
       break;
+
     case 'editGameSession':
       get(ref(database, `gameSessions/${id}`)).then((snapshot) => {
         if (snapshot.exists()) {
           const session = snapshot.val();
           modalContent.innerHTML = `
             <h3>Edit Game Session</h3>
-            <form id="gameSessionForm" data-id="${id}">
-              <input type="date" id="date" value="${session.date}" required>
-              <button type="submit">Update Game Session</button>
+            <form id="gameSessionForm" data-id="${id}" class="vertical-form">
+              ${generateInputField('Date', 'date', 'date', session.date, true)}
+              <button type="submit" class="button">Update Game Session</button>
             </form>
           `;
           document.getElementById('gameSessionForm').addEventListener('submit', addOrUpdateGameSession);
         }
       });
       break;
+
     case 'addMatch':
-  modalContent.innerHTML = `
-    <h3>Add Match</h3>
-    <form id="matchForm" data-session-id="${id}" class="vertical-form">
-      <div class="form-group">
-        <label for="gameMode">Game Mode</label>
-        <select id="gameMode" required>
-          <option value="">Select Game Mode</option>
-        </select>
-      </div>
-      <div class="form-group">
-        <label for="map">Map</label>
-        <select id="map" required>
-          <option value="">Select Map</option>
-        </select>
-      </div>
-      <div class="form-group">
-        <label for="placement">Placement</label>
-        <input type="number" id="placement" required>
-      </div>
-      <div class="form-group">
-        <label for="totalKills">Total Kills</label>
-        <input type="number" id="totalKills">
-      </div>
-      <div class="form-group">
-        <label for="killsSTARMAN">Kills (STARMAN)</label>
-        <input type="number" id="killsSTARMAN">
-      </div>
-      <div class="form-group">
-        <label for="killsRSKILLA">Kills (RSKILLA)</label>
-        <input type="number" id="killsRSKILLA">
-      </div>
-      <div class="form-group">
-        <label for="killsSWFTSWORD">Kills (SWFTSWORD)</label>
-        <input type="number" id="killsSWFTSWORD">
-      </div>
-      <div class="form-group">
-        <label for="killsVAIDED">Kills (VAIDED)</label>
-        <input type="number" id="killsVAIDED">
-      </div>
-      <div class="form-group">
-        <label for="killsMOWGLI">Kills (MOWGLI)</label>
-        <input type="number" id="killsMOWGLI">
-      </div>
-      <div class="form-group">
-        <label for="highlightVideo">Highlight Video</label>
-        <input type="file" id="highlightVideo" accept="video/*">
-      </div>
-      <button type="submit" class="button">Add Match</button>
-    </form>
-  `;
-  loadGameModesAndMaps();
-  document.getElementById('matchForm').addEventListener('submit', addMatch);
-  break;
+    case 'editMatch':
+      const isEdit = action === 'editMatch';
+      if (isEdit) {
+        get(ref(database, `gameSessions/${id}/matches/${subId}`)).then((snapshot) => {
+          if (snapshot.exists()) {
+            const match = snapshot.val();
+            populateMatchForm(match);
+          }
+        });
+      } else {
+        populateMatchForm({});
+      }
       
-case 'editMatch':
-  get(ref(database, `gameSessions/${id}/matches/${subId}`)).then((snapshot) => {
-    if (snapshot.exists()) {
-      const match = snapshot.val();
-      modalContent.innerHTML = `
-        <h3>Edit Match</h3>
-        <form id="matchForm" data-session-id="${id}" data-match-id="${subId}" class="vertical-form">
-          <div class="form-group">
-            <label for="gameMode">Game Mode</label>
-            <select id="gameMode" required>
-              <option value="">Select Game Mode</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label for="map">Map</label>
-            <select id="map" required>
-              <option value="">Select Map</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label for="placement">Placement</label>
-            <input type="number" id="placement" value="${match.placement}" required>
-          </div>
-          <div class="form-group">
-            <label for="totalKills">Total Kills</label>
-            <input type="number" id="totalKills" value="${match.totalKills || ''}">
-          </div>
-          <div class="form-group">
-            <label for="killsSTARMAN">Kills (STARMAN)</label>
-            <input type="number" id="killsSTARMAN" value="${match.kills?.STARMAN || ''}">
-          </div>
-          <div class="form-group">
-            <label for="killsRSKILLA">Kills (RSKILLA)</label>
-            <input type="number" id="killsRSKILLA" value="${match.kills?.RSKILLA || ''}">
-          </div>
-          <div class="form-group">
-            <label for="killsSWFTSWORD">Kills (SWFTSWORD)</label>
-            <input type="number" id="killsSWFTSWORD" value="${match.kills?.SWFTSWORD || ''}">
-          </div>
-          <div class="form-group">
-            <label for="killsVAIDED">Kills (VAIDED)</label>
-            <input type="number" id="killsVAIDED" value="${match.kills?.VAIDED || ''}">
-          </div>
-          <div class="form-group">
-            <label for="killsMOWGLI">Kills (MOWGLI)</label>
-            <input type="number" id="killsMOWGLI" value="${match.kills?.MOWGLI || ''}">
-          </div>
-          <div class="form-group">
-            <label for="highlightVideo">Highlight Video</label>
-            <input type="file" id="highlightVideo" accept="video/*">
-          </div>
-          ${match.highlightURL ? '<p>A highlight video is already uploaded. Uploading a new one will replace it.</p>' : ''}
-          <button type="submit" class="button">Update Match</button>
-        </form>
-      `;
-      loadGameModesAndMaps();
-      document.getElementById('matchForm').addEventListener('submit', addMatch);
-      
-      // Set the game mode and map after options are loaded
-      setTimeout(() => {
-        document.getElementById('gameMode').value = match.gameMode;
-        document.getElementById('map').value = match.map;
-      }, 100);
-    }
-  });
-  break;
-      
+      function populateMatchForm(match) {
+        modalContent.innerHTML = `
+          <h3>${isEdit ? 'Edit' : 'Add'} Match</h3>
+          <form id="matchForm" data-session-id="${id}" ${isEdit ? `data-match-id="${subId}"` : ''} class="vertical-form">
+            ${generateInputField('Game Mode', 'gameMode', 'select', match.gameMode || '', true)}
+            ${generateInputField('Map', 'map', 'select', match.map || '', true)}
+            ${generateInputField('Placement', 'placement', 'number', match.placement || '', true)}
+            ${generateInputField('Total Kills', 'totalKills', 'number', match.totalKills || '')}
+            ${generateInputField('Kills (STARMAN)', 'killsSTARMAN', 'number', match.kills?.STARMAN || '')}
+            ${generateInputField('Kills (RSKILLA)', 'killsRSKILLA', 'number', match.kills?.RSKILLA || '')}
+            ${generateInputField('Kills (SWFTSWORD)', 'killsSWFTSWORD', 'number', match.kills?.SWFTSWORD || '')}
+            ${generateInputField('Kills (VAIDED)', 'killsVAIDED', 'number', match.kills?.VAIDED || '')}
+            ${generateInputField('Kills (MOWGLI)', 'killsMOWGLI', 'number', match.kills?.MOWGLI || '')}
+            ${generateInputField('Highlight Video', 'highlightVideo', 'file')}
+            ${match.highlightURL ? '<p>A highlight video is already uploaded. Uploading a new one will replace it.</p>' : ''}
+            <button type="submit" class="button">${isEdit ? 'Update' : 'Add'} Match</button>
+          </form>
+        `;
+        loadGameModesAndMaps();
+        document.getElementById('matchForm').addEventListener('submit', addMatch);
+      }
+      break;
+
     case 'addMap':
-      modalContent.innerHTML = `
-        <h3>Add Map</h3>
-        <form id="mapForm">
-          <input type="text" id="name" placeholder="Map Name" required>
-          <button type="submit">Add Map</button>
-        </form>
-      `;
-      document.getElementById('mapForm').addEventListener('submit', addOrUpdateMap);
-      break;
     case 'editMap':
-      get(ref(database, `maps/${id}`)).then((snapshot) => {
-        if (snapshot.exists()) {
-          const map = snapshot.val();
-          modalContent.innerHTML = `
-            <h3>Edit Map</h3>
-            <form id="mapForm" data-id="${id}">
-              <input type="text" id="name" value="${map.name}" required>
-              <button type="submit">Update Map</button>
-            </form>
-          `;
-          document.getElementById('mapForm').addEventListener('submit', addOrUpdateMap);
-        }
-      });
+      const mapIsEdit = action === 'editMap';
+      if (mapIsEdit) {
+        get(ref(database, `maps/${id}`)).then((snapshot) => {
+          if (snapshot.exists()) {
+            const map = snapshot.val();
+            populateMapForm(map);
+          }
+        });
+      } else {
+        populateMapForm({});
+      }
+      
+      function populateMapForm(map) {
+        modalContent.innerHTML = `
+          <h3>${mapIsEdit ? 'Edit' : 'Add'} Map</h3>
+          <form id="mapForm" data-id="${id}" class="vertical-form">
+            ${generateInputField('Map Name', 'name', 'text', map.name || '', true)}
+            <button type="submit" class="button">${mapIsEdit ? 'Update' : 'Add'} Map</button>
+          </form>
+        `;
+        document.getElementById('mapForm').addEventListener('submit', addOrUpdateMap);
+      }
       break;
+
     case 'addGameMode':
-      modalContent.innerHTML = `
-        <h3>Add Game Mode</h3>
-        <form id="gameModeForm">
-          <input type="text" id="name" placeholder="Game Mode Name" required>
-          <select id="type" required>
-            <option value="">Select Type</option>
-            <option value="Battle Royale">Battle Royale</option>
-            <option value="Multiplayer">Multiplayer</option>
-          </select>
-          <button type="submit">Add Game Mode</button>
-        </form>
-      `;
-      document.getElementById('gameModeForm').addEventListener('submit', addOrUpdateGameMode);
-      break;
     case 'editGameMode':
-      get(ref(database, `gameModes/${id}`)).then((snapshot) => {
-        if (snapshot.exists()) {
-          const gameMode = snapshot.val();
-          modalContent.innerHTML = `
-            <h3>Edit Game Mode</h3>
-            <form id="gameModeForm" data-id="${id}">
-              <input type="text" id="name" value="${gameMode.name}" required>
+      const gameModeIsEdit = action === 'editGameMode';
+      if (gameModeIsEdit) {
+        get(ref(database, `gameModes/${id}`)).then((snapshot) => {
+          if (snapshot.exists()) {
+            const gameMode = snapshot.val();
+            populateGameModeForm(gameMode);
+          }
+        });
+      } else {
+        populateGameModeForm({});
+      }
+      
+      function populateGameModeForm(gameMode) {
+        modalContent.innerHTML = `
+          <h3>${gameModeIsEdit ? 'Edit' : 'Add'} Game Mode</h3>
+          <form id="gameModeForm" data-id="${id}" class="vertical-form">
+            ${generateInputField('Game Mode Name', 'name', 'text', gameMode.name || '', true)}
+            <div class="form-group">
+              <label for="type">Type</label>
               <select id="type" required>
                 <option value="">Select Type</option>
                 <option value="Battle Royale" ${gameMode.type === 'Battle Royale' ? 'selected' : ''}>Battle Royale</option>
                 <option value="Multiplayer" ${gameMode.type === 'Multiplayer' ? 'selected' : ''}>Multiplayer</option>
               </select>
-              <button type="submit">Update Game Mode</button>
-            </form>
-          `;
-          document.getElementById('gameModeForm').addEventListener('submit', addOrUpdateGameMode);
-        }
-      });
+            </div>
+            <button type="submit" class="button">${gameModeIsEdit ? 'Update' : 'Add'} Game Mode</button>
+          </form>
+        `;
+        document.getElementById('gameModeForm').addEventListener('submit', addOrUpdateGameMode);
+      }
       break;
   }
+
   modal.style.display = "block";
 }

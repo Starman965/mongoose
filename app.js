@@ -325,7 +325,7 @@ function addMatch(e) {
   e.preventDefault();
   const form = e.target;
   const sessionId = form.dataset.sessionId;
-  const matchId = form.dataset.matchId;
+  const matchId = form.dataset.matchId; // This will be undefined for new matches
   const matchData = {
     gameMode: form.gameMode.value,
     map: form.map.value,
@@ -350,19 +350,37 @@ function addMatch(e) {
       });
     });
   } else {
-    saveMatch(sessionId, matchId, matchData);
+    // If updating and no new video is provided, keep the existing highlightURL
+    if (matchId) {
+      get(ref(database, `gameSessions/${sessionId}/matches/${matchId}`)).then((snapshot) => {
+        if (snapshot.exists()) {
+          const existingMatch = snapshot.val();
+          if (existingMatch.highlightURL) {
+            matchData.highlightURL = existingMatch.highlightURL;
+          }
+        }
+        saveMatch(sessionId, matchId, matchData);
+      });
+    } else {
+      saveMatch(sessionId, matchId, matchData);
+    }
   }
 }
 
 function saveMatch(sessionId, matchId, matchData) {
-  const operation = matchId
-    ? update(ref(database, `gameSessions/${sessionId}/matches/${matchId}`), matchData)
-    : push(ref(database, `gameSessions/${sessionId}/matches`), matchData);
+  let operation;
+  if (matchId) {
+    // Update existing match
+    operation = update(ref(database, `gameSessions/${sessionId}/matches/${matchId}`), matchData);
+  } else {
+    // Add new match
+    operation = push(ref(database, `gameSessions/${sessionId}/matches`), matchData);
+  }
 
   operation
     .then(() => {
       loadMatches(sessionId);
-      calculatePRValues(); // Add this line to calculate PR values
+      calculatePRValues();
       modal.style.display = "none";
     })
     .catch(error => {

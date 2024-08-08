@@ -104,7 +104,37 @@ function calculateAge(birthdate) {
     }
     return age;
 }
+// Add this function definition after calculateAge function
+function calculatePRValues() {
+  get(ref(database, 'gameSessions')).then((sessionsSnapshot) => {
+    const prValues = {};
 
+    sessionsSnapshot.forEach((sessionSnapshot) => {
+      const session = sessionSnapshot.val();
+      if (session.matches) {
+        Object.values(session.matches).forEach((match) => {
+          const gameType = match.gameMode === 'Battle Royale' ? 'brPR' : 'mpPR';
+          
+          Object.entries(match.kills || {}).forEach(([player, kills]) => {
+            if (!prValues[player]) {
+              prValues[player] = { brPR: 0, mpPR: 0 };
+            }
+            prValues[player][gameType] = Math.max(prValues[player][gameType], kills);
+          });
+        });
+      }
+    });
+
+    // Update PR values for each team member
+    get(ref(database, 'teamMembers')).then((membersSnapshot) => {
+      membersSnapshot.forEach((memberSnapshot) => {
+        const memberId = memberSnapshot.key;
+        const memberPR = prValues[memberSnapshot.val().gamertag] || { brPR: 0, mpPR: 0 };
+        update(ref(database, `teamMembers/${memberId}`), memberPR);
+      });
+    });
+  });
+}
 function addOrUpdateTeamMember(e) {
   e.preventDefault();
   const form = e.target;
@@ -164,6 +194,7 @@ function showGameSessions() {
     <div id="sessionList"></div>
   `;
   loadGameSessions();
+  calculatePRValues(); // Add this line to calculate PR values when showing game sessions
 }
 
 function loadGameSessions() {
@@ -202,7 +233,6 @@ function loadGameSessions() {
         }
     });
 }
-
 function formatDate(dateString) {
   const date = new Date(dateString);
   const correctedDate = new Date(date.getTime() + date.getTimezoneOffset() * 60000);
@@ -295,6 +325,7 @@ function addMatch(e) {
   e.preventDefault();
   const form = e.target;
   const sessionId = form.dataset.sessionId;
+  const matchId = form.dataset.matchId;
   const matchData = {
     gameMode: form.gameMode.value,
     map: form.map.value,
@@ -315,25 +346,28 @@ function addMatch(e) {
     uploadBytes(videoRef, highlightVideo).then(snapshot => {
       getDownloadURL(snapshot.ref).then(url => {
         matchData.highlightURL = url;
-        saveMatch(sessionId, matchData);
+        saveMatch(sessionId, matchId, matchData);
       });
     });
   } else {
-    saveMatch(sessionId, matchData);
+    saveMatch(sessionId, matchId, matchData);
   }
 }
 
-function saveMatch(sessionId, matchData) {
-  const matchRef = push(ref(database, `gameSessions/${sessionId}/matches`), matchData);
+function saveMatch(sessionId, matchId, matchData) {
+  const operation = matchId
+    ? update(ref(database, `gameSessions/${sessionId}/matches/${matchId}`), matchData)
+    : push(ref(database, `gameSessions/${sessionId}/matches`), matchData);
 
-  matchRef
+  operation
     .then(() => {
       loadMatches(sessionId);
+      calculatePRValues(); // Add this line to calculate PR values
       modal.style.display = "none";
     })
     .catch(error => {
-      console.error("Error adding match: ", error);
-      alert('Error adding match. Please try again.');
+      console.error("Error adding/updating match: ", error);
+      alert('Error adding/updating match. Please try again.');
     });
 }
 
@@ -342,6 +376,7 @@ window.deleteMatch = function(sessionId, matchId) {
     remove(ref(database, `gameSessions/${sessionId}/matches/${matchId}`))
       .then(() => {
         loadMatches(sessionId);
+        calculatePRValues(); // Add this line to recalculate PR values
       })
       .catch(error => {
         console.error("Error deleting match: ", error);

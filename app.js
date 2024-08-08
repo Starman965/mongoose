@@ -50,6 +50,13 @@ function showSection(section) {
       break;
   }
 }
+function manualPRRecalculation() {
+    calculatePRValues();
+    setTimeout(() => {
+        loadTeamMembers();
+    }, 2000);  // Wait 2 seconds for the calculation to complete before reloading
+}
+
 function showTeamMembers() {
     mainContent.innerHTML = `
         <h2>Team Members</h2>

@@ -345,61 +345,6 @@ window.deleteGameSession = function(id) {
   }
 }
 
-case 'addMatch':
-  modalContent.innerHTML = `
-    <h3>Add Match</h3>
-    <form id="matchForm" data-session-id="${id}" class="vertical-form">
-      <div class="form-group">
-        <label for="gameMode">Game Mode</label>
-        <select id="gameMode" required>
-          <option value="">Select Game Mode</option>
-        </select>
-      </div>
-      <div class="form-group">
-        <label for="map">Map</label>
-        <select id="map" required>
-          <option value="">Select Map</option>
-        </select>
-      </div>
-      <div class="form-group">
-        <label for="placement">Placement</label>
-        <input type="number" id="placement" required>
-      </div>
-      <div class="form-group">
-        <label for="totalKills">Total Kills</label>
-        <input type="number" id="totalKills">
-      </div>
-      <div class="form-group">
-        <label for="killsSTARMAN">Kills (STARMAN)</label>
-        <input type="number" id="killsSTARMAN">
-      </div>
-      <div class="form-group">
-        <label for="killsRSKILLA">Kills (RSKILLA)</label>
-        <input type="number" id="killsRSKILLA">
-      </div>
-      <div class="form-group">
-        <label for="killsSWFTSWORD">Kills (SWFTSWORD)</label>
-        <input type="number" id="killsSWFTSWORD">
-      </div>
-      <div class="form-group">
-        <label for="killsVAIDED">Kills (VAIDED)</label>
-        <input type="number" id="killsVAIDED">
-      </div>
-      <div class="form-group">
-        <label for="killsMOWGLI">Kills (MOWGLI)</label>
-        <input type="number" id="killsMOWGLI">
-      </div>
-      <div class="form-group">
-        <label for="highlightVideo">Highlight Video</label>
-        <input type="file" id="highlightVideo" accept="video/*">
-      </div>
-      <button type="submit" class="button">Add Match</button>
-    </form>
-  `;
-  loadGameModesAndMaps();
-  document.getElementById('matchForm').addEventListener('submit', addMatch);
-  break;
-
 function saveMatch(sessionId, matchId, matchData) {
   let operation;
   if (matchId) {
@@ -924,29 +869,59 @@ window.showModal = function(action, id = null, subId = null) {
       });
       break;
     case 'addMatch':
-      modalContent.innerHTML = `
-        <h3>Add Match</h3>
-        <form id="matchForm" data-session-id="${id}">
-          <select id="gameMode" required>
-            <option value="">Select Game Mode</option>
-          </select>
-          <select id="map" required>
-            <option value="">Select Map</option>
-          </select>
-          <input type="number" id="placement" placeholder="Placement" required>
-          <input type="number" id="totalKills" placeholder="Total Kills">
-    <input type="number" id="killsSTARMAN" placeholder="Kills (STARMAN)">
-<input type="number" id="killsRSKILLA" placeholder="Kills (RSKILLA)">
-<input type="number" id="killsSWFTSWORD" placeholder="Kills (SWFTSWORD)">
-<input type="number" id="killsVAIDED" placeholder="Kills (VAIDED)">
-<input type="number" id="killsMOWGLI" placeholder="Kills (MOWGLI)">
-          <input type="file" id="highlightVideo" accept="video/*">
-          <button type="submit">Add Match</button>
-        </form>
-      `;
-      loadGameModesAndMaps();
-      document.getElementById('matchForm').addEventListener('submit', addMatch);
-      break;
+  modalContent.innerHTML = `
+    <h3>Add Match</h3>
+    <form id="matchForm" data-session-id="${id}" class="vertical-form">
+      <div class="form-group">
+        <label for="gameMode">Game Mode</label>
+        <select id="gameMode" required>
+          <option value="">Select Game Mode</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label for="map">Map</label>
+        <select id="map" required>
+          <option value="">Select Map</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label for="placement">Placement</label>
+        <input type="number" id="placement" required>
+      </div>
+      <div class="form-group">
+        <label for="totalKills">Total Kills</label>
+        <input type="number" id="totalKills">
+      </div>
+      <div class="form-group">
+        <label for="killsSTARMAN">Kills (STARMAN)</label>
+        <input type="number" id="killsSTARMAN">
+      </div>
+      <div class="form-group">
+        <label for="killsRSKILLA">Kills (RSKILLA)</label>
+        <input type="number" id="killsRSKILLA">
+      </div>
+      <div class="form-group">
+        <label for="killsSWFTSWORD">Kills (SWFTSWORD)</label>
+        <input type="number" id="killsSWFTSWORD">
+      </div>
+      <div class="form-group">
+        <label for="killsVAIDED">Kills (VAIDED)</label>
+        <input type="number" id="killsVAIDED">
+      </div>
+      <div class="form-group">
+        <label for="killsMOWGLI">Kills (MOWGLI)</label>
+        <input type="number" id="killsMOWGLI">
+      </div>
+      <div class="form-group">
+        <label for="highlightVideo">Highlight Video</label>
+        <input type="file" id="highlightVideo" accept="video/*">
+      </div>
+      <button type="submit" class="button">Add Match</button>
+    </form>
+  `;
+  loadGameModesAndMaps();
+  document.getElementById('matchForm').addEventListener('submit', addMatch);
+  break;
       
 case 'editMatch':
   get(ref(database, `gameSessions/${id}/matches/${subId}`)).then((snapshot) => {

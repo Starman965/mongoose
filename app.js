@@ -919,8 +919,8 @@ window.showModal = function(action, id = null, subId = null) {
       const match = snapshot.val();
       modalContent.innerHTML = `
         <h3>Edit Match</h3>
-        <form id="matchForm" data-session-id="${id}" data-match-id="${subId}">
-          <select id="gameMode" required>
+          <form id="matchForm" data-session-id="${id}" data-match-id="${subId}">
+            <select id="gameMode" required>
             <option value="">Select Game Mode</option>
           </select>
           <select id="map" required>

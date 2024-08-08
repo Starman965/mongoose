@@ -54,7 +54,7 @@ function showSection(section) {
 function showGameSessions() {
   mainContent.innerHTML = `
     <h2>Game Sessions</h2>
-    <button onclick="showModal('addGameSession')">Add Game Session</button>
+    <button class="button" onclick="showModal('addGameSession')">Add Game Session</button>
     <div id="sessionList"></div>
   `;
   loadGameSessions();
@@ -64,18 +64,19 @@ function addMatch(e) {
   e.preventDefault();
   const form = e.target;
   const sessionId = form.dataset.sessionId;
-  const killsByPlayerInput = form.killsByPlayer.value.split(',').reduce((acc, playerKill) => {
-    const [player, kills] = playerKill.split(':').map(item => item.trim());
-    acc[player] = parseInt(kills);
-    return acc;
-  }, {});
 
   const matchData = {
     gameMode: form.gameMode.value,
     map: form.map.value,
     placement: parseInt(form.placement.value),
     totalKills: parseInt(form.totalKills.value),
-    killsByPlayer: killsByPlayerInput,
+    killsByPlayer: {
+      STARMAN: parseInt(form.STARMAN.value),
+      RSKILLA: parseInt(form.RSKILLA.value),
+      SWFTSWORD: parseInt(form.SWFTSWORD.value),
+      VAIDED: parseInt(form.VAIDED.value),
+      MOWGLI: parseInt(form.MOWGLI.value)
+    }
   };
 
   const matchRef = push(ref(database, `gameSessions/${sessionId}/matches`), matchData);
@@ -103,8 +104,8 @@ window.showModal = function(action, id = null) {
           <input type="text" id="gamertag" placeholder="Gamertag" required>
           <input type="text" id="state" placeholder="State" required>
           <input type="date" id="birthdate" placeholder="Birthdate" required>
-          <input type="number" id="personalRecordBR" placeholder="BR Personal Record" required>
-          <input type="number" id="personalRecordMP" placeholder="MP Personal Record" required>
+          <input type="number" id="personalRecordBR" placeholder="BR PR" required>
+          <input type="number" id="personalRecordMP" placeholder="MP PR" required>
           <input type="text" id="favoriteSnack" placeholder="Favorite Snack" required>
           <input type="file" id="photo" accept="image/*" required>
           <button type="submit">Add Team Member</button>
@@ -171,7 +172,11 @@ window.showModal = function(action, id = null) {
           </select>
           <input type="number" id="placement" placeholder="Placement" required>
           <input type="number" id="totalKills" placeholder="Total Kills" required>
-          <textarea id="killsByPlayer" placeholder="Kills by Player (format: player1: 10, player2: 5)" required></textarea>
+          <input type="number" id="STARMAN" placeholder="STARMAN Kills" required>
+          <input type="number" id="RSKILLA" placeholder="RSKILLA Kills" required>
+          <input type="number" id="SWFTSWORD" placeholder="SWFTSWORD Kills" required>
+          <input type="number" id="VAIDED" placeholder="VAIDED Kills" required>
+          <input type="number" id="MOWGLI" placeholder="MOWGLI Kills" required>
           <button type="submit">Add Match</button>
         </form>
       `;
@@ -193,73 +198,17 @@ window.showModal = function(action, id = null) {
               </select>
               <input type="number" id="placement" value="${match.placement}" placeholder="Placement" required>
               <input type="number" id="totalKills" value="${match.totalKills}" placeholder="Total Kills" required>
-              <textarea id="killsByPlayer" placeholder="Kills by Player (format: player1: 10, player2: 5)" required>${Object.entries(match.killsByPlayer).map(([player, kills]) => `${player}: ${kills}`).join(', ')}</textarea>
+              <input type="number" id="STARMAN" value="${match.killsByPlayer.STARMAN || ''}" placeholder="STARMAN Kills" required>
+              <input type="number" id="RSKILLA" value="${match.killsByPlayer.RSKILLA || ''}" placeholder="RSKILLA Kills" required>
+              <input type="number" id="SWFTSWORD" value="${match.killsByPlayer.SWFTSWORD || ''}" placeholder="SWFTSWORD Kills" required>
+              <input type="number" id="VAIDED" value="${match.killsByPlayer.VAIDED || ''}" placeholder="VAIDED Kills" required>
+              <input type="number" id="MOWGLI" value="${match.killsByPlayer.MOWGLI || ''}" placeholder="MOWGLI Kills" required>
               <input type="file" id="highlight" accept="video/*">
               <button type="submit">Update Match</button>
             </form>
           `;
           loadGameModesAndMaps();
           document.getElementById('matchForm').addEventListener('submit', updateMatch);
-        }
-      });
-      break;
-    case 'addMap':
-      modalContent.innerHTML = `
-        <h3>Add Map</h3>
-        <form id="mapForm">
-          <input type="text" id="name" placeholder="Map Name" required>
-          <button type="submit">Add Map</button>
-        </form>
-      `;
-      document.getElementById('mapForm').addEventListener('submit', addOrUpdateMap);
-      break;
-    case 'editMap':
-      get(ref(database, `maps/${id}`)).then((snapshot) => {
-        if (snapshot.exists()) {
-          const map = snapshot.val();
-          modalContent.innerHTML = `
-            <h3>Edit Map</h3>
-            <form id="mapForm" data-id="${id}">
-              <input type="text" id="name" value="${map.name}" required>
-              <button type="submit">Update Map</button>
-            </form>
-          `;
-          document.getElementById('mapForm').addEventListener('submit', addOrUpdateMap);
-        }
-      });
-      break;
-    case 'addGameMode':
-      modalContent.innerHTML = `
-        <h3>Add Game Mode</h3>
-        <form id="gameModeForm">
-          <input type="text" id="name" placeholder="Game Mode Name" required>
-          <select id="modeType" required>
-            <option value="">Select Mode Type</option>
-            <option value="Battle Royale">Battle Royale</option>
-            <option value="Multiplayer">Multiplayer</option>
-          </select>
-          <button type="submit">Add Game Mode</button>
-        </form>
-      `;
-      document.getElementById('gameModeForm').addEventListener('submit', addOrUpdateGameMode);
-      break;
-    case 'editGameMode':
-      get(ref(database, `gameModes/${id}`)).then((snapshot) => {
-        if (snapshot.exists()) {
-          const gameMode = snapshot.val();
-          modalContent.innerHTML = `
-            <h3>Edit Game Mode</h3>
-            <form id="gameModeForm" data-id="${id}">
-              <input type="text" id="name" value="${gameMode.name}" required>
-              <select id="modeType" required>
-                <option value="${gameMode.modeType}" selected>${gameMode.modeType}</option>
-                <option value="Battle Royale">Battle Royale</option>
-                <option value="Multiplayer">Multiplayer</option>
-              </select>
-              <button type="submit">Update Game Mode</button>
-            </form>
-          `;
-          document.getElementById('gameModeForm').addEventListener('submit', addOrUpdateGameMode);
         }
       });
       break;
@@ -302,18 +251,18 @@ function updateMatch(e) {
   const form = e.target;
   const sessionId = form.dataset.sessionId;
   const matchId = form.dataset.matchId;
-  const killsByPlayerInput = form.killsByPlayer.value.split(',').reduce((acc, playerKill) => {
-    const [player, kills] = playerKill.split(':').map(item => item.trim());
-    acc[player] = parseInt(kills);
-    return acc;
-  }, {});
-
   const matchData = {
     gameMode: form.gameMode.value,
     map: form.map.value,
     placement: parseInt(form.placement.value),
     totalKills: parseInt(form.totalKills.value),
-    killsByPlayer: killsByPlayerInput,
+    killsByPlayer: {
+      STARMAN: parseInt(form.STARMAN.value),
+      RSKILLA: parseInt(form.RSKILLA.value),
+      SWFTSWORD: parseInt(form.SWFTSWORD.value),
+      VAIDED: parseInt(form.VAIDED.value),
+      MOWGLI: parseInt(form.MOWGLI.value)
+    }
   };
 
   const operation = update(ref(database, `gameSessions/${sessionId}/matches/${matchId}`), matchData);
@@ -373,8 +322,8 @@ function loadTeamMembers() {
                         <p><strong>State:</strong> ${member.state}</p>
                         <p><strong>Birthdate:</strong> ${member.birthdate}, Age: ${age}</p>
                         <p><strong>Favorite Snack:</strong> ${member.favoriteSnack}</p>
-                        <p><strong>BR Personal Record:</strong> ${member.personalRecordBR}</p>
-                        <p><strong>MP Personal Record:</strong> ${member.personalRecordMP}</p>
+                        <p><strong>BR PR:</strong> ${member.personalRecordBR}</p>
+                        <p><strong>MP PR:</strong> ${member.personalRecordMP}</p>
                     </div>
                     <div class="actions">
                         <button class="button" onclick="showModal('editTeamMember', '${memberId}')">Edit</button>
@@ -524,11 +473,11 @@ function loadMatches(sessionId) {
                     <th>Map</th>
                     <th>Placement</th>
                     <th>Total Kills</th>
-                    <th>Ron</th>
-                    <th>David</th>
-                    <th>Brad</th>
-                    <th>Dan</th>
-                    <th>Usman</th>
+                    <th>STARMAN</th>
+                    <th>RSKILLA</th>
+                    <th>SWFTSWORD</th>
+                    <th>VAIDED</th>
+                    <th>MOWGLI</th>
                     <th>Actions</th>
                   </tr>
               `;
@@ -539,11 +488,11 @@ function loadMatches(sessionId) {
                           <td>${match.map}</td>
                           <td>${match.placement}</td>
                           <td>${match.totalKills}</td>
-                          <td>${match.killsByPlayer['Ron'] || ''}</td>
-                          <td>${match.killsByPlayer['David'] || ''}</td>
-                          <td>${match.killsByPlayer['Brad'] || ''}</td>
-                          <td>${match.killsByPlayer['Dan'] || ''}</td>
-                          <td>${match.killsByPlayer['Usman'] || ''}</td>
+                          <td>${match.killsByPlayer['STARMAN'] || ''}</td>
+                          <td>${match.killsByPlayer['RSKILLA'] || ''}</td>
+                          <td>${match.killsByPlayer['SWFTSWORD'] || ''}</td>
+                          <td>${match.killsByPlayer['VAIDED'] || ''}</td>
+                          <td>${match.killsByPlayer['MOWGLI'] || ''}</td>
                           <td>
                             <button onclick="showModal('editMatch', { sessionId: '${sessionId}', matchId: '${matchId}' })">Edit Match</button>
                             <button onclick="deleteMatch('${sessionId}', '${matchId}')">Delete Match</button>
@@ -593,7 +542,7 @@ window.viewHighlight = function(url) {
 function showGameModes() {
   mainContent.innerHTML = `
     <h2>Game Modes</h2>
-    <button onclick="showModal('addGameMode')">Add Game Mode</button>
+    <button class="button" onclick="showModal('addGameMode')">Add Game Mode</button>
     <div id="gameModeList"></div>
   `;
   loadGameModes();
@@ -613,17 +562,32 @@ function loadGameModes() {
 
     gameModes.sort((a, b) => a.name.localeCompare(b.name));
 
+    gameModeList.innerHTML += `
+      <table class="game-modes-table">
+        <thead>
+          <tr>
+            <th>Game Mode</th>
+            <th>Type</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+    `;
+
     gameModes.forEach((gameMode) => {
       gameModeList.innerHTML += `
-        <div class="table-row">
-          <div class="name">${gameMode.name}</div>
-          <div class="actions">
-            <button onclick="showModal('editGameMode', '${gameMode.id}')">Edit</button>
-            <button onclick="deleteGameMode('${gameMode.id}')">Delete</button>
-          </div>
-        </div>
+        <tr>
+          <td>${gameMode.name}</td>
+          <td>${gameMode.modeType}</td>
+          <td>
+            <button class="button" onclick="showModal('editGameMode', '${gameMode.id}')">Edit</button>
+            <button class="button" onclick="deleteGameMode('${gameMode.id}')">Delete</button>
+          </td>
+        </tr>
       `;
     });
+
+    gameModeList.innerHTML += `</tbody></table>`;
 
     if (gameModeList.innerHTML === '') {
       gameModeList.innerHTML = 'No game modes found. Add some!';
@@ -670,7 +634,7 @@ window.deleteGameMode = function(id) {
 function showMaps() {
   mainContent.innerHTML = `
     <h2>Maps</h2>
-    <button onclick="showModal('addMap')">Add Map</button>
+    <button class="button" onclick="showModal('addMap')">Add Map</button>
     <div id="mapList"></div>
   `;
   loadMaps();
@@ -690,17 +654,30 @@ function loadMaps() {
 
     maps.sort((a, b) => a.name.localeCompare(b.name));
 
+    mapList.innerHTML += `
+      <table class="maps-table">
+        <thead>
+          <tr>
+            <th>Map</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+    `;
+
     maps.forEach((map) => {
       mapList.innerHTML += `
-        <div class="table-row">
-          <div class="name">${map.name}</div>
-          <div class="actions">
-            <button onclick="showModal('editMap', '${map.id}')">Edit</button>
-            <button onclick="deleteMap('${map.id}')">Delete</button>
-          </div>
-        </div>
+        <tr>
+          <td>${map.name}</td>
+          <td>
+            <button class="button" onclick="showModal('editMap', '${map.id}')">Edit</button>
+            <button class="button" onclick="deleteMap('${map.id}')">Delete</button>
+          </td>
+        </tr>
       `;
     });
+
+    mapList.innerHTML += `</tbody></table>`;
 
     if (mapList.innerHTML === '') {
       mapList.innerHTML = 'No maps found. Add some!';

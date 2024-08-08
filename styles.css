@@ -307,6 +307,7 @@ footer {
     border: 1px solid #444444;
     padding: 12px 15px;
     text-align: center;
+    font-size: 14px; /* Adjust this value as needed */
 }
 
 .stats-table th, .highlights-table th, .matches-table th {

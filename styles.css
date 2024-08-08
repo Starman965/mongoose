@@ -98,20 +98,6 @@ main {
     margin: 5px 0;
     text-align: center;
 }
-
-.modal {
-    display: none;
-    position: fixed;
-    z-index: 1;
-    left: 0;
-    top: 0;
-    width: 100%;
-    height: 100%;
-    overflow: auto;
-    background-color: rgb(0,0,0);
-    background-color: rgba(0,0,0,0.4);
-}
-
 .close {
     color: #aaa;
     float: right;
@@ -370,21 +356,41 @@ footer {
   margin-top: 10px;
 }
 
+.modal {
+    display: none; /* Hidden by default */
+    position: fixed;
+    z-index: 1; /* Ensure it's above other content */
+    left: 0;
+    top: 0;
+    width: 100%; /* Full-screen width */
+    height: 100%; /* Full-screen height */
+    overflow: auto; /* Enable scrolling if needed */
+    background-color: rgba(0, 0, 0, 0.4); /* Semi-transparent background for dimming */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
 .modal-content {
-    background-color: #222222; /* Solid background color */
-    margin: 15% auto;
+    background-color: #333333; /* Solid background color */
     padding: 20px;
     border: 1px solid #888;
-    width: 50%; /* Adjust width to make it narrower */
+    width: 40%; /* Narrower width */
+    height: 60%; /* Taller height */
+    max-height: 80%; /* Max height for responsiveness */
     color: #ffffff;
     border-radius: 10px;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    display: flex;
+    flex-direction: column; /* Ensure the content inside stacks vertically */
+    overflow-y: auto; /* Enable scrolling within the content if necessary */
 }
 
-/* For smaller screens, you might want to use a different width */
 @media (max-width: 768px) {
     .modal-content {
-        width: 95%;
+        width: 95%; /* Full width on smaller screens */
+        height: auto; /* Auto height for smaller screens */
+        max-height: 80%; /* Maintain some responsiveness */
         margin: 2% auto;
     }
 }

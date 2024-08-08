@@ -370,9 +370,21 @@ footer {
   margin-top: 10px;
 }
 
+.modal-content {
+    background-color: #222222; /* Solid background color */
+    margin: 15% auto;
+    padding: 20px;
+    border: 1px solid #888;
+    width: 50%; /* Adjust width to make it narrower */
+    color: #ffffff;
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+/* For smaller screens, you might want to use a different width */
 @media (max-width: 768px) {
-  .modal-content {
-    width: 95%;
-    margin: 2% auto;
-  }
+    .modal-content {
+        width: 95%;
+        margin: 2% auto;
+    }
 }

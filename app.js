@@ -702,14 +702,14 @@ function loadStats() {
           <tr>
             <th>Date</th>
             <th>Games Played</th>
+            <th>Total Kills</th>
+            <th>Average Kills</th>
             <th>Wins</th>
             <th>2nd Place</th>
             <th>3rd Place</th>
             <th>4th Place</th>
             <th>5th Place</th>
             <th>6th+ Place</th>
-            <th>Total Kills</th>
-            <th>Average Kills</th>
           </tr>
         </thead>
         <tbody>
@@ -717,14 +717,13 @@ function loadStats() {
 
     let totalStats = {
       gamesPlayed: 0,
+      totalKills: 0,
       wins: 0,
       secondPlace: 0,
       thirdPlace: 0,
       fourthPlace: 0,
       fifthPlace: 0,
-      sixthPlacePlus: 0,
-      totalKills: 0,
-      brGamesPlayed: 0
+      sixthPlacePlus: 0
     };
 
     sessions.forEach((session) => {
@@ -739,33 +738,34 @@ function loadStats() {
         <tr>
           <td>${formatDate(session.date)}</td>
           <td>${stats.gamesPlayed}</td>
+          <td>${stats.totalKills}</td>
+          <td>${stats.averageKills}</td>
           <td>${stats.wins} (${((stats.wins / stats.gamesPlayed) * 100).toFixed(1)}%)</td>
           <td>${stats.secondPlace} (${((stats.secondPlace / stats.gamesPlayed) * 100).toFixed(1)}%)</td>
           <td>${stats.thirdPlace} (${((stats.thirdPlace / stats.gamesPlayed) * 100).toFixed(1)}%)</td>
           <td>${stats.fourthPlace} (${((stats.fourthPlace / stats.gamesPlayed) * 100).toFixed(1)}%)</td>
           <td>${stats.fifthPlace} (${((stats.fifthPlace / stats.gamesPlayed) * 100).toFixed(1)}%)</td>
           <td>${stats.sixthPlacePlus} (${((stats.sixthPlacePlus / stats.gamesPlayed) * 100).toFixed(1)}%)</td>
-          <td>${stats.totalKills}</td>
-          <td>${(stats.totalKills / stats.brGamesPlayed).toFixed(2)}</td>
         </tr>
       `;
     });
 
-   // Add total row
+    // Add total row
     if (totalStats.gamesPlayed > 0) {
+      const totalAverageKills = (totalStats.totalKills / totalStats.gamesPlayed).toFixed(2);
       tableHTML += `
         <tfoot>
           <tr>
             <td><strong>Total</strong></td>
             <td><strong>${totalStats.gamesPlayed}</strong></td>
+            <td><strong>${totalStats.totalKills}</strong></td>
+            <td><strong>${totalAverageKills}</strong></td>
             <td><strong>${totalStats.wins} (${((totalStats.wins / totalStats.gamesPlayed) * 100).toFixed(1)}%)</strong></td>
             <td><strong>${totalStats.secondPlace} (${((totalStats.secondPlace / totalStats.gamesPlayed) * 100).toFixed(1)}%)</strong></td>
             <td><strong>${totalStats.thirdPlace} (${((totalStats.thirdPlace / totalStats.gamesPlayed) * 100).toFixed(1)}%)</strong></td>
             <td><strong>${totalStats.fourthPlace} (${((totalStats.fourthPlace / totalStats.gamesPlayed) * 100).toFixed(1)}%)</strong></td>
             <td><strong>${totalStats.fifthPlace} (${((totalStats.fifthPlace / totalStats.gamesPlayed) * 100).toFixed(1)}%)</strong></td>
             <td><strong>${totalStats.sixthPlacePlus} (${((totalStats.sixthPlacePlus / totalStats.gamesPlayed) * 100).toFixed(1)}%)</strong></td>
-            <td><strong>${totalStats.totalKills}</strong></td>
-            <td><strong>${(totalStats.totalKills / totalStats.brGamesPlayed).toFixed(2)}</strong></td>
           </tr>
         </tfoot>
       `;
@@ -803,15 +803,16 @@ function calculateSessionStats(matches) {
       default: stats.sixthPlacePlus++;
     }
 
+    stats.totalKills += match.totalKills || 0;
     if (match.gameMode === 'Battle Royale') {
-      stats.totalKills += match.totalKills || 0;
       stats.brGamesPlayed++;
     }
   });
 
+  stats.averageKills = stats.gamesPlayed > 0 ? (stats.totalKills / stats.gamesPlayed).toFixed(2) : 0;
+
   return stats;
 }
-
 window.showSessionMatches = function(sessionId) {
   showGameSessions();
   setTimeout(() => {

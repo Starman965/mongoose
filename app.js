@@ -106,35 +106,43 @@ function calculateAge(birthdate) {
 }
 // Add this function definition after calculateAge function
 function calculatePRValues() {
-  get(ref(database, 'gameSessions')).then((sessionsSnapshot) => {
-    const prValues = {};
-
-    sessionsSnapshot.forEach((sessionSnapshot) => {
-      const session = sessionSnapshot.val();
-      if (session.matches) {
-        Object.values(session.matches).forEach((match) => {
-          const gameType = match.gameMode === 'Battle Royale' ? 'brPR' : 'mpPR';
-          
-          Object.entries(match.kills || {}).forEach(([player, kills]) => {
-            if (!prValues[player]) {
-              prValues[player] = { brPR: 0, mpPR: 0 };
-            }
-            prValues[player][gameType] = Math.max(prValues[player][gameType], kills);
-          });
-        });
-      }
+  get(ref(database, 'gameModes')).then((gameModeSnapshot) => {
+    const gameModes = {};
+    gameModeSnapshot.forEach(child => {
+      gameModes[child.val().name] = child.val().type;
     });
 
-    // Update PR values for each team member
-    get(ref(database, 'teamMembers')).then((membersSnapshot) => {
-      membersSnapshot.forEach((memberSnapshot) => {
-        const memberId = memberSnapshot.key;
-        const memberPR = prValues[memberSnapshot.val().gamertag] || { brPR: 0, mpPR: 0 };
-        update(ref(database, `teamMembers/${memberId}`), memberPR);
+    get(ref(database, 'gameSessions')).then((sessionsSnapshot) => {
+      const prValues = {};
+
+      sessionsSnapshot.forEach((sessionSnapshot) => {
+        const session = sessionSnapshot.val();
+        if (session.matches) {
+          Object.values(session.matches).forEach((match) => {
+            const gameType = gameModes[match.gameMode] === 'Battle Royale' ? 'brPR' : 'mpPR';
+            
+            Object.entries(match.kills || {}).forEach(([player, kills]) => {
+              if (!prValues[player]) {
+                prValues[player] = { brPR: 0, mpPR: 0 };
+              }
+              prValues[player][gameType] = Math.max(prValues[player][gameType], kills);
+            });
+          });
+        }
+      });
+
+      // Update PR values for each team member
+      get(ref(database, 'teamMembers')).then((membersSnapshot) => {
+        membersSnapshot.forEach((memberSnapshot) => {
+          const memberId = memberSnapshot.key;
+          const memberPR = prValues[memberSnapshot.val().gamertag] || { brPR: 0, mpPR: 0 };
+          update(ref(database, `teamMembers/${memberId}`), memberPR);
+        });
       });
     });
   });
 }
+
 function addOrUpdateTeamMember(e) {
   e.preventDefault();
   const form = e.target;
@@ -325,7 +333,7 @@ function addMatch(e) {
   e.preventDefault();
   const form = e.target;
   const sessionId = form.dataset.sessionId;
-  const matchId = form.dataset.matchId; // This will be undefined for new matches
+  const matchId = form.dataset.matchId;
   const matchData = {
     gameMode: form.gameMode.value,
     map: form.map.value,
@@ -339,7 +347,6 @@ function addMatch(e) {
       MOWGLI: parseInt(form.killsMOWGLI.value) || 0
     }
   };
-
   const highlightVideo = form.highlightVideo.files[0];
   if (highlightVideo) {
     const videoRef = storageRef(storage, `highlights/${sessionId}/${highlightVideo.name}`);

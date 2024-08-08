@@ -5,48 +5,54 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mongoose Omelette Game Session Manager</title>
     <link rel="stylesheet" href="styles.css">
+    <link rel="icon" href="favicon.ico" type="image/x-icon">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"> <!-- Font Awesome -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
+        import { getDatabase } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-database.js";
+        import { getAnalytics } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-analytics.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCOoX8dx7-GVlbYjNaKArUpc7hbZSm3gnw",
+            authDomain: "gamenight-37cc6.firebaseapp.com",
+            databaseURL: "https://gamenight-37cc6-default-rtdb.firebaseio.com",
+            projectId: "gamenight-37cc6",
+            storageBucket: "gamenight-37cc6.appspot.com",
+            messagingSenderId: "31368693363",
+            appId: "1:31368693363:web:a2c0702234977a07dbcc06"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const database = getDatabase(app);
+        const analytics = getAnalytics(app);
+
+        window.database = database;
+    </script>
 </head>
 <body>
     <div id="app">
+        <h1> Mongoose Omelette Game Session Manager</h1>
         <div class="container">
-            <div>
-                <button id="statsNav">Team Statistics</button>
+            <nav class="sidebar">
+            <button id="statsNav">Team Statistics</button>
                 <button id="sessionsNav">Game Sessions</button>
                 <button id="highlightsNav">Highlights</button>
                 <button id="mapsNav">Maps</button>
                 <button id="modesNav">Game Modes</button>
-                <button id="teamNav">Team Members</button>
-            </div>
-            <div id="mainContent" role="main">
-            </div>
+                <button id="teamNav">Team Members</button>             
+            </nav>
+            <main id="mainContent"></main>
         </div>
-
         <div id="modal" class="modal">
             <div class="modal-content">
                 <span class="close">&times;</span>
-                <div id="modalContent">
-                </div>
+                <div id="modalContent"></div>
             </div>
         </div>
     </div>
-
-    <footer>&copy; 2024 Mongoose Omelette Squad. All rights reserved.</footer>
-
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-storage-compat.js"></script>
-    <script>
-        const firebaseConfig = {
-            apiKey: "AIzaSyA9HQG4g0_7cMY3Gadc6iyqvUMjsXXrJro",
-            authDomain: "mongoose-omelette.firebaseapp.com",
-            projectId: "mongoose-omelette",
-            storageBucket: "mongoose-omelette.appspot.com",
-            messagingSenderId: "644370983795",
-            appId: "1:644370983795:web:15c2d654aa2b519b38a902"
-        };
-        firebase.initializeApp(firebaseConfig);
-        const database = firebase.database();
-    </script>
-    <script type="module" src="app.js"></script>
+    <footer>
+        <p>&copy; 2024 Mongoose Omelette Squad. All rights reserved.</p>
+    </footer>
+    <script src="app.js" type="module"></script>
 </body>
 </html>

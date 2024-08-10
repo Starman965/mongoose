@@ -488,7 +488,13 @@ function loadMatches(sessionId) {
             let matchesHtml = '<h3>Matches</h3>';
             if (session.matches) {
                 matchesHtml += '<table class="matches-table"><tr><th>Game Mode</th><th>Map</th><th>Placement</th><th>Total Kills</th><th>STARMAN</th><th>RSKILLA</th><th>SWFTSWORD</th><th>VAIDED</th><th>MOWGLI</th><th>Actions</th></tr>';
-                Object.entries(session.matches).sort(([, a], [, b]) => b.timePlayed - a.timePlayed).forEach(([matchId, match]) => {
+                
+                // Convert matches object to array and sort by timestamp
+                const sortedMatches = Object.entries(session.matches)
+                    .map(([id, match]) => ({ id, ...match }))
+                    .sort((a, b) => b.timestamp - a.timestamp);
+
+                sortedMatches.forEach((match) => {
                     matchesHtml += `
                         <tr>
                             <td>${match.gameMode}</td>
@@ -501,8 +507,8 @@ function loadMatches(sessionId) {
                             <td>${match.kills?.VAIDED || 'N/A'}</td>
                             <td>${match.kills?.MOWGLI || 'N/A'}</td>
                             <td>
-                                <button class="button" onclick="showModal('editMatch', '${sessionId}', '${matchId}')">Edit</button>
-                                <button class="button" onclick="deleteMatch('${sessionId}', '${matchId}')">Delete</button>
+                                <button class="button" onclick="showModal('editMatch', '${sessionId}', '${match.id}')">Edit</button>
+                                <button class="button" onclick="deleteMatch('${sessionId}', '${match.id}')">Delete</button>
                                 ${match.highlightURL ? `<button class="button" onclick="viewHighlight('${match.highlightURL}')">View Highlight</button>` : ''}
                             </td>
                         </tr>
@@ -858,6 +864,7 @@ async function addMatch(e) {
         placement: placement,
         totalKills: parseInt(form.totalKills.value) === -1 ? null : parseInt(form.totalKills.value),
         kills: {}
+        timestamp: Date.now() // Puts a time stamp of that match
     };
 
     ['STARMAN', 'RSKILLA', 'SWFTSWORD', 'VAIDED', 'MOWGLI'].forEach(player => {

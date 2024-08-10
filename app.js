@@ -1017,7 +1017,6 @@ window.showModal = function(action, id = null, subId = null) {
     }
     modal.style.display = "block";
 }
-
 function loadGameModesAndMaps() {
   const gameModeSelect = document.getElementById('gameMode');
   const mapSelect = document.getElementById('map');

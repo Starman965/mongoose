@@ -398,9 +398,8 @@ footer {
 }
 
 .toggle-input:checked + .toggle-label:before {
-    transform: translateX(56px); /* Adjusted translation */
+    transform: translateX(56px);
 }
-
 .toggle-inner {
     position: absolute;
     width: 100%;
@@ -412,7 +411,6 @@ footer {
     box-sizing: border-box;
 }
 
-.toggle-inner:before,
 .toggle-inner:after {
     position: absolute;
     color: white;
@@ -422,12 +420,12 @@ footer {
 }
 
 .toggle-inner:before {
-    content: "Won";
+    content: "Lost";
     left: 15px;
 }
 
 .toggle-inner:after {
-    content: "Lost";
+    content: "Won";
     right: 15px;
 }
 .stats-table, .highlights-table, .matches-table {

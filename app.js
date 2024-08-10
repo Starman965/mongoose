@@ -783,7 +783,7 @@ function formatDate(dateString) {
 }
 
 // Make showModal function globally accessible
-window.showModal = function(action, id = null, subId = null) {
+function showModal(action, id = null, subId = null) {
     modalContent.innerHTML = '';
     switch(action) {
         case 'addTeamMember':
@@ -847,180 +847,92 @@ window.showModal = function(action, id = null, subId = null) {
             });
             break;
         case 'addMatch':
+        case 'editMatch':
+            let match = null;
+            if (action === 'editMatch') {
+                match = await get(ref(database, `gameSessions/${id}/matches/${subId}`)).then(snapshot => snapshot.val());
+            }
             modalContent.innerHTML = `
-                <h3>Add Match</h3>
-                <form id="matchForm" data-session-id="${id}" class="vertical-form">
-                    <div class="form-group">
-                        <label for="gameMode">Game Mode</label>
-                        <select id="gameMode" required>
-                            <option value="">Select Game Mode</option>
-                        </select>
+                <h3>${action === 'addMatch' ? 'Add' : 'Edit'} Match</h3>
+                <form id="matchForm" data-session-id="${id}" ${action === 'editMatch' ? `data-match-id="${subId}"` : ''} class="vertical-form">
+                    <div class="form-group horizontal">
+                        <div class="form-field">
+                            <label for="gameMode">Game Mode</label>
+                            <select id="gameMode" required>
+                                <option value="">Select Game Mode</option>
+                            </select>
+                        </div>
+                        <div class="form-field">
+                            <label for="map">Map</label>
+                            <select id="map" required>
+                                <option value="">Select Map</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div id="placementContainer" class="form-group">
+                        <!-- Placement input will be dynamically added here -->
                     </div>
                     <div class="form-group">
-                        <label for="map">Map</label>
-                        <select id="map" required>
-                            <option value="">Select Map</option>
-                        </select>
+                        <label for="totalKills">Total Kills <span id="totalKillsValue" class="slider-value">N/A</span></label>
+                        <input type="range" id="totalKills" class="slider" min="-1" max="30" step="1" value="-1">
                     </div>
                     <div class="form-group">
-                        <label for="placement">Placement</label>
-                        <input type="range" id="placement" class="slider" min="1" max="10" step="1" list="tickmarks" required>
-                        <span id="placementValue">1st</span>
-                        <datalist id="tickmarks">
-                            <option value="1" label="1st">
-                            <option value="2" label="2nd">
-                            <option value="3" label="3rd">
-                            <option value="4" label="4th">
-                            <option value="5" label="5th">
-                            <option value="6" label="6th">
-                            <option value="7" label="7th">
-                            <option value="8" label="8th">
-                            <option value="9" label="9th">
-                            <option value="10" label="10th+">
-                        </datalist>
+                        <label for="killsSTARMAN">Kills (STARMAN) <span id="killsSTARMANValue" class="slider-value">N/A</span></label>
+                        <input type="range" id="killsSTARMAN" class="slider" min="-1" max="30" step="1" value="-1">
                     </div>
                     <div class="form-group">
-                        <label for="totalKills">Total Kills</label>
-                        <input type="range" id="totalKills" class="slider" min="0" max="30" step="1">
-                        <span id="totalKillsValue">0</span>
+                        <label for="killsRSKILLA">Kills (RSKILLA) <span id="killsRSKILLAValue" class="slider-value">N/A</span></label>
+                        <input type="range" id="killsRSKILLA" class="slider" min="-1" max="30" step="1" value="-1">
                     </div>
                     <div class="form-group">
-                        <label for="killsSTARMAN">Kills (STARMAN)</label>
-                        <input type="range" id="killsSTARMAN" class="slider" min="0" max="30" step="1">
-                        <span id="killsSTARMANValue">0</span>
+                        <label for="killsSWFTSWORD">Kills (SWFTSWORD) <span id="killsSWFTSWORDValue" class="slider-value">N/A</span></label>
+                        <input type="range" id="killsSWFTSWORD" class="slider" min="-1" max="30" step="1" value="-1">
                     </div>
                     <div class="form-group">
-                        <label for="killsRSKILLA">Kills (RSKILLA)</label>
-                        <input type="range" id="killsRSKILLA" class="slider" min="0" max="30" step="1">
-                        <span id="killsRSKILLAValue">0</span>
+                        <label for="killsVAIDED">Kills (VAIDED) <span id="killsVAIDEDValue" class="slider-value">N/A</span></label>
+                        <input type="range" id="killsVAIDED" class="slider" min="-1" max="30" step="1" value="-1">
                     </div>
                     <div class="form-group">
-                        <label for="killsSWFTSWORD">Kills (SWFTSWORD)</label>
-                        <input type="range" id="killsSWFTSWORD" class="slider" min="0" max="30" step="1">
-                        <span id="killsSWFTSWORDValue">0</span>
-                    </div>
-                    <div class="form-group">
-                        <label for="killsVAIDED">Kills (VAIDED)</label>
-                        <input type="range" id="killsVAIDED" class="slider" min="0" max="30" step="1">
-                        <span id="killsVAIDEDValue">0</span>
-                    </div>
-                    <div class="form-group">
-                        <label for="killsMOWGLI">Kills (MOWGLI)</label>
-                        <input type="range" id="killsMOWGLI" class="slider" min="0" max="30" step="1">
-                        <span id="killsMOWGLIValue">0</span>
+                        <label for="killsMOWGLI">Kills (MOWGLI) <span id="killsMOWGLIValue" class="slider-value">N/A</span></label>
+                        <input type="range" id="killsMOWGLI" class="slider" min="-1" max="30" step="1" value="-1">
                     </div>
                     <div class="form-group">
                         <label for="highlightVideo">Highlight Video</label>
                         <input type="file" id="highlightVideo" accept="video/*">
                     </div>
-                    <button type="submit" class="button">Add Match</button>
+                    ${match && match.highlightURL ? '<p>A highlight video is already uploaded. Uploading a new one will replace it.</p>' : ''}
+                    <button type="submit" class="button">${action === 'addMatch' ? 'Add' : 'Update'} Match</button>
                 </form>
             `;
             loadGameModesAndMaps();
             document.getElementById('matchForm').addEventListener('submit', addMatch);
+            document.getElementById('gameMode').addEventListener('change', updatePlacementInput);
 
-            // Add event listeners to update value labels
-            document.getElementById('placement').addEventListener('input', updatePlacementValue);
-            document.getElementById('totalKills').addEventListener('input', updateTotalKillsValue);
-            document.getElementById('killsSTARMAN').addEventListener('input', updateKillsValue('killsSTARMAN'));
-            document.getElementById('killsRSKILLA').addEventListener('input', updateKillsValue('killsRSKILLA'));
-            document.getElementById('killsSWFTSWORD').addEventListener('input', updateKillsValue('killsSWFTSWORD'));
-            document.getElementById('killsVAIDED').addEventListener('input', updateKillsValue('killsVAIDED'));
-            document.getElementById('killsMOWGLI').addEventListener('input', updateKillsValue('killsMOWGLI'));
-            break;
-        case 'editMatch':
-            get(ref(database, `gameSessions/${id}/matches/${subId}`)).then((snapshot) => {
-                if (snapshot.exists()) {
-                    const match = snapshot.val();
-                    modalContent.innerHTML = `
-                        <h3>Edit Match</h3>
-                        <form id="matchForm" data-session-id="${id}" data-match-id="${subId}" class="vertical-form">
-                            <div class="form-group">
-                                <label for="gameMode">Game Mode</label>
-                                <select id="gameMode" required>
-                                    <option value="">Select Game Mode</option>
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label for="map">Map</label>
-                                <select id="map" required>
-                                    <option value="">Select Map</option>
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label for="placement">Placement</label>
-                                <input type="range" id="placement" class="slider" min="1" max="10" step="1" value="${match.placement}" list="tickmarks" required>
-                                <span id="placementValue">${match.placement}st</span>
-                                <datalist id="tickmarks">
-                                    <option value="1" label="1st">
-                                    <option value="2" label="2nd">
-                                    <option value="3" label="3rd">
-                                    <option value="4" label="4th">
-                                    <option value="5" label="5th">
-                                    <option value="6" label="6th">
-                                    <option value="7" label="7th">
-                                    <option value="8" label="8th">
-                                    <option value="9" label="9th">
-                                    <option value="10" label="10th+">
-                                </datalist>
-                            </div>
-                            <div class="form-group">
-                                <label for="totalKills">Total Kills</label>
-                                <input type="range" id="totalKills" class="slider" min="0" max="30" step="1" value="${match.totalKills || 0}">
-                                <span id="totalKillsValue">${match.totalKills || 0}</span>
-                            </div>
-                            <div class="form-group">
-                                <label for="killsSTARMAN">Kills (STARMAN)</label>
-                                <input type="range" id="killsSTARMAN" class="slider" min="0" max="30" step="1" value="${match.kills?.STARMAN || 0}">
-                                <span id="killsSTARMANValue">${match.kills?.STARMAN || 0}</span>
-                            </div>
-                            <div class="form-group">
-                                <label for="killsRSKILLA">Kills (RSKILLA)</label>
-                                <input type="range" id="killsRSKILLA" class="slider" min="0" max="30" step="1" value="${match.kills?.RSKILLA || 0}">
-                                <span id="killsRSKILLAValue">${match.kills?.RSKILLA || 0}</span>
-                            </div>
-                            <div class="form-group">
-                                <label for="killsSWFTSWORD">Kills (SWFTSWORD)</label>
-                                <input type="range" id="killsSWFTSWORD" class="slider" min="0" max="30" step="1" value="${match.kills?.SWFTSWORD || 0}">
-                                <span id="killsSWFTSWORDValue">${match.kills?.SWFTSWORD || 0}</span>
-                            </div>
-                            <div class="form-group">
-                                <label for="killsVAIDED">Kills (VAIDED)</label>
-                                <input type="range" id="killsVAIDED" class="slider" min="0" max="30" step="1" value="${match.kills?.VAIDED || 0}">
-                                <span id="killsVAIDEDValue">${match.kills?.VAIDED || 0}</span>
-                            </div>
-                            <div class="form-group">
-                                <label for="killsMOWGLI">Kills (MOWGLI)</label>
-                                <input type="range" id="killsMOWGLI" class="slider" min="0" max="30" step="1" value="${match.kills?.MOWGLI || 0}">
-                                <span id="killsMOWGLIValue">${match.kills?.MOWGLI || 0}</span>
-                            </div>
-                            <div class="form-group">
-                                <label for="highlightVideo">Highlight Video</label>
-                                <input type="file" id="highlightVideo" accept="video/*">
-                            </div>
-                            ${match.highlightURL ? '<p>A highlight video is already uploaded. Uploading a new one will replace it.</p>' : ''}
-                            <button type="submit" class="button">Update Match</button>
-                        </form>
-                    `;
-                    loadGameModesAndMaps();
-                    document.getElementById('matchForm').addEventListener('submit', addMatch);
-
-                    // Set the game mode and map after options are loaded
-                    setTimeout(() => {
-                        document.getElementById('gameMode').value = match.gameMode;
-                        document.getElementById('map').value = match.map;
-                    }, 100);
-
-                    // Add event listeners to update value labels
-                    document.getElementById('placement').addEventListener('input', updatePlacementValue);
-                    document.getElementById('totalKills').addEventListener('input', updateTotalKillsValue);
-                    document.getElementById('killsSTARMAN').addEventListener('input', updateKillsValue('killsSTARMAN'));
-                    document.getElementById('killsRSKILLA').addEventListener('input', updateKillsValue('killsRSKILLA'));
-                    document.getElementById('killsSWFTSWORD').addEventListener('input', updateKillsValue('killsSWFTSWORD'));
-                    document.getElementById('killsVAIDED').addEventListener('input', updateKillsValue('killsVAIDED'));
-                    document.getElementById('killsMOWGLI').addEventListener('input', updateKillsValue('killsMOWGLI'));
-                }
+            // Set up event listeners for sliders
+            ['totalKills', 'killsSTARMAN', 'killsRSKILLA', 'killsSWFTSWORD', 'killsVAIDED', 'killsMOWGLI'].forEach(slider => {
+                document.getElementById(slider).addEventListener('input', updateSliderValue);
             });
+
+            if (action === 'editMatch' && match) {
+                // Populate form with existing match data
+                setTimeout(() => {
+                    document.getElementById('gameMode').value = match.gameMode;
+                    document.getElementById('map').value = match.map;
+                    updatePlacementInput();
+                    if (match.gameMode === 'Battle Royale') {
+                        document.getElementById('placement').value = match.placement;
+                    } else {
+                        document.getElementById('placement').checked = match.placement === 'Won';
+                    }
+                    document.getElementById('totalKills').value = match.totalKills ?? -1;
+                    updateSliderValue({ target: document.getElementById('totalKills') });
+                    ['STARMAN', 'RSKILLA', 'SWFTSWORD', 'VAIDED', 'MOWGLI'].forEach(player => {
+                        const kills = match.kills?.[player] ?? -1;
+                        document.getElementById(`kills${player}`).value = kills;
+                        updateSliderValue({ target: document.getElementById(`kills${player}`) });
+                    });
+                }, 100);
+            }
             break;
         case 'addMap':
             modalContent.innerHTML = `
@@ -1082,27 +994,82 @@ window.showModal = function(action, id = null, subId = null) {
                 }
             });
             break;
-    }
+     }
     modal.style.display = "block";
-};
+}
 
 // Functions to update slider value labels
 function updatePlacementValue() {
     const placement = document.getElementById('placement').value;
-    const placementText = placement == 10 ? '10th+' : `${placement}st`;
+    const placementText = placement == 10 ? '10th+' : `${placement}${getOrdinalSuffix(placement)}`;
     document.getElementById('placementValue').textContent = placementText;
 }
 
-function updateTotalKillsValue() {
-    const totalKills = document.getElementById('totalKills').value;
-    document.getElementById('totalKillsValue').textContent = totalKills;
+function getOrdinalSuffix(i) {
+    var j = i % 10,
+        k = i % 100;
+    if (j == 1 && k != 11) {
+        return "st";
+    }
+    if (j == 2 && k != 12) {
+        return "nd";
+    }
+    if (j == 3 && k != 13) {
+        return "rd";
+    }
+    return "th";
 }
-
-function updateKillsValue(player) {
-    return function () {
-        const kills = document.getElementById(player).value;
-        document.getElementById(`${player}Value`).textContent = kills;
+function updateSliderValue(event) {
+    const slider = event.target;
+    const valueSpan = document.getElementById(`${slider.id}Value`);
+    const value = parseInt(slider.value);
+    valueSpan.textContent = value === -1 ? 'N/A' : value;
+}
+function addMatch(e) {
+    e.preventDefault();
+    const form = e.target;
+    const sessionId = form.dataset.sessionId;
+    const matchId = form.dataset.matchId;
+    const gameMode = form.gameMode.value;
+    const matchData = {
+        gameMode: gameMode,
+        map: form.map.value,
+        placement: gameMode === 'Battle Royale' ? parseInt(form.placement.value) : (form.placement.checked ? 'Won' : 'Lost'),
+        totalKills: parseInt(form.totalKills.value) === -1 ? null : parseInt(form.totalKills.value),
+        kills: {}
     };
+
+    ['STARMAN', 'RSKILLA', 'SWFTSWORD', 'VAIDED', 'MOWGLI'].forEach(player => {
+        const kills = parseInt(form[`kills${player}`].value);
+        if (kills !== -1) {
+            matchData.kills[player] = kills;
+        }
+    });
+
+    const highlightVideo = form.highlightVideo.files[0];
+    if (highlightVideo) {
+        const videoRef = storageRef(storage, `highlights/${sessionId}/${highlightVideo.name}`);
+        uploadBytes(videoRef, highlightVideo).then(snapshot => {
+            getDownloadURL(snapshot.ref).then(url => {
+                matchData.highlightURL = url;
+                saveMatch(sessionId, matchId, matchData);
+            });
+        });
+    } else {
+        if (matchId) {
+            get(ref(database, `gameSessions/${sessionId}/matches/${matchId}`)).then((snapshot) => {
+                if (snapshot.exists()) {
+                    const existingMatch = snapshot.val();
+                    if (existingMatch.highlightURL) {
+                        matchData.highlightURL = existingMatch.highlightURL;
+                    }
+                }
+                saveMatch(sessionId, matchId, matchData);
+            });
+        } else {
+            saveMatch(sessionId, matchId, matchData);
+        }
+    }
 }
 
 function loadGameModesAndMaps() {

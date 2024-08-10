@@ -698,89 +698,83 @@ window.deleteMap = function(id) {
 }
 
 function showHighlights() {
-    mainContent.innerHTML = `
-        <h2>Highlights</h2>
-        <div id="highlightsList"></div>
-    `;
-    loadHighlights();
+  mainContent.innerHTML = `
+    <h2>Highlights</h2>
+    <div id="highlightsList"></div>
+  `;
+  loadHighlights();
 }
 
 function loadHighlights() {
-    const highlightsList = document.getElementById('highlightsList');
-    highlightsList.innerHTML = 'Loading highlights...';
-
-    onValue(ref(database, 'gameSessions'), (snapshot) => {
-        highlightsList.innerHTML = '';
-        snapshot.forEach((childSnapshot) => {
-            const session = childSnapshot.val();
-            if (session.matches) {
-                Object.entries(session.matches).forEach(([matchId, match]) => {
-                    if (match.highlightURL) {
-                        highlightsList.innerHTML += `
-                            <div class="card">
-                                <h3>${formatDate(session.date)}</h3>
-                                <p><strong>Game Mode:</strong> ${match.gameMode}</p>
-                                <p><strong>Map:</strong> ${match.map}</p>
-                                <button class="button" onclick="viewHighlight('${match.highlightURL}')">Watch Highlight</button>
-                            </div>
-                        `;
-                    }
-                });
-            }
+  const highlightsList = document.getElementById('highlightsList');
+  highlightsList.innerHTML = 'Loading highlights...';
+  
+  get(ref(database, 'gameSessions')).then((snapshot) => {
+    const highlights = [];
+    snapshot.forEach((sessionSnapshot) => {
+      const session = sessionSnapshot.val();
+      if (session.matches) {
+        Object.entries(session.matches).forEach(([matchId, match]) => {
+          if (match.highlightURL) {
+            highlights.push({
+              date: session.date,
+              gameMode: match.gameMode,
+              map: match.map,
+              placement: match.placement,
+              totalKills: match.totalKills,
+              kills: match.kills,
+              highlightURL: match.highlightURL
+            });
+          }
         });
-
-        if (highlightsList.innerHTML === '') {
-            highlightsList.innerHTML = 'No highlights found.';
-        }
+      }
     });
-}
-window.onload = function() {
-    modal.style.display = "none";
 
-    // Create video modal HTML
-    const videoModalHTML = `
-      <div id="videoModal" class="video-modal" style="display:none;">
-        <div class="video-modal-content">
-          <video id="highlightVideo" controls>
-            <source id="highlightSource" src="" type="video/mp4">
-            Your browser does not support the video tag.
-          </video>
-          <button id="closeHighlight" class="button">Close Highlight</button>
-        </div>
-      </div>
+    highlights.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+    let highlightsHtml = `
+      <table class="highlights-table">
+        <tr>
+          <th>Date</th>
+          <th>Game Mode</th>
+          <th>Map</th>
+          <th>Placement</th>
+          <th>Total Kills</th>
+          <th>Kills by Player</th>
+          <th>Action</th>
+        </tr>
     `;
 
-    // Append the video modal to the body
-    document.body.insertAdjacentHTML('beforeend', videoModalHTML);
+    highlights.forEach((highlight, index) => {
+      if (index < 20) {
+        highlightsHtml += `
+          <tr>
+            <td>${formatDate(highlight.date)}</td>
+            <td>${highlight.gameMode}</td>
+            <td>${highlight.map}</td>
+            <td>${highlight.placement}</td>
+            <td>${highlight.totalKills}</td>
+            <td>
+              STARMAN: ${highlight.kills.STARMAN || 0}<br>
+              RSKILLA: ${highlight.kills.RSKILLA || 0}<br>
+              SWFTSWORD: ${highlight.kills.SWFTSWORD || 0}<br>
+              VAIDED: ${highlight.kills.VAIDED || 0}<br>
+              MOWGLI: ${highlight.kills.MOWGLI || 0}
+            </td>
+            <td><button class="button" onclick="viewHighlight('${highlight.highlightURL}')">Watch Video</button></td>
+          </tr>
+        `;
+      }
+    });
 
-    // Add event listener for closing the video modal
-    const videoModal = document.getElementById('videoModal');
-    const closeHighlight = document.getElementById('closeHighlight');
-    const videoElement = document.getElementById('highlightVideo');
+    highlightsHtml += '</table>';
+    highlightsList.innerHTML = highlightsHtml;
 
-    closeHighlight.onclick = function() {
-        videoModal.style.display = "none";
-        videoElement.pause(); // Pause the video when closing the modal
-    };
-
-    window.onclick = function(event) {
-        if (event.target == videoModal) {
-            videoModal.style.display = "none";
-            videoElement.pause(); // Pause the video when clicking outside the modal
-        }
-    };
-};
-
-window.viewHighlight = function(highlightURL) {
-    const videoModal = document.getElementById('videoModal');
-    const videoSource = document.getElementById('highlightSource');
-    const videoElement = document.getElementById('highlightVideo');
-
-    videoSource.src = highlightURL;
-    videoElement.load();
-    
-    videoModal.style.display = "block";
-};
+    if (highlights.length === 0) {
+      highlightsList.innerHTML = 'No highlights found.';
+    }
+  });
+}
 
 function formatDate(dateString) {
     const date = new Date(dateString);

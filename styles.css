@@ -381,7 +381,7 @@ footer {
     background-color: #333333; /* Solid background color */
     padding: 20px;
     border: 1px solid #888;
-    width: 50%; /* Wider width for better UX */
+    width: 80%; /* Make the modal wider */
     max-width: 800px;
     max-height: 80%; /* Max height for responsiveness */
     color: #ffffff;
@@ -390,8 +390,8 @@ footer {
     display: flex;
     flex-direction: column; /* Ensure the content inside stacks vertically */
     overflow-y: auto; /* Enable scrolling within the content if necessary */
+    margin: auto; /* Center the modal on the screen */
 }
-
 .slider {
     -webkit-appearance: none;
     width: 100%;

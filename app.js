@@ -783,7 +783,7 @@ function formatDate(dateString) {
 }
 
 // Make showModal function globally accessible
-function showModal(action, id = null, subId = null) {
+window.showModal = async function(action, id = null, subId = null) {
     modalContent.innerHTML = '';
     switch(action) {
         case 'addTeamMember':
@@ -848,10 +848,12 @@ function showModal(action, id = null, subId = null) {
             break;
         case 'addMatch':
         case 'editMatch':
-            let match = null;
-            if (action === 'editMatch') {
-                match = await get(ref(database, `gameSessions/${id}/matches/${subId}`)).then(snapshot => snapshot.val());
-            }
+           case 'editMatch':
+    let match = null;
+    if (action === 'editMatch') {
+        const snapshot = await get(ref(database, `gameSessions/${id}/matches/${subId}`));
+        match = snapshot.val();
+    }
             modalContent.innerHTML = `
                 <h3>${action === 'addMatch' ? 'Add' : 'Edit'} Match</h3>
                 <form id="matchForm" data-session-id="${id}" ${action === 'editMatch' ? `data-match-id="${subId}"` : ''} class="vertical-form">

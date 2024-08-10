@@ -445,3 +445,7 @@ footer {
     height: auto; /* Maintain the aspect ratio */
     margin-bottom: 20px; /* Add space below the logo */
 }
+.team-logo-about {
+    width: 300px;
+    max-width: 100%;
+}

@@ -885,9 +885,3 @@ function addMatch(e) {
     }
   }
 }
-
-function formatDate(dateString) {
-    const date = new Date(dateString);
-    const options = { weekday: 'long', day: '2-digit', month: '2-digit', year: '2-digit' };
-    return date.toLocaleDateString(undefined, options);
-}

@@ -863,7 +863,7 @@ async function addMatch(e) {
         map: form.map.value,
         placement: placement,
         totalKills: parseInt(form.totalKills.value) === -1 ? null : parseInt(form.totalKills.value),
-        kills: {}
+        kills: {},
         timestamp: Date.now() // Puts a time stamp of that match
     };
 

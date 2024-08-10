@@ -5,6 +5,29 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mongoose Omelette Game Session Manager</title>
     <link rel="stylesheet" href="styles.css">
+    <link rel="icon" href="favicon.ico" type="image/x-icon">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"> <!-- Font Awesome -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
+        import { getDatabase } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-database.js";
+        import { getAnalytics } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-analytics.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCOoX8dx7-GVlbYjNaKArUpc7hbZSm3gnw",
+            authDomain: "gamenight-37cc6.firebaseapp.com",
+            databaseURL: "https://gamenight-37cc6-default-rtdb.firebaseio.com",
+            projectId: "gamenight-37cc6",
+            storageBucket: "gamenight-37cc6.appspot.com",
+            messagingSenderId: "31368693363",
+            appId: "1:31368693363:web:a2c0702234977a07dbcc06"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const database = getDatabase(app);
+        const analytics = getAnalytics(app);
+
+        window.database = database;
+    </script>
 </head>
 <body>
     <div id="app">

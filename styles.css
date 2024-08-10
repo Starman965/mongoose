@@ -109,13 +109,13 @@ main {
     float: right;
     font-size: 28px;
     font-weight: bold;
+    cursor: pointer;
 }
 
 .close:hover,
 .close:focus {
     color: #fff;
     text-decoration: none;
-    cursor: pointer;
 }
 
 footer {
@@ -243,37 +243,181 @@ footer {
     font-size: 0.9em;
 }
 
-.session-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+.team-logo {
+    width: 80%;
+    max-width: 150px;
+    height: auto;
+    margin-bottom: 20px;
+}
+
+.team-logo-about {
+    width: 300px;
+    max-width: 100%;
+}
+
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
     width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0,0,0,0.8);
 }
 
-.session-actions {
+.modal-content {
+    background-color: #333333;
+    padding: 20px;
+    border: 1px solid #888;
+    width: 90%;
+    max-width: 800px;
+    max-height: 90%;
+    color: #ffffff;
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     display: flex;
-    gap: 10px;
+    flex-direction: column;
+    overflow-y: auto;
+    margin: 5% auto;
 }
 
-.session-actions i {
+.vertical-form {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.form-group.horizontal {
+    flex-direction: row;
+    justify-content: space-between;
+}
+
+.form-field {
+    flex: 1;
+    margin-right: 10px;
+}
+
+.form-field:last-child {
+    margin-right: 0;
+}
+
+.form-group label {
+    font-weight: bold;
+}
+
+.form-group input,
+.form-group select {
+    padding: 8px;
+    border-radius: 5px;
+    border: 1px solid #555;
+    background-color: #444;
+    color: #fff;
+}
+
+.slider {
+    -webkit-appearance: none;
+    width: 100%;
+    height: 15px;
+    border-radius: 5px;
+    background: #444;
+    outline: none;
+    opacity: 0.7;
+    transition: opacity .2s;
+}
+
+.slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 25px;
+    height: 25px;
+    border-radius: 50%;
+    background: #FFD700;
     cursor: pointer;
+}
+
+.slider::-moz-range-thumb {
+    width: 25px;
+    height: 25px;
+    border-radius: 50%;
+    background: #FFD700;
+    cursor: pointer;
+}
+
+.slider-value {
     color: #FFD700;
-    font-size: 20px;
+    margin-left: 10px;
 }
 
-.session-actions i:hover {
-    color: #FFA500;
+.toggle-switch {
+    position: relative;
+    width: 60px;
+    height: 34px;
+    margin-top: 5px;
 }
 
-.session-buttons {
-    display: flex;
-    justify-content: space-between;
-    gap: 10px;
-    width: 100%;
+.toggle-input {
+    opacity: 0;
+    width: 0;
+    height: 0;
 }
 
-.session-buttons .button {
-    flex-grow: 1;
+.toggle-label {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #444;
+    transition: .4s;
+    border-radius: 34px;
+}
+
+.toggle-label:before {
+    position: absolute;
+    content: "";
+    height: 26px;
+    width: 26px;
+    left: 4px;
+    bottom: 4px;
+    background-color: #FFD700;
+    transition: .4s;
+    border-radius: 50%;
+}
+
+.toggle-input:checked + .toggle-label {
+    background-color: #2196F3;
+}
+
+.toggle-input:checked + .toggle-label:before {
+    transform: translateX(26px);
+}
+
+.toggle-inner:before,
+.toggle-inner:after {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    color: white;
+    font-size: 12px;
+}
+
+.toggle-inner:before {
+    content: "Won";
+    left: 8px;
+}
+
+.toggle-inner:after {
+    content: "Lost";
+    right: 8px;
 }
 
 .stats-table, .highlights-table, .matches-table {
@@ -329,152 +473,28 @@ footer {
     display: block;
 }
 
-.vertical-form {
-  display: flex;
-  flex-direction: column;
-  gap: 15px;
-}
-
-.form-group {
-  display: flex;
-  flex-direction: column;
-  gap: 5px;
-}
-
-.form-group label {
-  font-weight: bold;
-}
-
-.form-group input,
-.form-group select {
-  padding: 8px;
-  border-radius: 5px;
-  border: 1px solid #555;
-  background-color: #444;
-  color: #fff;
-}
-
-.form-group input[type="file"] {
-  padding: 5px;
-}
-
-.vertical-form button {
-  margin-top: 10px;
-}
-
-.modal {
-    display: none; /* Hidden by default */
-    position: fixed;
-    z-index: 1; /* Ensure it's above other content */
-    left: 0;
-    top: 0;
-    width: 100%; /* Full-screen width */
-    height: 100%; /* Full-screen height */
-    overflow: auto; /* Enable scrolling if needed */
-    background-color: rgba(0, 0, 0, 0.4); /* Semi-transparent background for dimming */
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.modal-content {
-    background-color: #333333; /* Solid background color */
-    padding: 20px;
-    border: 1px solid #888;
-    width: 80%; /* Make the modal wider */
-    max-width: 800px;
-    max-height: 80%; /* Max height for responsiveness */
-    color: #ffffff;
-    border-radius: 10px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    display: flex;
-    flex-direction: column; /* Ensure the content inside stacks vertically */
-    overflow-y: auto; /* Enable scrolling within the content if necessary */
-    margin: auto; /* Center the modal on the screen */
-}
-.slider {
-    -webkit-appearance: none;
-    width: 100%;
-    height: 25px;
-    background: #333;
-    outline: none;
-    opacity: 0.8;
-    transition: opacity 0.2s;
-    border-radius: 5px;
-    margin-bottom: 10px;
-}
-
-.slider::-webkit-slider-thumb {
-    -webkit-appearance: none;
-    appearance: none;
-    width: 20px;
-    height: 20px;
-    border-radius: 50%;
-    background: #FFD700;
-    cursor: pointer;
-}
-
-.slider::-moz-range-thumb {
-    width: 20px;
-    height: 20px;
-    border-radius: 50%;
-    background: #FFD700;
-    cursor: pointer;
-}
-
-.slider-marker {
-    position: absolute;
-    height: 10px;
-    width: 2px;
-    background-color: #FFD700;
-    top: -5px;
-    transform: translateX(-50%);
-}
-
 @media (max-width: 768px) {
-    .modal-content {
-        width: 95%; /* Full width on smaller screens */
-        height: auto; /* Auto height for smaller screens */
-        max-height: 80%; /* Maintain some responsiveness */
-        margin: 2% auto;
+    .container {
+        flex-direction: column;
     }
-}
-.team-logo {
-    width: 80%; /* Adjust the percentage as needed to fit your layout */
-    max-width: 150px; /* Set a maximum width to ensure it doesn't get too large */
-    height: auto; /* Maintain the aspect ratio */
-    margin-bottom: 20px; /* Add space below the logo */
-}
-.team-logo-about {
-    width: 300px;
-    max-width: 100%;
-}
-.video-modal {
-    display: none;
-    position: fixed;
-    z-index: 1000;
-    left: 0;
-    top: 0;
-    width: 100%;
-    height: 100%;
-    overflow: auto;
-    background-color: rgba(0,0,0,0.8);
-}
 
-.video-modal-content {
-    margin: 15% auto;
-    padding: 20px;
-    width: 600px;
-    background-color: #333;
-    border-radius: 10px;
-    text-align: center;
-}
+    .sidebar {
+        width: 100%;
+        min-width: auto;
+        border-right: none;
+        border-bottom: 2px solid #FFD700;
+    }
 
-#highlightVideo {
-    width: 100%;
-    border-radius: 10px;
-}
+    main {
+        width: 100%;
+    }
 
-#closeHighlight {
-    margin-top: 20px;
+    .modal-content {
+        width: 95%;
+        margin: 10% auto;
+    }
+
+    .team-list {
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    }
 }

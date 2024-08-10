@@ -555,6 +555,27 @@ function showGameModes() {
   loadGameModes();
 }
 
+async function loadGameModesAndMaps() {
+  const gameModeSelect = document.getElementById('gameMode');
+  const mapSelect = document.getElementById('map');
+
+  // Load game modes
+  const gameModeSnapshot = await get(ref(database, 'gameModes'));
+  gameModeSelect.innerHTML = '<option value="">Select Game Mode</option>';
+  gameModeSnapshot.forEach((childSnapshot) => {
+    const gameMode = childSnapshot.val();
+    gameModeSelect.innerHTML += `<option value="${gameMode.name}">${gameMode.name}</option>`;
+  });
+
+  // Load maps
+  const mapSnapshot = await get(ref(database, 'maps'));
+  mapSelect.innerHTML = '<option value="">Select Map</option>';
+  mapSnapshot.forEach((childSnapshot) => {
+    const map = childSnapshot.val();
+    mapSelect.innerHTML += `<option value="${map.name}">${map.name}</option>`;
+  });
+}
+
 function loadGameModes() {
   const gameModeList = document.getElementById('gameModeList');
   gameModeList.innerHTML = 'Loading game modes...';

@@ -40,6 +40,36 @@ async function loadGameModesAndMaps() {
     mapSelect.innerHTML += `<option value="${map.name}">${map.name}</option>`;
   });
 }
+async function updatePlacementInput() {
+    const gameMode = document.getElementById('gameMode').value;
+    const placementContainer = document.getElementById('placementContainer');
+    const gameModes = await get(ref(database, 'gameModes')).then(snapshot => {
+        const modes = {};
+        snapshot.forEach(child => {
+            modes[child.val().name] = child.val().type;
+        });
+        return modes;
+    });
+
+    if (gameModes[gameMode] === 'Battle Royale') {
+        placementContainer.innerHTML = `
+            <label for="placement">Placement <span id="placementValue" class="slider-value">1st</span></label>
+            <input type="range" id="placement" class="slider" min="1" max="10" step="1" value="1" required>
+        `;
+        document.getElementById('placement').addEventListener('input', updatePlacementValue);
+    } else if (gameModes[gameMode] === 'Multiplayer') {
+        placementContainer.innerHTML = `
+            <label for="placement">Result</label>
+            <div class="toggle-switch">
+                <input type="checkbox" id="placement" name="placement" class="toggle-input">
+                <label for="placement" class="toggle-label">
+                    <span class="toggle-inner"></span>
+                    <span class="toggle-switch"></span>
+                </label>
+            </div>
+        `;
+    }
+}
 
 // Navigation setup
 document.getElementById('statsNav').addEventListener('click', () => showSection('stats'));
@@ -520,7 +550,7 @@ window.deleteGameSession = function(id) {
   }
 }
 
-function saveMatch(sessionId, matchId, matchData) {
+async function saveMatch(sessionId, matchId, matchData) {
   let operation;
   if (matchId) {
     // Update existing match
@@ -530,18 +560,16 @@ function saveMatch(sessionId, matchId, matchData) {
     operation = push(ref(database, `gameSessions/${sessionId}/matches`), matchData);
   }
 
-  operation
-    .then(() => {
-      loadMatches(sessionId);
-      calculatePRValues();
-      modal.style.display = "none";
-    })
-    .catch(error => {
-      console.error("Error adding/updating match: ", error);
-      alert('Error adding/updating match. Please try again.');
-    });
+  try {
+    await operation;
+    loadMatches(sessionId);
+    calculatePRValues();
+    modal.style.display = "none";
+  } catch (error) {
+    console.error("Error adding/updating match: ", error);
+    alert('Error adding/updating match. Please try again.');
+  }
 }
-
 window.deleteMatch = function(sessionId, matchId) {
   if (confirm('Are you sure you want to delete this match?')) {
     remove(ref(database, `gameSessions/${sessionId}/matches/${matchId}`))
@@ -802,7 +830,41 @@ function formatDate(dateString) {
     const options = { weekday: 'long', day: '2-digit', month: '2-digit', year: '2-digit' };
     return date.toLocaleDateString(undefined, options);
 }
+async function addMatch(e) {
+    e.preventDefault();
+    const form = e.target;
+    const sessionId = form.dataset.sessionId;
+    const matchId = form.dataset.matchId;
+    const gameMode = form.gameMode.value;
+    const matchData = {
+        gameMode: gameMode,
+        map: form.map.value,
+        placement: gameMode === 'Battle Royale' ? parseInt(form.placement.value) : (form.placement.checked ? 'Won' : 'Lost'),
+        totalKills: parseInt(form.totalKills.value) === -1 ? null : parseInt(form.totalKills.value),
+        kills: {}
+    };
 
+    ['STARMAN', 'RSKILLA', 'SWFTSWORD', 'VAIDED', 'MOWGLI'].forEach(player => {
+        const kills = parseInt(form[`kills${player}`].value);
+        if (kills !== -1) {
+            matchData.kills[player] = kills;
+        }
+    });
+
+    const highlightVideo = form.highlightVideo.files[0];
+    if (highlightVideo) {
+        const videoRef = storageRef(storage, `highlights/${sessionId}/${highlightVideo.name}`);
+        const snapshot = await uploadBytes(videoRef, highlightVideo);
+        matchData.highlightURL = await getDownloadURL(snapshot.ref);
+    } else if (matchId) {
+        const existingMatch = await get(ref(database, `gameSessions/${sessionId}/matches/${matchId}`));
+        if (existingMatch.exists() && existingMatch.val().highlightURL) {
+            matchData.highlightURL = existingMatch.val().highlightURL;
+        }
+    }
+
+    await saveMatch(sessionId, matchId, matchData);
+}
 // Make showModal function globally accessible
 window.showModal = async function(action, id = null, subId = null) {
     modalContent.innerHTML = '';

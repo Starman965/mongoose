@@ -64,10 +64,11 @@ async function updatePlacementInput() {
                 <input type="checkbox" id="placement" name="placement" class="toggle-input">
                 <label for="placement" class="toggle-label">
                     <span class="toggle-inner"></span>
-                    <span class="toggle-switch"></span>
                 </label>
             </div>
         `;
+       // Set default state to unchecked (Lost)
+        document.getElementById('placement').checked = false;
     }
 }
 

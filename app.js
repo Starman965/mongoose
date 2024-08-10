@@ -734,43 +734,6 @@ function loadHighlights() {
         }
     });
 }
-function showHighlights() {
-    mainContent.innerHTML = `
-        <h2>Highlights</h2>
-        <div id="highlightsList"></div>
-    `;
-    loadHighlights();
-}
-
-function loadHighlights() {
-    const highlightsList = document.getElementById('highlightsList');
-    highlightsList.innerHTML = 'Loading highlights...';
-
-    onValue(ref(database, 'gameSessions'), (snapshot) => {
-        highlightsList.innerHTML = '';
-        snapshot.forEach((childSnapshot) => {
-            const session = childSnapshot.val();
-            if (session.matches) {
-                Object.entries(session.matches).forEach(([matchId, match]) => {
-                    if (match.highlightURL) {
-                        highlightsList.innerHTML += `
-                            <div class="card">
-                                <h3>${formatDate(session.date)}</h3>
-                                <p><strong>Game Mode:</strong> ${match.gameMode}</p>
-                                <p><strong>Map:</strong> ${match.map}</p>
-                                <button class="button" onclick="viewHighlight('${match.highlightURL}')">Watch Highlight</button>
-                            </div>
-                        `;
-                    }
-                });
-            }
-        });
-
-        if (highlightsList.innerHTML === '') {
-            highlightsList.innerHTML = 'No highlights found.';
-        }
-    });
-}
 window.onload = function() {
     modal.style.display = "none";
 

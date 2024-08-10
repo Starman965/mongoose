@@ -53,6 +53,36 @@ function showSection(section) {
   }
 }
 
+function showStats() {
+    mainContent.innerHTML = `
+        <h2>Team Statistics</h2>
+        <div id="statsList"></div>
+    `;
+    loadTeamStatistics();
+}
+
+function loadTeamStatistics() {
+    const statsList = document.getElementById('statsList');
+    statsList.innerHTML = 'Loading team statistics...';
+
+    // Fetch data and populate statsList
+    onValue(ref(database, 'teamMembers'), (snapshot) => {
+        statsList.innerHTML = '';
+        snapshot.forEach((childSnapshot) => {
+            const member = childSnapshot.val();
+            statsList.innerHTML += `
+                <div class="card">
+                    <h3>${member.name} (${member.gamertag})</h3>
+                    <p><strong>BR PR:</strong> ${member.brPR !== undefined ? member.brPR : 'N/A'} ${member.brPRDate ? `(${formatDate(member.brPRDate)})` : ''}</p>
+                    <p><strong>MP PR:</strong> ${member.mpPR !== undefined ? member.mpPR : 'N/A'} ${member.mpPRDate ? `(${formatDate(member.mpPRDate)})` : ''}</p>
+                </div>
+            `;
+        });
+        if (statsList.innerHTML === '') {
+            statsList.innerHTML = 'No team statistics found.';
+        }
+    });
+}
 function showHelp() {
   mainContent.innerHTML = `
     <h2>Help</h2>

@@ -211,13 +211,14 @@ function showHelp() {
 function showAbout() {
   mainContent.innerHTML = `
     <h2>About Us</h2>
-    <img src="2022-group-logo.png" alt="Team Logo" style="max-width: 100%;">
+    <img src="2022-group-logo.png" alt="Team Logo" class="team-logo-about">
     <hr>
-    <video controls style="width: 25%; margin-top: 20px;">
+       <p>Once upon a time, in a galaxy far far away...</p>
+    <hr>
+      <video controls style="width: 25%; margin-top: 20px;">
       <source src="mongooseIntro.mp4" type="video/mp4">
       Your browser does not support the video tag.
     </video>
-    <p>Once upon a time, in a galaxy far far away...</p>
   `;
 }
 

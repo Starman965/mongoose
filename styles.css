@@ -439,3 +439,9 @@ footer {
         margin: 2% auto;
     }
 }
+.team-logo {
+    width: 80%; /* Adjust the percentage as needed to fit your layout */
+    max-width: 150px; /* Set a maximum width to ensure it doesn't get too large */
+    height: auto; /* Maintain the aspect ratio */
+    margin-bottom: 20px; /* Add space below the logo */
+}

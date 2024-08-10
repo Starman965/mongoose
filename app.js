@@ -54,35 +54,112 @@ function showSection(section) {
 }
 
 function showStats() {
-    mainContent.innerHTML = `
-        <h2>Team Statistics</h2>
-        <div id="statsList"></div>
-    `;
-    loadTeamStatistics();
+  mainContent.innerHTML = `
+    <h2>Team Statistics</h2>
+    <p>* Note: Total Kills and Average Kills are based solely on Battle Royale style games.</p>
+    <div id="statsTable"></div>
+  `;
+  loadStats();
 }
 
-function loadTeamStatistics() {
-    const statsList = document.getElementById('statsList');
-    statsList.innerHTML = 'Loading team statistics...';
+function loadStats() {
+  const statsTable = document.getElementById('statsTable');
+  statsTable.innerHTML = 'Loading statistics...';
 
-    // Fetch data and populate statsList
-    onValue(ref(database, 'teamMembers'), (snapshot) => {
-        statsList.innerHTML = '';
-        snapshot.forEach((childSnapshot) => {
-            const member = childSnapshot.val();
-            statsList.innerHTML += `
-                <div class="card">
-                    <h3>${member.name} (${member.gamertag})</h3>
-                    <p><strong>BR PR:</strong> ${member.brPR !== undefined ? member.brPR : 'N/A'} ${member.brPRDate ? `(${formatDate(member.brPRDate)})` : ''}</p>
-                    <p><strong>MP PR:</strong> ${member.mpPR !== undefined ? member.mpPR : 'N/A'} ${member.mpPRDate ? `(${formatDate(member.mpPRDate)})` : ''}</p>
-                </div>
-            `;
-        });
-        if (statsList.innerHTML === '') {
-            statsList.innerHTML = 'No team statistics found.';
-        }
+  get(ref(database, 'gameSessions')).then((snapshot) => {
+    const sessions = [];
+    snapshot.forEach((childSnapshot) => {
+      const session = childSnapshot.val();
+      session.id = childSnapshot.key;
+      sessions.push(session);
     });
+
+    sessions.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+    let tableHTML = `
+      <table class="stats-table">
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Games Played</th>
+            <th>Total Kills</th>
+            <th>Average Kills</th>
+            <th>Wins</th>
+            <th>2nd Place</th>
+            <th>3rd Place</th>
+            <th>4th Place</th>
+            <th>5th Place</th>
+            <th>6th+ Place</th>
+          </tr>
+        </thead>
+        <tbody>
+    `;
+
+    let totalStats = {
+      gamesPlayed: 0,
+      totalKills: 0,
+      wins: 0,
+      secondPlace: 0,
+      thirdPlace: 0,
+      fourthPlace: 0,
+      fifthPlace: 0,
+      sixthPlacePlus: 0
+    };
+
+    sessions.forEach((session) => {
+      const stats = calculateSessionStats(session.matches || {});
+
+      // Add to totals
+      for (let key in totalStats) {
+        totalStats[key] += stats[key];
+      }
+
+      tableHTML += `
+        <tr>
+          <td>${formatDate(session.date)}</td>
+          <td>${stats.gamesPlayed}</td>
+          <td>${stats.totalKills}</td>
+          <td>${stats.averageKills}</td>
+          <td>${stats.wins} (${((stats.wins / stats.gamesPlayed) * 100).toFixed(1)}%)</td>
+          <td>${stats.secondPlace} (${((stats.secondPlace / stats.gamesPlayed) * 100).toFixed(1)}%)</td>
+          <td>${stats.thirdPlace} (${((stats.thirdPlace / stats.gamesPlayed) * 100).toFixed(1)}%)</td>
+          <td>${stats.fourthPlace} (${((stats.fourthPlace / stats.gamesPlayed) * 100).toFixed(1)}%)</td>
+          <td>${stats.fifthPlace} (${((stats.fifthPlace / stats.gamesPlayed) * 100).toFixed(1)}%)</td>
+          <td>${stats.sixthPlacePlus} (${((stats.sixthPlacePlus / stats.gamesPlayed) * 100).toFixed(1)}%)</td>
+        </tr>
+      `;
+    });
+
+    // Add total row
+    if (totalStats.gamesPlayed > 0) {
+      const totalAverageKills = (totalStats.totalKills / totalStats.gamesPlayed).toFixed(2);
+      tableHTML += `
+        <tfoot>
+          <tr>
+            <td><strong>Total</strong></td>
+            <td><strong>${totalStats.gamesPlayed}</strong></td>
+            <td><strong>${totalStats.totalKills}</strong></td>
+            <td><strong>${totalAverageKills}</strong></td>
+            <td><strong>${totalStats.wins} (${((totalStats.wins / totalStats.gamesPlayed) * 100).toFixed(1)}%)</strong></td>
+            <td><strong>${totalStats.secondPlace} (${((totalStats.secondPlace / totalStats.gamesPlayed) * 100).toFixed(1)}%)</strong></td>
+            <td><strong>${totalStats.thirdPlace} (${((totalStats.thirdPlace / totalStats.gamesPlayed) * 100).toFixed(1)}%)</strong></td>
+            <td><strong>${totalStats.fourthPlace} (${((totalStats.fourthPlace / totalStats.gamesPlayed) * 100).toFixed(1)}%)</strong></td>
+            <td><strong>${totalStats.fifthPlace} (${((totalStats.fifthPlace / totalStats.gamesPlayed) * 100).toFixed(1)}%)</strong></td>
+            <td><strong>${totalStats.sixthPlacePlus} (${((totalStats.sixthPlacePlus / totalStats.gamesPlayed) * 100).toFixed(1)}%)</strong></td>
+          </tr>
+        </tfoot>
+      `;
+    }
+
+    tableHTML += '</tbody></table>';
+    statsTable.innerHTML = tableHTML;
+
+    if (sessions.length === 0) {
+      statsTable.innerHTML = 'No game sessions found. Add some games first!';
+    }
+  });
 }
+
 function showHelp() {
   mainContent.innerHTML = `
     <h2>Help</h2>

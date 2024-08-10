@@ -837,10 +837,25 @@ async function addMatch(e) {
     const sessionId = form.dataset.sessionId;
     const matchId = form.dataset.matchId;
     const gameMode = form.gameMode.value;
+    const gameModes = await get(ref(database, 'gameModes')).then(snapshot => {
+        const modes = {};
+        snapshot.forEach(child => {
+            modes[child.val().name] = child.val().type;
+        });
+        return modes;
+    });
+
+    let placement;
+    if (gameModes[gameMode] === 'Battle Royale') {
+        placement = parseInt(form.placement.value);
+    } else if (gameModes[gameMode] === 'Multiplayer') {
+        placement = form.placement.checked ? 'Won' : 'Lost';
+    }
+
     const matchData = {
         gameMode: gameMode,
         map: form.map.value,
-        placement: gameMode === 'Battle Royale' ? parseInt(form.placement.value) : (form.placement.checked ? 'Won' : 'Lost'),
+        placement: placement,
         totalKills: parseInt(form.totalKills.value) === -1 ? null : parseInt(form.totalKills.value),
         kills: {}
     };

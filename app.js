@@ -869,7 +869,6 @@ window.showModal = async function(action, id = null, subId = null) {
             break;
         case 'addMatch':
         case 'editMatch':
-           case 'editMatch':
     let match = null;
     if (action === 'editMatch') {
         const snapshot = await get(ref(database, `gameSessions/${id}/matches/${subId}`));
@@ -927,7 +926,7 @@ window.showModal = async function(action, id = null, subId = null) {
                     <button type="submit" class="button">${action === 'addMatch' ? 'Add' : 'Update'} Match</button>
                 </form>
             `;
-            loadGameModesAndMaps();
+            await loadGameModesAndMaps(); // Add this line
             document.getElementById('matchForm').addEventListener('submit', addMatch);
             document.getElementById('gameMode').addEventListener('change', updatePlacementInput);
 

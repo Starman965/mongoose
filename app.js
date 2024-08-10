@@ -159,6 +159,39 @@ function loadStats() {
     }
   });
 }
+function calculateSessionStats(matches) {
+  const stats = {
+    gamesPlayed: Object.keys(matches).length,
+    wins: 0,
+    secondPlace: 0,
+    thirdPlace: 0,
+    fourthPlace: 0,
+    fifthPlace: 0,
+    sixthPlacePlus: 0,
+    totalKills: 0,
+    brGamesPlayed: 0
+  };
+
+  Object.values(matches).forEach(match => {
+    switch(match.placement) {
+      case 1: stats.wins++; break;
+      case 2: stats.secondPlace++; break;
+      case 3: stats.thirdPlace++; break;
+      case 4: stats.fourthPlace++; break;
+      case 5: stats.fifthPlace++; break;
+      default: stats.sixthPlacePlus++;
+    }
+
+    stats.totalKills += match.totalKills || 0;
+    if (match.gameMode === 'Battle Royale') {
+      stats.brGamesPlayed++;
+    }
+  });
+
+  stats.averageKills = stats.gamesPlayed > 0 ? (stats.totalKills / stats.gamesPlayed).toFixed(2) : 0;
+
+  return stats;
+}
 
 function showHelp() {
   mainContent.innerHTML = `

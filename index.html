@@ -31,39 +31,28 @@
 </head>
 <body>
     <div id="app">
-        <header>
-            <img src="2022-group-logo.png" alt="Team Logo" class="team-logo">
-            <h1>Mongoose Omelette Game Session Manager</h1>
-        </header>
+        <h1> Mongoose Omelette Game Session Manager</h1>
         <div class="container">
             <nav class="sidebar">
-                <button id="statsNav" class="sidebar-button">Team Statistics</button>
-                <button id="sessionsNav" class="sidebar-button">Game Sessions</button>
-                <button id="highlightsNav" class="sidebar-button">Highlights</button>
-                <button id="mapsNav" class="sidebar-button">Maps</button>
-                <button id="modesNav" class="sidebar-button">Game Modes</button>
-                <button id="teamNav" class="sidebar-button">Team Members</button>
-                <button id="helpNav" class="sidebar-button">Help</button>
-                <button id="aboutNav" class="sidebar-button">About Us</button>
+            <button id="statsNav">Team Statistics</button>
+                <button id="sessionsNav">Game Sessions</button>
+                <button id="highlightsNav">Highlights</button>
+                <button id="mapsNav">Maps</button>
+                <button id="modesNav">Game Modes</button>
+                <button id="teamNav">Team Members</button>             
             </nav>
-            <main id="mainContent" role="main">
-                <!-- Content will be dynamically loaded here -->
-            </main>
+            <main id="mainContent"></main>
         </div>
-        <footer>
-            © 2024 Mongoose Omelette Squad. All rights reserved.
-        </footer>
-    </div>
-
-    <div id="modal" class="modal">
-        <div class="modal-content">
-            <span class="close">&times;</span>
-            <div id="modalContent">
-                <!-- Modal content will be dynamically loaded here -->
+        <div id="modal" class="modal">
+            <div class="modal-content">
+                <span class="close">&times;</span>
+                <div id="modalContent"></div>
             </div>
         </div>
     </div>
-
-    <script type="module" src="app.js"></script>
+    <footer>
+        <p>&copy; 2024 Mongoose Omelette Squad. All rights reserved.</p>
+    </footer>
+    <script src="app.js" type="module"></script>
 </body>
 </html>

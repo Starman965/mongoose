@@ -451,7 +451,7 @@ function loadGameSessions() {
         sessions.forEach((session) => {
             sessionList.innerHTML += `
                 <div class="card">
-                    <h3>${formatDate(session.date)}</h3>
+                    <h3>${formatDate(session.date, session.timezoneOffset)}</h3>
                     <p>Number of matches: ${session.matches ? Object.keys(session.matches).length : 0}</p>
                     <div class="button-group">
                         <button class="button" onclick="toggleMatches('${session.id}')">View Matches</button>
@@ -527,10 +527,17 @@ function addOrUpdateGameSession(e) {
   e.preventDefault();
   const form = e.target;
   const sessionId = form.dataset.id;
- const inputDate = new Date(form.date.value + 'T00:00:00'); 
-  inputDate.setMinutes(inputDate.getMinutes() - inputDate.getTimezoneOffset());
+  const inputDate = new Date(form.date.value);
+  
+  // Get the user's local timezone offset
+  const timezoneOffset = new Date().getTimezoneOffset();
+  
+  // Adjust the date to UTC, keeping the user's local date
+  inputDate.setMinutes(inputDate.getMinutes() + timezoneOffset);
+  
   const sessionData = {
     date: inputDate.toISOString(),
+    timezoneOffset: timezoneOffset // Store the timezone offset
   };
   
   const operation = sessionId
@@ -834,8 +841,14 @@ function loadHighlights() {
   });
 }
 
-function formatDate(dateString) {
+function formatDate(dateString, timezoneOffset) {
     const date = new Date(dateString);
+    
+    // Adjust the date based on the stored timezone offset
+    if (timezoneOffset !== undefined) {
+        date.setMinutes(date.getMinutes() - timezoneOffset);
+    }
+    
     const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
     return date.toLocaleDateString(undefined, options);
 }
@@ -939,11 +952,17 @@ window.showModal = async function(action, id = null, subId = null) {
             `;
             document.getElementById('gameSessionForm').addEventListener('submit', addOrUpdateGameSession);
             break;
-        case 'editGameSession':
+       case 'editGameSession':
     get(ref(database, `gameSessions/${id}`)).then((snapshot) => {
         if (snapshot.exists()) {
             const session = snapshot.val();
             const sessionDate = new Date(session.date);
+            
+            // Adjust the date based on the stored timezone offset
+            if (session.timezoneOffset !== undefined) {
+                sessionDate.setMinutes(sessionDate.getMinutes() - session.timezoneOffset);
+            }
+            
             const formattedDate = sessionDate.toISOString().split('T')[0]; // Format for date input
             modalContent.innerHTML = `
                 <h3>Edit Game Session</h3>

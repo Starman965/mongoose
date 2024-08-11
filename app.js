@@ -16,7 +16,6 @@ const modalContent = document.getElementById('modalContent');
 const closeModal = document.getElementsByClassName('close')[0];
 
 // Award and Challenge elements
-import { initAwards, processMatchResult } from './awards.js';
 import { loadAchievements, loadChallenges, initAwards, processMatchResult } from './awards.js';
 
 // Initialize awards functionality

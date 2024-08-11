@@ -85,6 +85,3 @@ function initAwards() {
 
 // Export functions to be used in other modules
 export { initAwards, processMatchResult };
-
-// Export functions to be used in other modules
-export { initAwards, processMatchResult };

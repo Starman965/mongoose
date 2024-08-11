@@ -846,7 +846,7 @@ function formatDate(dateString, userTimezoneOffset) {
     
     // Adjust the date based on the stored user timezone offset
     if (userTimezoneOffset !== undefined) {
-        date.setTime(date.getTime() - userTimezoneOffset);
+        date.setTime(date.getTime() + userTimezoneOffset);
     }
     
     const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };

@@ -527,10 +527,10 @@ function addOrUpdateGameSession(e) {
   e.preventDefault();
   const form = e.target;
   const sessionId = form.dataset.id;
-  const inputDate = new Date(form.date.value);
+ const inputDate = new Date(form.date.value + 'T00:00:00'); 
   inputDate.setMinutes(inputDate.getMinutes() - inputDate.getTimezoneOffset());
   const sessionData = {
-    date: inputDate.toISOString().split('T')[0],
+    date: inputDate.toISOString(),
   };
   
   const operation = sessionId
@@ -836,7 +836,7 @@ function loadHighlights() {
 
 function formatDate(dateString) {
     const date = new Date(dateString);
-    const options = { weekday: 'long', day: '2-digit', month: '2-digit', year: '2-digit' };
+    const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
     return date.toLocaleDateString(undefined, options);
 }
 async function addMatch(e) {

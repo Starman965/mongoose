@@ -451,7 +451,7 @@ function loadGameSessions() {
         sessions.forEach((session) => {
             sessionList.innerHTML += `
                 <div class="card">
-                    <h3>${formatDate(session.date, session.timezoneOffset)}</h3>
+                    <h3>${formatDate(session.date, session.userTimezoneOffset)}</h3>
                     <p>Number of matches: ${session.matches ? Object.keys(session.matches).length : 0}</p>
                     <div class="button-group">
                         <button class="button" onclick="toggleMatches('${session.id}')">View Matches</button>
@@ -527,17 +527,17 @@ function addOrUpdateGameSession(e) {
   e.preventDefault();
   const form = e.target;
   const sessionId = form.dataset.id;
+  
+  // Create a date object from the input value
   const inputDate = new Date(form.date.value);
   
-  // Get the user's local timezone offset
-  const timezoneOffset = new Date().getTimezoneOffset();
-  
-  // Adjust the date to UTC, keeping the user's local date
-  inputDate.setMinutes(inputDate.getMinutes() + timezoneOffset);
+  // Adjust for the local time zone
+  const userTimezoneOffset = inputDate.getTimezoneOffset() * 60000;
+  const adjustedDate = new Date(inputDate.getTime() + userTimezoneOffset);
   
   const sessionData = {
-    date: inputDate.toISOString(),
-    timezoneOffset: timezoneOffset // Store the timezone offset
+    date: adjustedDate.toISOString(),
+    userTimezoneOffset: userTimezoneOffset
   };
   
   const operation = sessionId
@@ -841,12 +841,12 @@ function loadHighlights() {
   });
 }
 
-function formatDate(dateString, timezoneOffset) {
+function formatDate(dateString, userTimezoneOffset) {
     const date = new Date(dateString);
     
-    // Adjust the date based on the stored timezone offset
-    if (timezoneOffset !== undefined) {
-        date.setMinutes(date.getMinutes() - timezoneOffset);
+    // Adjust the date based on the stored user timezone offset
+    if (userTimezoneOffset !== undefined) {
+        date.setTime(date.getTime() - userTimezoneOffset);
     }
     
     const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
@@ -952,15 +952,15 @@ window.showModal = async function(action, id = null, subId = null) {
             `;
             document.getElementById('gameSessionForm').addEventListener('submit', addOrUpdateGameSession);
             break;
-       case 'editGameSession':
+      case 'editGameSession':
     get(ref(database, `gameSessions/${id}`)).then((snapshot) => {
         if (snapshot.exists()) {
             const session = snapshot.val();
             const sessionDate = new Date(session.date);
             
-            // Adjust the date based on the stored timezone offset
-            if (session.timezoneOffset !== undefined) {
-                sessionDate.setMinutes(sessionDate.getMinutes() - session.timezoneOffset);
+            // Adjust the date based on the stored user timezone offset
+            if (session.userTimezoneOffset !== undefined) {
+                sessionDate.setTime(sessionDate.getTime() - session.userTimezoneOffset);
             }
             
             const formattedDate = sessionDate.toISOString().split('T')[0]; // Format for date input

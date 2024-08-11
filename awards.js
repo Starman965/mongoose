@@ -37,8 +37,8 @@ function createAchievementCard(id, achievement) {
 
 // Load challenges from Firebase
 function loadChallenges() {
-  const challengesRef = firebase.database().ref('challenges');
-  challengesRef.on('value', (snapshot) => {
+  const challengesRef = ref(database, 'challenges');
+  onValue(challengesRef, (snapshot) => {
     const challenges = snapshot.val();
     displayChallenges(challenges);
   });
@@ -70,12 +70,9 @@ function createChallengeCard(id, challenge) {
 
 // Process match results to update achievements and challenges
 async function processMatchResult(matchData) {
-  // Implementation for checking and updating achievements and challenges based on match data
-  // This will involve complex logic to check various criteria and update Firebase accordingly
   console.log("Processing match result:", matchData);
   // TODO: Implement the logic to update achievements and challenges
 }
-
 
 // Initialize awards functionality
 function initAwards() {

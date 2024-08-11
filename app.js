@@ -2,11 +2,11 @@ import { ref, onValue, push, update, remove, get } from "https://www.gstatic.com
 import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-storage.js";
 import { initAwards, processMatchResult } from './awards.js';
 
-import './initializeDatabase.js';
+// import './initializeDatabase.js';
 
-// In your app initialization code
-initializeAchievements();
-initializeChallenges();
+// App DB initialization code
+// initializeAchievements(); remove comment if needed to init again
+// initializeChallenges(); remove comment if needed to init again
 
 const database = window.database;
 const storage = getStorage();

@@ -82,16 +82,28 @@ function displayChallenges(challenges) {
 }
 
 // Create a challenge card
+// awards.js
+
 function createChallengeCard(id, challenge) {
-  const card = document.createElement('div');
-  card.className = 'card challenge-card';
-  card.innerHTML = `
-    <img src="${challenge.imageUrl || challenge.defaultImageUrl}" alt="${challenge.title}">
-    <h3>${challenge.title}</h3>
-    <p>${challenge.description}</p>
-    <p>Players Completed: ${Object.keys(challenge.playersCompleted).length}</p>
-  `;
-  return card;
+    console.log('Challenge:', challenge); // Log the challenge to inspect it
+    if (!challenge) {
+        console.error('Invalid challenge data for ID:', id);
+        return; // Exit the function if challenge is undefined or null
+    }
+
+    const card = document.createElement('div');
+    card.className = 'card challenge-card';
+
+    const playersCompleted = challenge.playersCompleted || {}; // Ensure it defaults to an empty object if null/undefined
+    const playersCount = Object.keys(playersCompleted).length;
+
+    card.innerHTML = `
+        <img src="${challenge.imageUrl || challenge.defaultImageUrl}" alt="${challenge.title}">
+        <h3>${challenge.title}</h3>
+        <p>${challenge.description}</p>
+        <p>Players Completed: ${playersCount}</p>
+    `;
+    return card;
 }
 
 // Process match results to update achievements and challenges

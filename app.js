@@ -1,11 +1,8 @@
 import { ref, onValue, push, update, remove, get } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-database.js";
 import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-storage.js";
-import { initAwards, processMatchResult } from './awards.js';
-import { loadAchievements, loadChallenges, initAwards, processMatchResult } from './awards.js';
-
-// import './initializeDatabase.js';
 
 // App DB initialization code
+// import './initializeDatabase.js';
 // initializeAchievements(); remove comment if needed to init again
 // initializeChallenges(); remove comment if needed to init again
 
@@ -17,6 +14,10 @@ const mainContent = document.getElementById('mainContent');
 const modal = document.getElementById('modal');
 const modalContent = document.getElementById('modalContent');
 const closeModal = document.getElementsByClassName('close')[0];
+
+// Award and Challenge elements
+import { initAwards, processMatchResult } from './awards.js';
+import { loadAchievements, loadChallenges, initAwards, processMatchResult } from './awards.js';
 
 // Initialize awards functionality
 initAwards();

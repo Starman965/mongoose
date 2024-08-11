@@ -8,7 +8,7 @@ import { initAwards, processMatchResult } from './awards.js';
 // initializeAchievements(); remove comment if needed to init again
 // initializeChallenges(); remove comment if needed to init again
 
-const database = window.database;
+import { database } from './firebaseConfig.js';
 const storage = getStorage();
 
 // DOM elements

@@ -19,7 +19,9 @@ const closeModal = document.getElementsByClassName('close')[0];
 import { loadAchievements, loadChallenges, initAwards, processMatchResult } from './awards.js';
 
 // Initialize awards functionality
-initAwards();
+document.addEventListener('DOMContentLoaded', () => {
+  initAwards();
+});
 
 // Close modal when clicking on 'x'
 closeModal.onclick = () => modal.style.display = "none";

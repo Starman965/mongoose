@@ -1,9 +1,11 @@
 // awards.js
+import { database } from './firebaseConfig.js';
+import { ref, onValue, update } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-database.js";
 
 // Load achievements from Firebase
 function loadAchievements() {
-  const achievementsRef = firebase.database().ref('achievements');
-  achievementsRef.on('value', (snapshot) => {
+  const achievementsRef = ref(database, 'achievements');
+  onValue(achievementsRef, (snapshot) => {
     const achievements = snapshot.val();
     displayAchievements(achievements);
   });
@@ -67,16 +69,22 @@ function createChallengeCard(id, challenge) {
 }
 
 // Process match results to update achievements and challenges
-function processMatchResult(matchData) {
+async function processMatchResult(matchData) {
   // Implementation for checking and updating achievements and challenges based on match data
   // This will involve complex logic to check various criteria and update Firebase accordingly
+  console.log("Processing match result:", matchData);
+  // TODO: Implement the logic to update achievements and challenges
 }
+
 
 // Initialize awards functionality
 function initAwards() {
   loadAchievements();
   loadChallenges();
 }
+
+// Export functions to be used in other modules
+export { initAwards, processMatchResult };
 
 // Export functions to be used in other modules
 export { initAwards, processMatchResult };

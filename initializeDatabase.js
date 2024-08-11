@@ -1,16 +1,6 @@
 // initializeDatabase.js
-
-import { getDatabase, ref, set } from "firebase/database";
-import { initializeApp } from "firebase/app";
-
-// Your web app's Firebase configuration
-const firebaseConfig = {
-  // Your Firebase config object goes here
-};
-
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
-const database = getDatabase(app);
+import { database } from './firebaseConfig.js';
+import { ref, set } from "firebase/database";
 
 // Initialize Achievements
 function initializeAchievements() {

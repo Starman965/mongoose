@@ -940,20 +940,22 @@ window.showModal = async function(action, id = null, subId = null) {
             document.getElementById('gameSessionForm').addEventListener('submit', addOrUpdateGameSession);
             break;
         case 'editGameSession':
-            get(ref(database, `gameSessions/${id}`)).then((snapshot) => {
-                if (snapshot.exists()) {
-                    const session = snapshot.val();
-                    modalContent.innerHTML = `
-                        <h3>Edit Game Session</h3>
-                        <form id="gameSessionForm" data-id="${id}">
-                            <input type="date" id="date" value="${session.date}" required>
-                            <button type="submit">Update Game Session</button>
-                        </form>
-                    `;
-                    document.getElementById('gameSessionForm').addEventListener('submit', addOrUpdateGameSession);
-                }
-            });
-            break;
+    get(ref(database, `gameSessions/${id}`)).then((snapshot) => {
+        if (snapshot.exists()) {
+            const session = snapshot.val();
+            const sessionDate = new Date(session.date);
+            const formattedDate = sessionDate.toISOString().split('T')[0]; // Format for date input
+            modalContent.innerHTML = `
+                <h3>Edit Game Session</h3>
+                <form id="gameSessionForm" data-id="${id}">
+                    <input type="date" id="date" value="${formattedDate}" required>
+                    <button type="submit">Update Game Session</button>
+                </form>
+            `;
+            document.getElementById('gameSessionForm').addEventListener('submit', addOrUpdateGameSession);
+        }
+    });
+    break;
         case 'addMatch':
         case 'editMatch':
     let match = null;

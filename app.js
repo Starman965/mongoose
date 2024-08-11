@@ -451,7 +451,7 @@ function loadGameSessions() {
         sessions.forEach((session) => {
             sessionList.innerHTML += `
                 <div class="card">
-                    <h3><a href="#" onclick="showSessionMatches('${session.id}')">${formatDate(session.date)}</a></h3>
+                    <h3>${formatDate(session.date)}</h3>
                     <p>Number of matches: ${session.matches ? Object.keys(session.matches).length : 0}</p>
                     <div class="button-group">
                         <button class="button" onclick="toggleMatches('${session.id}')">View Matches</button>
@@ -527,10 +527,12 @@ function addOrUpdateGameSession(e) {
   e.preventDefault();
   const form = e.target;
   const sessionId = form.dataset.id;
+  const inputDate = new Date(form.date.value);
+  inputDate.setMinutes(inputDate.getMinutes() - inputDate.getTimezoneOffset());
   const sessionData = {
-    date: form.date.value,
+    date: inputDate.toISOString().split('T')[0],
   };
-
+  
   const operation = sessionId
     ? update(ref(database, `gameSessions/${sessionId}`), sessionData)
     : push(ref(database, 'gameSessions'), sessionData);
@@ -1021,26 +1023,25 @@ window.showModal = async function(action, id = null, subId = null) {
             });
 
             if (action === 'editMatch' && match) {
-                // Populate form with existing match data
-                setTimeout(() => {
-                    document.getElementById('gameMode').value = match.gameMode;
-                    document.getElementById('map').value = match.map;
-                    updatePlacementInput();
-                    if (match.gameMode === 'Battle Royale') {
-                        document.getElementById('placement').value = match.placement;
-                    } else {
-                        document.getElementById('placement').checked = match.placement === 'Won';
-                    }
-                    document.getElementById('totalKills').value = match.totalKills ?? -1;
-                    updateSliderValue({ target: document.getElementById('totalKills') });
-                    ['STARMAN', 'RSKILLA', 'SWFTSWORD', 'VAIDED', 'MOWGLI'].forEach(player => {
-                        const kills = match.kills?.[player] ?? -1;
-                        document.getElementById(`kills${player}`).value = kills;
-                        updateSliderValue({ target: document.getElementById(`kills${player}`) });
-                    });
-                }, 100);
-            }
-            break;
+        // Populate form with existing match data
+        document.getElementById('gameMode').value = match.gameMode;
+        document.getElementById('map').value = match.map;
+        await updatePlacementInput(); // Wait for this to complete
+        if (match.gameMode === 'Battle Royale') {
+            document.getElementById('placement').value = match.placement;
+            updatePlacementValue();
+        } else {
+            document.getElementById('placement').checked = match.placement === 'Won';
+        }
+        document.getElementById('totalKills').value = match.totalKills ?? -1;
+        updateSliderValue({ target: document.getElementById('totalKills') });
+        ['STARMAN', 'RSKILLA', 'SWFTSWORD', 'VAIDED', 'MOWGLI'].forEach(player => {
+            const kills = match.kills?.[player] ?? -1;
+            document.getElementById(`kills${player}`).value = kills;
+            updateSliderValue({ target: document.getElementById(`kills${player}`) });
+        });
+    }
+    break;
         case 'addMap':
             modalContent.innerHTML = `
                 <h3>Add Map</h3>

@@ -1,7 +1,7 @@
 // initializeDatabase.js
 import { database } from './firebaseConfig.js';
 import { ref, set } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-database.js";
-
+/*
 // Initialize Achievements
 function initializeAchievements() {
   const achievementsRef = ref(database, 'achievements');
@@ -38,13 +38,7 @@ function initializeChallenges() {
 }
 
 // Run the initialization
-initializeAchievements();
-initializeChallenges();
-
-console.log("Database initialization complete.");
-
-// Run the initialization
-initializeAchievements();
-initializeChallenges();
-
-console.log("Database initialization complete.");
+// initializeAchievements();
+// initializeChallenges(); 
+*/
+console.log("Database initialization complete."); 

@@ -89,8 +89,8 @@ async function updatePlacementInput() {
 // Navigation setup
 document.getElementById('statsNav').addEventListener('click', () => showSection('stats'));
 document.getElementById('sessionsNav').addEventListener('click', () => showSection('sessions'));
-// document.getElementById('achievementsNav').addEventListener('click', () => showSection('achievements'));
-// document.getElementById('challengesNav').addEventListener('click', () => showSection('challenges'));
+document.getElementById('achievementsNav').addEventListener('click', () => showSection('achievements'));
+document.getElementById('challengesNav').addEventListener('click', () => showSection('challenges'));
 document.getElementById('highlightsNav').addEventListener('click', () => showSection('highlights'));
 document.getElementById('mapsNav').addEventListener('click', () => showSection('maps'));
 document.getElementById('modesNav').addEventListener('click', () => showSection('modes'));
@@ -107,10 +107,12 @@ function showSection(section) {
       showGameSessions();
       break;
     case 'achievements':
-      showAchievements();
+      // Show a message if `awards.js` is disabled
+      mainContent.innerHTML = '<p>Achievements are currently unavailable.</p>';
       break;
     case 'challenges':
-      showChallenges();
+      // Show a message if `awards.js` is disabled
+      mainContent.innerHTML = '<p>Challenges are currently unavailable.</p>';
       break;
     case 'highlights':
       showHighlights();

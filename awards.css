@@ -9,7 +9,7 @@
 
 .achievement-card,
 .challenge-card {
-  background-color: #333333;
+  background-color: #4B5320;
   border-radius: 10px;
   overflow: hidden;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
@@ -32,7 +32,7 @@
 .achievement-card h3,
 .challenge-card h3 {
   margin: 10px 0 5px 0;
-  color: #FFD700;
+  color: #2A3439;
   font-size: 1.2em;
 }
 

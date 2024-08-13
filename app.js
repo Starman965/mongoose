@@ -12,10 +12,17 @@ const storage = getStorage();
 // initializeChallenges(); remove comment if needed to init again
 
 // DOM elements
+// DOM elements
 const mainContent = document.getElementById('mainContent');
 const modal = document.getElementById('modal');
-const modalContent = .getElementById('modalContent');
-const closeModal = .getElementsByClassName('close')[0];
+const modalContent = document.getElementById('modalContent');
+const closeModal = document.getElementsByClassName('close')[0];
+
+// OLD DOM ELEMENTS COMMENTED OUT TO TEST THE ONES ABOVE (Unexpected Token Error)
+// const mainContent = document.getElementById('mainContent');
+// const modal = document.getElementById('modal');
+// const modalContent = .getElementById('modalContent');
+// const closeModal = .getElementsByClassName('close')[0];
 
 // Close modal when clicking on 'x'
 closeModal.onclick = () => modal.style.display = "none";

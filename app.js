@@ -5,10 +5,6 @@ import { showAchievements, showChallenges, processMatchResult, loadAchievements,
 
 const storage = getStorage();
 
-Award and Challenge elements
-import { loadAchievements, loadChallenges, initAwards, processMatchResult } from './awards.js';
-
-
 // App DB initialization code
 // import './initializeDatabase.js'; remove comment if needed to init again
 // initializeAchievements(); remove comment if needed to init again

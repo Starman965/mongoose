@@ -954,7 +954,7 @@ async function addMatch(e) {
   let imageUrl = achievement.imageUrl || achievement.defaultImageUrl;
   if (!imageUrl || (!imageUrl.startsWith('https://') && !imageUrl.startsWith('gs://'))) {
     console.warn(`Invalid image URL for achievement ${id}:`, imageUrl);
-    imageUrl = 'path/to/default/image.png'; // Provide a default image path
+    imageUrl = 'https://firebasestorage.googleapis.com/v0/b/gamenight-37cc6.appspot.com/o/achievements%2Fsample.png?alt=media&token=a96d1b32-4a21-4f92-86a9-6281a19053cf'; // Provide a default image path
   }
 
   card.innerHTML = `

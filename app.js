@@ -401,7 +401,7 @@ function calculatePRValues() {
   });
 }
 
-function addOrUpdateTeamMember(e) {
+async function addOrUpdateTeamMember(e) {
   e.preventDefault();
   const form = e.target;
   const memberId = form.dataset.id;
@@ -415,18 +415,31 @@ function addOrUpdateTeamMember(e) {
 
   const photo = form.photo.files[0];
   if (photo) {
-    const photoRef = storageRef(storage, `teamMembers/${photo.name}`);
-    uploadBytes(photoRef, photo).then(snapshot => {
-      getDownloadURL(snapshot.ref).then(url => {
-        memberData.photoURL = url;
-        saveTeamMember(memberId, memberData);
-      });
-    });
-  } else {
-    saveTeamMember(memberId, memberData);
+    try {
+      const photoRef = storageRef(storage, `teamMembers/${Date.now()}_${photo.name}`);
+      const snapshot = await uploadBytes(photoRef, photo);
+      const url = await getDownloadURL(snapshot.ref);
+      console.log('Team member photo URL:', url);
+      if (!url.startsWith('https://') && !url.startsWith('gs://')) {
+        throw new Error('Invalid photo URL generated');
+      }
+      memberData.photoURL = url;
+    } catch (error) {
+      console.error('Error uploading team member photo:', error);
+      alert('Error uploading photo. Please try again.');
+      return;
+    }
+  }
+
+  try {
+    await saveTeamMember(memberId, memberData);
+    loadTeamMembers();
+    modal.style.display = "none";
+  } catch (error) {
+    console.error("Error adding/updating team member: ", error);
+    alert('Error adding/updating team member. Please try again.');
   }
 }
-
 function saveTeamMember(memberId, memberData) {
   const operation = memberId
     ? update(ref(database, `teamMembers/${memberId}`), memberData)
@@ -934,36 +947,23 @@ async function addMatch(e) {
         }
     });
 
-    const highlightVideo = form.highlightVideo.files[0];
-    if (highlightVideo) {
-        const videoRef = storageRef(storage, `highlights/${sessionId}/${highlightVideo.name}`);
-        const snapshot = await uploadBytes(videoRef, highlightVideo);
-        matchData.highlightURL = await getDownloadURL(snapshot.ref);
-    } else if (matchId) {
-        const existingMatch = await get(ref(database, `gameSessions/${sessionId}/matches/${matchId}`));
-        if (existingMatch.exists() && existingMatch.val().highlightURL) {
-            matchData.highlightURL = existingMatch.val().highlightURL;
-        }
-    }
+    function createAchievementCard(id, achievement) {
+  const card = document.createElement('div');
+  card.className = 'card achievement-card';
+  
+  let imageUrl = achievement.imageUrl || achievement.defaultImageUrl;
+  if (!imageUrl || (!imageUrl.startsWith('https://') && !imageUrl.startsWith('gs://'))) {
+    console.warn(`Invalid image URL for achievement ${id}:`, imageUrl);
+    imageUrl = 'path/to/default/image.png'; // Provide a default image path
+  }
 
-    try {
-        // Save the match data to Firebase
-        if (matchId) {
-            await update(ref(database, `gameSessions/${sessionId}/matches/${matchId}`), matchData);
-        } else {
-            await push(ref(database, `gameSessions/${sessionId}/matches`), matchData);
-        }
-
-        // This is the function for determining achievements and challenges
-        await processMatchResult(matchData);
-
-        // Reload matches and update UI
-        loadMatches(sessionId);
-        modal.style.display = "none";
-    } catch (error) {
-        console.error("Error adding/updating match: ", error);
-        alert('Error adding/updating match. Please try again.');
-    }
+  card.innerHTML = `
+    <img src="${imageUrl}" alt="${achievement.title}" onerror="this.src='path/to/fallback/image.png';">
+    <h3>${achievement.title}</h3>
+    <p>${achievement.description}</p>
+    <p>Completed: ${achievement.currentCount}/${achievement.completionCount}</p>
+  `;
+  return card;
 }
 // Make showModal function globally accessible
 window.showModal = async function(action, id = null, subId = null) {

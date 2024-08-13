@@ -60,8 +60,15 @@ function displayAchievements(achievements) {
 function createAchievementCard(id, achievement) {
   const card = document.createElement('div');
   card.className = 'card achievement-card';
+  
+  let imageUrl = achievement.imageUrl || achievement.defaultImageUrl;
+  if (!imageUrl || (!imageUrl.startsWith('https://') && !imageUrl.startsWith('gs://'))) {
+    console.warn(`Invalid image URL for achievement ${id}:`, imageUrl);
+    imageUrl = 'path/to/default/image.png'; // Provide a default image path
+  }
+
   card.innerHTML = `
-    <img src="${achievement.imageUrl || achievement.defaultImageUrl}" alt="${achievement.title}">
+    <img src="${imageUrl}" alt="${achievement.title}" onerror="this.src='path/to/fallback/image.png';">
     <h3>${achievement.title}</h3>
     <p>${achievement.description}</p>
     <p>Completed: ${achievement.currentCount}/${achievement.completionCount}</p>
@@ -106,11 +113,18 @@ function displayChallenges(challenges) {
 function createChallengeCard(id, challenge) {
   const card = document.createElement('div');
   card.className = 'card challenge-card';
+  
+  let imageUrl = challenge.imageUrl || challenge.defaultImageUrl;
+  if (!imageUrl || (!imageUrl.startsWith('https://') && !imageUrl.startsWith('gs://'))) {
+    console.warn(`Invalid image URL for challenge ${id}:`, imageUrl);
+    imageUrl = 'path/to/default/image.png'; // Provide a default image path
+  }
+
   card.innerHTML = `
-    <img src="${challenge.imageUrl || challenge.defaultImageUrl}" alt="${challenge.title}">
+    <img src="${imageUrl}" alt="${challenge.title}" onerror="this.src='path/to/fallback/image.png';">
     <h3>${challenge.title}</h3>
     <p>${challenge.description}</p>
-    <p>Players Completed: ${Object.keys(challenge.playersCompleted).length}</p>
+    <p>Players Completed: ${Object.keys(challenge.playersCompleted || {}).length}</p>
   `;
   return card;
 }

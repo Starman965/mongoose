@@ -3,6 +3,7 @@ import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from "http
 import { database } from './firebaseConfig.js';
 // import { showAchievements, showChallenges, processMatchResult, loadAchievements, loadChallenges, initAwards } from './awards.js';
 
+const database = window.database;
 const storage = getStorage();
 
 // App DB initialization code
@@ -15,14 +16,6 @@ const mainContent = document.getElementById('mainContent');
 const modal = document.getElementById('modal');
 const modalContent = document.getElementById('modalContent');
 const closeModal = document.getElementsByClassName('close')[0];
-
-
-
-/* // Initialize awards functionality
-document.addEventListener('DOMContentLoaded', () => {
-  initAwards();
-});
-*/
 
 // Close modal when clicking on 'x'
 closeModal.onclick = () => modal.style.display = "none";
@@ -89,8 +82,8 @@ async function updatePlacementInput() {
 // Navigation setup
 document.getElementById('statsNav').addEventListener('click', () => showSection('stats'));
 document.getElementById('sessionsNav').addEventListener('click', () => showSection('sessions'));
-// document.getElementById('achievementsNav').addEventListener('click', () => showSection('achievements'));
-// document.getElementById('challengesNav').addEventListener('click', () => showSection('challenges'));
+document.getElementById('achievementsNav').addEventListener('click', () => showSection('achievements'));
+document.getElementById('challengesNav').addEventListener('click', () => showSection('challenges'));
 document.getElementById('highlightsNav').addEventListener('click', () => showSection('highlights'));
 document.getElementById('mapsNav').addEventListener('click', () => showSection('maps'));
 document.getElementById('modesNav').addEventListener('click', () => showSection('modes'));
@@ -130,7 +123,7 @@ function showSection(section) {
 function showStats() {
   mainContent.innerHTML = `
     <h2>Team Statistics</h2>
-    <p>* Note: Total Kills and Average Kills are based solely on Battle Royale style games.</p>
+    <p>* Note: Total Kills and Average Kills are based solely on Battle Royale game modes.</p>
     <div id="statsTable"></div>
   `;
   loadStats();
@@ -933,7 +926,7 @@ async function addMatch(e) {
             await push(ref(database, `gameSessions/${sessionId}/matches`), matchData);
         }
 
-        // After successfully saving the match data, process it for achievements and challenges
+        // This is the function for determining achievements and challenges
         await processMatchResult(matchData);
 
         // Reload matches and update UI
@@ -1075,7 +1068,7 @@ window.showModal = async function(action, id = null, subId = null) {
                     <button type="submit" class="button">${action === 'addMatch' ? 'Add' : 'Update'} Match</button>
                 </form>
             `;
-            await loadGameModesAndMaps(); // Add this line
+            await loadGameModesAndMaps(); // Loads maps and modes
             document.getElementById('matchForm').addEventListener('submit', addMatch);
             document.getElementById('gameMode').addEventListener('change', updatePlacementInput);
 

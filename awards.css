@@ -1,4 +1,4 @@
-/* Updated awards.css */
+/* awards.css */
 
 .awards-grid {
   display: grid;
@@ -9,7 +9,7 @@
 
 .achievement-card,
 .challenge-card {
-  background-color: #4B5320; /* Military Green */
+  background-color: #333333;
   border-radius: 10px;
   overflow: hidden;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
@@ -32,7 +32,7 @@
 .achievement-card h3,
 .challenge-card h3 {
   margin: 10px 0 5px 0;
-  color: #2A3439; /* Gunmetal Gray */
+  color: #FFD700;
   font-size: 1.2em;
 }
 
@@ -41,7 +41,6 @@
   margin: 5px 0;
   font-size: 0.9em;
   text-align: center;
-  color: #D2B48C; /* Desert Tan */
 }
 
 @media (max-width: 768px) {

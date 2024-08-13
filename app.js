@@ -645,12 +645,18 @@ window.deleteMatch = function(sessionId, matchId) {
 }
 
 window.viewHighlight = function(highlightURL) {
-   console.log('Attempting to access URL:', highlightURL); // Add this line
-  if (!highlightURL || (!highlightURL.startsWith('https://') && !highlightURL.startsWith('gs://'))) {
-    console.error('Invalid highlight URL:', highlightURL);
-    alert('Sorry, the highlight video is not available.');
-    return;
-  }
+   window.viewHighlight = function(highlightURL) {
+   console.log('Attempting to access highlight URL:', highlightURL);
+   if (!highlightURL) {
+     console.error('Highlight URL is undefined or null');
+     alert('Sorry, the highlight video is not available.');
+     return;
+   }
+   if (!highlightURL.startsWith('https://') && !highlightURL.startsWith('gs://')) {
+     console.error('Invalid highlight URL format:', highlightURL);
+     alert('Sorry, the highlight video URL is invalid.');
+     return;
+   }
 
   modalContent.innerHTML = `
     <h3>Match Highlight</h3>
@@ -903,7 +909,7 @@ function createAchievementCard(id, achievement) {
   card.className = 'card achievement-card';
   
   let imageUrl = achievement.imageUrl || achievement.defaultImageUrl;
-   console.log('Attempting to access URL:', highlightURL); // Add this line
+   console.log('Attempting to access URL:', imageURL); // Add this line
   if (!imageUrl || (!imageUrl.startsWith('https://') && !imageUrl.startsWith('gs://'))) {
     console.warn(`Invalid image URL for achievement ${id}:`, imageUrl);
     imageUrl = 'https://firebasestorage.googleapis.com/v0/b/gamenight-37cc6.appspot.com/o/achievements%2Fsample.png?alt=media&token=a96d1b32-4a21-4f92-86a9-6281a19053cf'; // Provide a default image path

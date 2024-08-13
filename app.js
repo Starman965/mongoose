@@ -3,7 +3,7 @@ import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from "http
 import { database } from './firebaseConfig.js';
 // import { showAchievements, showChallenges, processMatchResult, loadAchievements, loadChallenges, initAwards } from './awards.js';
 
-const database = window.database;
+// const database = window.database;
 const storage = getStorage();
 
 // App DB initialization code

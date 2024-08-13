@@ -1,6 +1,6 @@
 body {
-    background-color: #000000;
-    color: #ffffff;
+    background-color: #000000; /* Background color of the entire page */
+    color: #ffffff; /* Default text color across the entire app */
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     margin: 0;
     padding: 0;
@@ -15,8 +15,8 @@ body {
 header {
     text-align: center;
     padding: 20px;
-    background-color: #333333;
-    border-bottom: 2px solid #FFD700;
+    background-color: #333333; /* Background color of the header */
+    border-bottom: 2px solid #FFD700; /* Bottom border of the header, giving it a golden accent */
 }
 
 header .logo {
@@ -26,7 +26,7 @@ header .logo {
 }
 
 h1 {
-    color: #FFD700;
+    color: #FFD700; /* Text color of the main title in the header */
     margin: 0;
     font-size: 1.5em;
 }
@@ -37,32 +37,32 @@ h1 {
 }
 
 .sidebar {
-    background-color: #444444;
+    background-color: #444444; /* Background color of the sidebar navigation */
     padding: 10px;
     min-width: 200px;
     display: flex;
     flex-direction: column;
     align-items: center;
     gap: 10px;
-    border-right: 2px solid #FFD700;
+    border-right: 2px solid #FFD700; /* Right border of the sidebar, providing a golden accent */
 }
 
 .sidebar button {
-    background-color: #FFD700;
+    background-color: #FFD700; /* Background color of buttons in the sidebar */
     border: none;
-    color: #000000;
+    color: #000000; /* Text color on sidebar buttons */
     padding: 10px;
     margin: 5px 0;
     cursor: pointer;
     font-size: 16px;
     border-radius: 5px;
     width: 100%;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Slight shadow to give buttons a raised effect */
     transition: background-color 0.3s ease;
 }
 
 .sidebar button:hover {
-    background-color: #FFA500;
+    background-color: #FFA500; /* Background color when a sidebar button is hovered */
 }
 
 .sidebar .team-logo {
@@ -73,18 +73,18 @@ h1 {
 main {
     flex-grow: 1;
     padding: 20px;
-    background-color: #222222;
+    background-color: #222222; /* Background color of the main content area */
     border-radius: 10px;
     overflow-y: auto;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Shadow for a slightly raised effect */
 }
 
 .card {
-    background-color: #333333;
+    background-color: #333333; /* Background color of cards in the main content area */
     padding: 15px;
     margin: 10px 0;
     border-radius: 8px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Shadow for a slightly raised effect */
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -105,7 +105,7 @@ main {
 }
 
 .close {
-    color: #aaa;
+    color: #aaa; /* Text color for close button in modals */
     float: right;
     font-size: 28px;
     font-weight: bold;
@@ -114,35 +114,35 @@ main {
 
 .close:hover,
 .close:focus {
-    color: #fff;
+    color: #fff; /* Text color when close button is hovered */
     text-decoration: none;
 }
 
 footer {
     text-align: center;
     padding: 10px;
-    background-color: #333333;
-    color: #FFD700;
-    border-top: 2px solid #FFD700;
+    background-color: #333333; /* Background color of the footer */
+    color: #FFD700; /* Text color in the footer */
+    border-top: 2px solid #FFD700; /* Top border of the footer, providing a golden accent */
 }
 
 .button {
-    background-color: #FFD700;
+    background-color: #FFD700; /* Background color of generic buttons */
     border: none;
-    color: #000000;
+    color: #000000; /* Text color on generic buttons */
     padding: 10px;
     margin: 5px;
     cursor: pointer;
     font-size: 16px;
     border-radius: 5px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Slight shadow for a raised button effect */
     transition: background-color 0.3s ease;
     white-space: nowrap;
     text-align: center;
 }
 
 .button:hover {
-    background-color: #FFA500;
+    background-color: #FFA500; /* Background color when a generic button is hovered */
 }
 
 .button-group {
@@ -173,15 +173,15 @@ footer {
     justify-content: space-between;
     align-items: center;
     padding: 10px;
-    background-color: #333333;
+    background-color: #333333; /* Background color for rows in tables */
     margin: 10px 0;
     border-radius: 8px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Slight shadow for a raised row effect */
 }
 
 .table-row .name {
     flex: 2;
-    color: #FFD700;
+    color: #FFD700; /* Text color for names in rows */
 }
 
 .table-row .actions {
@@ -198,10 +198,10 @@ footer {
 }
 
 .team-list .card {
-    background-color: #333333;
+    background-color: #333333; /* Background color of team member cards */
     border-radius: 10px;
     overflow: hidden;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Slight shadow for a raised card effect */
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -222,7 +222,7 @@ footer {
 
 .team-list .card .member-details h3 {
     margin: 0 0 10px 0;
-    color: #FFD700;
+    color: #FFD700; /* Text color for team member names */
     font-size: 1.2em;
 }
 
@@ -264,19 +264,19 @@ footer {
     width: 100%;
     height: 100%;
     overflow: auto;
-    background-color: rgba(0,0,0,0.8);
+    background-color: rgba(0,0,0,0.8); /* Background overlay for modals */
 }
 
 .modal-content {
-    background-color: #333333;
+    background-color: #333333; /* Background color of the modal content */
     padding: 20px;
-    border: 1px solid #888;
+    border: 1px solid #888; /* Border color for the modal content */
     width: 90%;
     max-width: 800px;
     max-height: 90%;
-    color: #ffffff;
+    color: #ffffff; /* Text color in the modal */
     border-radius: 10px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Slight shadow for a raised modal effect */
     display: flex;
     flex-direction: column;
     overflow-y: auto;
@@ -317,9 +317,9 @@ footer {
 .form-group select {
     padding: 8px;
     border-radius: 5px;
-    border: 1px solid #555;
-    background-color: #444;
-    color: #fff;
+    border: 1px solid #555; /* Border color for form fields */
+    background-color: #444; /* Background color for form fields */
+    color: #fff; /* Text color for form fields */
 }
 
 .slider {
@@ -327,7 +327,7 @@ footer {
     width: 100%;
     height: 15px;
     border-radius: 5px;
-    background: #444;
+    background: #444; /* Background color of slider track */
     outline: none;
     opacity: 0.7;
     transition: opacity .2s;
@@ -339,7 +339,7 @@ footer {
     width: 25px;
     height: 25px;
     border-radius: 50%;
-    background: #FFD700;
+    background: #FFD700; /* Color of the slider thumb */
     cursor: pointer;
 }
 
@@ -347,12 +347,12 @@ footer {
     width: 25px;
     height: 25px;
     border-radius: 50%;
-    background: #FFD700;
+    background: #FFD700; /* Color of the slider thumb */
     cursor: pointer;
 }
 
 .slider-value {
-    color: #FFD700;
+    color: #FFD700; /* Color of the slider value text */
     margin-left: 10px;
 }
 
@@ -376,7 +376,7 @@ footer {
     left: 0;
     right: 0;
     bottom: 0;
-    background-color: #444;
+    background-color: #444; /* Background color of the toggle switch */
     transition: .4s;
     border-radius: 34px;
 }
@@ -388,18 +388,19 @@ footer {
     width: 56px; /* Adjusted size */
     left: 4px;
     bottom: 4px;
-    background-color: #FFD700;
+    background-color: #FFD700; /* Background color of the toggle switch thumb */
     transition: .4s;
     border-radius: 50px;
 }
 
 .toggle-input:checked + .toggle-label {
-    background-color: #2196F3;
+    background-color: #2196F3; /* Background color of the toggle switch when checked */
 }
 
 .toggle-input:checked + .toggle-label:before {
     transform: translateX(56px);
 }
+
 .toggle-inner {
     position: absolute;
     width: 100%;
@@ -428,6 +429,7 @@ footer {
     content: "Won";
     right: 15px;
 }
+
 .stats-table, .highlights-table, .matches-table {
     width: 100%;
     border-collapse: collapse;
@@ -437,31 +439,31 @@ footer {
 .stats-table th, .stats-table td,
 .highlights-table th, .highlights-table td,
 .matches-table th, .matches-table td {
-    border: 1px solid #444444;
+    border: 1px solid #444444; /* Border color for table cells */
     padding: 12px 15px;
     text-align: center;
     font-size: 14px;
 }
 
 .stats-table th, .highlights-table th, .matches-table th {
-    background-color: #333333;
-    color: #FFD700;
+    background-color: #333333; /* Background color for table headers */
+    color: #FFD700; /* Text color for table headers */
     font-weight: bold;
 }
 
 .stats-table td, .highlights-table td, .matches-table td {
-    background-color: #222222;
+    background-color: #222222; /* Background color for table rows */
 }
 
 .stats-table tr:nth-child(even) td,
 .highlights-table tr:nth-child(even) td,
 .matches-table tr:nth-child(even) td {
-    background-color: #2A2A2A;
+    background-color: #2A2A2A; /* Background color for alternate table rows */
 }
 
 .stats-table tfoot td {
     font-weight: bold;
-    background-color: #333333;
+    background-color: #333333; /* Background color for table footer */
 }
 
 .pagination {
@@ -490,7 +492,7 @@ footer {
         width: 100%;
         min-width: auto;
         border-right: none;
-        border-bottom: 2px solid #FFD700;
+        border-bottom: 2px solid #FFD700; /* Adjusted border when sidebar is at the top in smaller screens */
     }
 
     main {

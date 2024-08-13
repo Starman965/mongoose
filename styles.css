@@ -1,6 +1,8 @@
+/* Updated styles.css */
+
 body {
-    background-color: #4B5320;
-    color: #2A3439;
+    background-color: #4B5320; /* Military Green */
+    color: #2A3439; /* Gunmetal Gray */
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     margin: 0;
     padding: 0;
@@ -15,8 +17,8 @@ body {
 header {
     text-align: center;
     padding: 20px;
-    background-color: #2B3E50;
-    border-bottom: 2px solid #2F4F4F;
+    background-color: #2B3E50; /* Dark Steel Blue */
+    border-bottom: 2px solid #2F4F4F; /* Deep Forest Green */
 }
 
 header .logo {
@@ -26,7 +28,7 @@ header .logo {
 }
 
 h1 {
-    color: #2F4F4F;
+    color: #D2B48C; /* Desert Tan */
     margin: 0;
     font-size: 1.5em;
 }
@@ -37,20 +39,20 @@ h1 {
 }
 
 .sidebar {
-    background-color: #2F4F4F;
+    background-color: #2F4F4F; /* Deep Forest Green */
     padding: 10px;
     min-width: 200px;
     display: flex;
     flex-direction: column;
     align-items: center;
     gap: 10px;
-    border-right: 2px solid #2F4F4F;
+    border-right: 2px solid #2F4F4F; /* Deep Forest Green */
 }
 
 .sidebar button {
-    background-color: #2F4F4F;
+    background-color: #4B5320; /* Military Green */
     border: none;
-    color: #4B5320;
+    color: #D2B48C; /* Desert Tan */
     padding: 10px;
     margin: 5px 0;
     cursor: pointer;
@@ -62,7 +64,7 @@ h1 {
 }
 
 .sidebar button:hover {
-    background-color: #CC5500;
+    background-color: #CC5500; /* Burnt Orange */
 }
 
 .sidebar .team-logo {
@@ -73,14 +75,14 @@ h1 {
 main {
     flex-grow: 1;
     padding: 20px;
-    background-color: #F4E1C1;
+    background-color: #F4E1C1; /* Sandy Beige */
     border-radius: 10px;
     overflow-y: auto;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
 .card {
-    background-color: #2B3E50;
+    background-color: #4B5320; /* Military Green */
     padding: 15px;
     margin: 10px 0;
     border-radius: 8px;
@@ -102,10 +104,11 @@ main {
 .card h3, .card p {
     margin: 5px 0;
     text-align: center;
+    color: #D2B48C; /* Desert Tan */
 }
 
 .close {
-    color: #aaa;
+    color: #A8A9AD; /* Silver Metallic */
     float: right;
     font-size: 28px;
     font-weight: bold;
@@ -114,22 +117,22 @@ main {
 
 .close:hover,
 .close:focus {
-    color: #fff;
+    color: #FFFFFF; /* Pure White for contrast */
     text-decoration: none;
 }
 
 footer {
     text-align: center;
     padding: 10px;
-    background-color: #2B3E50;
-    color: #2F4F4F;
-    border-top: 2px solid #2F4F4F;
+    background-color: #2B3E50; /* Dark Steel Blue */
+    color: #D2B48C; /* Desert Tan */
+    border-top: 2px solid #2F4F4F; /* Deep Forest Green */
 }
 
 .button {
-    background-color: #2F4F4F;
+    background-color: #2A3439; /* Gunmetal Gray */
     border: none;
-    color: #4B5320;
+    color: #D2B48C; /* Desert Tan */
     padding: 10px;
     margin: 5px;
     cursor: pointer;
@@ -142,7 +145,7 @@ footer {
 }
 
 .button:hover {
-    background-color: #CC5500;
+    background-color: #CC5500; /* Burnt Orange */
 }
 
 .button-group {
@@ -173,7 +176,7 @@ footer {
     justify-content: space-between;
     align-items: center;
     padding: 10px;
-    background-color: #2B3E50;
+    background-color: #4B5320; /* Military Green */
     margin: 10px 0;
     border-radius: 8px;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
@@ -181,7 +184,7 @@ footer {
 
 .table-row .name {
     flex: 2;
-    color: #2F4F4F;
+    color: #D2B48C; /* Desert Tan */
 }
 
 .table-row .actions {
@@ -198,7 +201,7 @@ footer {
 }
 
 .team-list .card {
-    background-color: #2B3E50;
+    background-color: #4B5320; /* Military Green */
     border-radius: 10px;
     overflow: hidden;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
@@ -222,7 +225,7 @@ footer {
 
 .team-list .card .member-details h3 {
     margin: 0 0 10px 0;
-    color: #2F4F4F;
+    color: #D2B48C; /* Desert Tan */
     font-size: 1.2em;
 }
 
@@ -268,13 +271,13 @@ footer {
 }
 
 .modal-content {
-    background-color: #2B3E50;
+    background-color: #4B5320; /* Military Green */
     padding: 20px;
     border: 1px solid #888;
     width: 90%;
     max-width: 800px;
     max-height: 90%;
-    color: #2A3439;
+    color: #D2B48C; /* Desert Tan */
     border-radius: 10px;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     display: flex;
@@ -317,9 +320,9 @@ footer {
 .form-group select {
     padding: 8px;
     border-radius: 5px;
-    border: 1px solid #555;
-    background-color: #3B4022;
-    color: #fff;
+    border: 1px solid #2F4F4F; /* Deep Forest Green */
+    background-color: #3B4022; /* Dark Olive */
+    color: #D2B48C; /* Desert Tan */
 }
 
 .slider {
@@ -327,7 +330,7 @@ footer {
     width: 100%;
     height: 15px;
     border-radius: 5px;
-    background: #3B4022;
+    background: #3B4022; /* Dark Olive */
     outline: none;
     opacity: 0.7;
     transition: opacity .2s;
@@ -339,7 +342,7 @@ footer {
     width: 25px;
     height: 25px;
     border-radius: 50%;
-    background: #2F4F4F;
+    background: #CC5500; /* Burnt Orange */
     cursor: pointer;
 }
 
@@ -347,19 +350,19 @@ footer {
     width: 25px;
     height: 25px;
     border-radius: 50%;
-    background: #2F4F4F;
+    background: #CC5500; /* Burnt Orange */
     cursor: pointer;
 }
 
 .slider-value {
-    color: #2F4F4F;
+    color: #CC5500; /* Burnt Orange */
     margin-left: 10px;
 }
 
 .toggle-switch {
     position: relative;
-    width: 120px; /* Increased width */
-    height: 40px; /* Increased height */
+    width: 120px;
+    height: 40px;
     margin-top: 10px;
 }
 
@@ -376,7 +379,7 @@ footer {
     left: 0;
     right: 0;
     bottom: 0;
-    background-color: #3B4022;
+    background-color: #3B4022; /* Dark Olive */
     transition: .4s;
     border-radius: 34px;
 }
@@ -384,17 +387,17 @@ footer {
 .toggle-label:before {
     position: absolute;
     content: "";
-    height: 32px; /* Adjusted size */
-    width: 56px; /* Adjusted size */
+    height: 32px;
+    width: 56px;
     left: 4px;
     bottom: 4px;
-    background-color: #2F4F4F;
+    background-color: #CC5500; /* Burnt Orange */
     transition: .4s;
     border-radius: 50px;
 }
 
 .toggle-input:checked + .toggle-label {
-    background-color: #2196F3;
+    background-color: #2A3439; /* Gunmetal Gray */
 }
 
 .toggle-input:checked + .toggle-label:before {
@@ -413,7 +416,7 @@ footer {
 
 .toggle-inner:after {
     position: absolute;
-    color: white;
+    color: #D2B48C; /* Desert Tan */
     font-size: 14px;
     font-weight: bold;
     text-transform: uppercase;
@@ -428,6 +431,7 @@ footer {
     content: "Won";
     right: 15px;
 }
+
 .stats-table, .highlights-table, .matches-table {
     width: 100%;
     border-collapse: collapse;
@@ -437,31 +441,31 @@ footer {
 .stats-table th, .stats-table td,
 .highlights-table th, .highlights-table td,
 .matches-table th, .matches-table td {
-    border: 1px solid #2F4F4F;
+    border: 1px solid #2F4F4F; /* Deep Forest Green */
     padding: 12px 15px;
     text-align: center;
     font-size: 14px;
 }
 
 .stats-table th, .highlights-table th, .matches-table th {
-    background-color: #2B3E50;
-    color: #2F4F4F;
+    background-color: #4B5320; /* Military Green */
+    color: #D2B48C; /* Desert Tan */
     font-weight: bold;
 }
 
 .stats-table td, .highlights-table td, .matches-table td {
-    background-color: #F4E1C1;
+    background-color: #F4E1C1; /* Sandy Beige */
 }
 
 .stats-table tr:nth-child(even) td,
 .highlights-table tr:nth-child(even) td,
 .matches-table tr:nth-child(even) td {
-    background-color: #2A2A2A;
+    background-color: #3B4022; /* Dark Olive */
 }
 
 .stats-table tfoot td {
     font-weight: bold;
-    background-color: #2B3E50;
+    background-color: #4B5320; /* Military Green */
 }
 
 .pagination {
@@ -490,7 +494,7 @@ footer {
         width: 100%;
         min-width: auto;
         border-right: none;
-        border-bottom: 2px solid #2F4F4F;
+        border-bottom: 2px solid #2F4F4F; /* Deep Forest Green */
     }
 
     main {

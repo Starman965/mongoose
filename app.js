@@ -645,7 +645,6 @@ window.deleteMatch = function(sessionId, matchId) {
 }
 
 window.viewHighlight = function(highlightURL) {
-   window.viewHighlight = function(highlightURL) {
    console.log('Attempting to access highlight URL:', highlightURL);
    if (!highlightURL) {
      console.error('Highlight URL is undefined or null');

@@ -130,6 +130,24 @@ export async function processMatchResult(matchData) {
       }
     }
 
+    // Update challenges
+    const challengesRef = ref(database, 'challenges');
+    const challengesSnapshot = await get(challengesRef);
+    const challenges = challengesSnapshot.val();
+
+    for (const [id, challenge] of Object.entries(challenges)) {
+      if (checkChallengeCriteria(challenge, matchData)) {
+        if (!challenge.playersCompleted) challenge.playersCompleted = {};
+        challenge.playersCompleted[matchData.playerId] = true;
+        await update(ref(database, `challenges/${id}/playersCompleted`), challenge.playersCompleted);
+      }
+    }
+
+    console.log("Achievements and challenges updated successfully");
+  } catch (error) {
+    console.error("Error processing match result:", error);
+  }
+}
 // Helper function to check if an achievement's criteria is met
 function checkAchievementCriteria(achievement, matchData) {
   // Implement the logic to check if the match data meets the achievement criteria

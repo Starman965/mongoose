@@ -13,9 +13,9 @@ const storage = getStorage();
 
 // DOM elements
 const mainContent = document.getElementById('mainContent');
-const modal = document.getElementById('modal');
-const modalContent = document.getElementById('modalContent');
-const closeModal = document.getElementsByClassName('close')[0];
+const modal = .getElementById('modal');
+const modalContent = .getElementById('modalContent');
+const closeModal = .getElementsByClassName('close')[0];
 
 // Close modal when clicking on 'x'
 closeModal.onclick = () => modal.style.display = "none";
@@ -82,8 +82,8 @@ async function updatePlacementInput() {
 // Navigation setup
 document.getElementById('statsNav').addEventListener('click', () => showSection('stats'));
 document.getElementById('sessionsNav').addEventListener('click', () => showSection('sessions'));
-document.getElementById('achievementsNav').addEventListener('click', () => showSection('achievements'));
-document.getElementById('challengesNav').addEventListener('click', () => showSection('challenges'));
+// document.getElementById('achievementsNav').addEventListener('click', () => showSection('achievements'));
+// document.getElementById('challengesNav').addEventListener('click', () => showSection('challenges'));
 document.getElementById('highlightsNav').addEventListener('click', () => showSection('highlights'));
 document.getElementById('mapsNav').addEventListener('click', () => showSection('maps'));
 document.getElementById('modesNav').addEventListener('click', () => showSection('modes'));

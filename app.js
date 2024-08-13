@@ -419,7 +419,7 @@ async function addOrUpdateTeamMember(e) {
       const photoRef = storageRef(storage, `teamMembers/${Date.now()}_${photo.name}`);
       const snapshot = await uploadBytes(photoRef, photo);
       const url = await getDownloadURL(snapshot.ref);
-      console.log('Team member photo URL:', url);
+      console.log('Attempting to access URL:', url); // Add this line
       if (!url.startsWith('https://') && !url.startsWith('gs://')) {
         throw new Error('Invalid photo URL generated');
       }
@@ -645,6 +645,7 @@ window.deleteMatch = function(sessionId, matchId) {
 }
 
 window.viewHighlight = function(highlightURL) {
+   console.log('Attempting to access URL:', highlightURL); // Add this line
   if (!highlightURL || (!highlightURL.startsWith('https://') && !highlightURL.startsWith('gs://'))) {
     console.error('Invalid highlight URL:', highlightURL);
     alert('Sorry, the highlight video is not available.');
@@ -902,6 +903,7 @@ function createAchievementCard(id, achievement) {
   card.className = 'card achievement-card';
   
   let imageUrl = achievement.imageUrl || achievement.defaultImageUrl;
+   console.log('Attempting to access URL:', highlightURL); // Add this line
   if (!imageUrl || (!imageUrl.startsWith('https://') && !imageUrl.startsWith('gs://'))) {
     console.warn(`Invalid image URL for achievement ${id}:`, imageUrl);
     imageUrl = 'https://firebasestorage.googleapis.com/v0/b/gamenight-37cc6.appspot.com/o/achievements%2Fsample.png?alt=media&token=a96d1b32-4a21-4f92-86a9-6281a19053cf'; // Provide a default image path
@@ -972,7 +974,7 @@ async function addMatch(e) {
             const videoRef = storageRef(storage, `highlights/${sessionId}/${Date.now()}_${highlightVideo.name}`);
             const snapshot = await uploadBytes(videoRef, highlightVideo);
             const url = await getDownloadURL(snapshot.ref);
-            console.log('Highlight video URL:', url);
+             console.log('Attempting to access URL:', url); // Add this line
             if (!url.startsWith('https://') && !url.startsWith('gs://')) {
                 throw new Error('Invalid video URL generated');
             }

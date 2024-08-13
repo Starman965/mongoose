@@ -308,38 +308,45 @@ function showTeamMembers() {
 }
 
 function loadTeamMembers() {
-    const teamList = document.getElementById('teamList');
-    teamList.innerHTML = 'Loading team members...';
+  const teamList = document.getElementById('teamList');
+  teamList.innerHTML = 'Loading team members...';
 
-    onValue(ref(database, 'teamMembers'), (snapshot) => {
-        teamList.innerHTML = '';
-        snapshot.forEach((childSnapshot) => {
-            const member = childSnapshot.val();
-            const memberId = childSnapshot.key;
-            const age = calculateAge(member.birthdate);
-            teamList.innerHTML += `
-                <div class="card">
-                    <img src="${member.photoURL}" alt="${member.name}" class="team-photo">
-                    <div class="member-details">
-                        <h3>${member.name}</h3>
-                        <p><strong>Gamertag:</strong> ${member.gamertag}</p>
-                        <p><strong>State:</strong> ${member.state}</p>
-                        <p><strong>Birthdate:</strong> ${member.birthdate} (Age: ${age})</p>
-                        <p><strong>Favorite Snack:</strong> ${member.favoriteSnack}</p>
-                        <p><strong>BR PR:</strong> ${member.brPR !== undefined ? member.brPR : 'N/A'} ${member.brPRDate ? `(${formatDate(member.brPRDate)})` : ''}</p>
-                        <p><strong>MP PR:</strong> ${member.mpPR !== undefined ? member.mpPR : 'N/A'} ${member.mpPRDate ? `(${formatDate(member.mpPRDate)})` : ''}</p>
-                    </div>
-                    <div class="actions">
-                        <button class="button" onclick="showModal('editTeamMember', '${memberId}')">Edit</button>
-                        <button class="button" onclick="deleteTeamMember('${memberId}')">Delete</button>
-                    </div>
-                </div>
-            `;
-        });
-        if (teamList.innerHTML === '') {
-            teamList.innerHTML = 'No team members found. Add some!';
-        }
+  onValue(ref(database, 'teamMembers'), (snapshot) => {
+    teamList.innerHTML = '';
+    snapshot.forEach((childSnapshot) => {
+      const member = childSnapshot.val();
+      const memberId = childSnapshot.key;
+      const age = calculateAge(member.birthdate);
+      
+      let photoURL = member.photoURL;
+      if (!photoURL || (!photoURL.startsWith('https://') && !photoURL.startsWith('gs://'))) {
+        console.warn(`Invalid photo URL for member ${memberId}:`, photoURL);
+        photoURL = 'path/to/default/profile.png'; // Provide a default image path
+      }
+
+      teamList.innerHTML += `
+        <div class="card">
+          <img src="${photoURL}" alt="${member.name}" class="team-photo" onerror="this.src='path/to/fallback/profile.png';">
+          <div class="member-details">
+            <h3>${member.name}</h3>
+            <p><strong>Gamertag:</strong> ${member.gamertag}</p>
+            <p><strong>State:</strong> ${member.state}</p>
+            <p><strong>Birthdate:</strong> ${member.birthdate} (Age: ${age})</p>
+            <p><strong>Favorite Snack:</strong> ${member.favoriteSnack}</p>
+            <p><strong>BR PR:</strong> ${member.brPR !== undefined ? member.brPR : 'N/A'} ${member.brPRDate ? `(${formatDate(member.brPRDate)})` : ''}</p>
+            <p><strong>MP PR:</strong> ${member.mpPR !== undefined ? member.mpPR : 'N/A'} ${member.mpPRDate ? `(${formatDate(member.mpPRDate)})` : ''}</p>
+          </div>
+          <div class="actions">
+            <button class="button" onclick="showModal('editTeamMember', '${memberId}')">Edit</button>
+            <button class="button" onclick="deleteTeamMember('${memberId}')">Delete</button>
+          </div>
+        </div>
+      `;
     });
+    if (teamList.innerHTML === '') {
+      teamList.innerHTML = 'No team members found. Add some!';
+    }
+  });
 }
 
 function calculateAge(birthdate) {
@@ -625,6 +632,12 @@ window.deleteMatch = function(sessionId, matchId) {
 }
 
 window.viewHighlight = function(highlightURL) {
+  if (!highlightURL || (!highlightURL.startsWith('https://') && !highlightURL.startsWith('gs://'))) {
+    console.error('Invalid highlight URL:', highlightURL);
+    alert('Sorry, the highlight video is not available.');
+    return;
+  }
+
   modalContent.innerHTML = `
     <h3>Match Highlight</h3>
     <video id="highlightVideo" controls>
@@ -633,6 +646,12 @@ window.viewHighlight = function(highlightURL) {
     </video>
   `;
   modal.style.display = "block";
+
+  const video = document.getElementById('highlightVideo');
+  video.onerror = function() {
+    console.error('Error loading video:', highlightURL);
+    modalContent.innerHTML = '<p>Error loading the highlight video. Please try again later.</p>';
+  };
 }
 
 function showGameModes() {

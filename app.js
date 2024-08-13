@@ -932,79 +932,103 @@ function formatDate(dateString, userTimezoneOffset) {
 
 async function addMatch(e) {
     e.preventDefault();
+    console.log('addMatch function called');
+
     const form = e.target;
     const sessionId = form.dataset.sessionId;
     const matchId = form.dataset.matchId;
     const gameMode = form.gameMode.value;
 
-    const gameModes = await get(ref(database, 'gameModes')).then(snapshot => {
-        const modes = {};
-        snapshot.forEach(child => {
-            modes[child.val().name] = child.val().type;
-        });
-        return modes;
+    console.log('Form data:', {
+        sessionId,
+        matchId,
+        gameMode
     });
-
-    let placement;
-    if (gameModes[gameMode] === 'Battle Royale') {
-        placement = parseInt(form.placement.value);
-    } else if (gameModes[gameMode] === 'Multiplayer') {
-        placement = form.placement.checked ? 'Won' : 'Lost';
-    }
-
-    const matchData = {
-        gameMode: gameMode,
-        map: form.map.value,
-        placement: placement,
-        totalKills: parseInt(form.totalKills.value) === -1 ? null : parseInt(form.totalKills.value),
-        kills: {},
-        timestamp: Date.now() // Puts a time stamp of that match
-    };
-
-    ['STARMAN', 'RSKILLA', 'SWFTSWORD', 'VAIDED', 'MOWGLI'].forEach(player => {
-        const kills = parseInt(form[`kills${player}`].value);
-        if (kills !== -1) {
-            matchData.kills[player] = kills;
-        }
-    });
-
-    const highlightVideo = form.highlightVideo.files[0];
-    if (highlightVideo) {
-        try {
-            const videoRef = storageRef(storage, `highlights/${sessionId}/${Date.now()}_${highlightVideo.name}`);
-            const snapshot = await uploadBytes(videoRef, highlightVideo);
-            const url = await getDownloadURL(snapshot.ref);
-             console.log('Attempting to access URL:', url); // Add this line
-            if (!url.startsWith('https://') && !url.startsWith('gs://')) {
-                throw new Error('Invalid video URL generated');
-            }
-            matchData.highlightURL = url;
-        } catch (error) {
-            console.error('Error uploading highlight video:', error);
-            alert('Error uploading highlight video. The match will be saved without the video.');
-        }
-    } else if (matchId) {
-        try {
-            const existingMatch = await get(ref(database, `gameSessions/${sessionId}/matches/${matchId}`));
-            if (existingMatch.exists() && existingMatch.val().highlightURL) {
-                matchData.highlightURL = existingMatch.val().highlightURL;
-            }
-        } catch (error) {
-            console.error('Error retrieving existing highlight URL:', error);
-        }
-    }
 
     try {
+        const gameModes = await get(ref(database, 'gameModes')).then(snapshot => {
+            const modes = {};
+            snapshot.forEach(child => {
+                modes[child.val().name] = child.val().type;
+            });
+            return modes;
+        });
+
+        console.log('Game modes fetched:', gameModes);
+
+        let placement;
+        if (gameModes[gameMode] === 'Battle Royale') {
+            placement = parseInt(form.placement.value);
+        } else if (gameModes[gameMode] === 'Multiplayer') {
+            placement = form.placement.checked ? 'Won' : 'Lost';
+        }
+
+        console.log('Placement:', placement);
+
+        const matchData = {
+            gameMode: gameMode,
+            map: form.map.value,
+            placement: placement,
+            totalKills: parseInt(form.totalKills.value) === -1 ? null : parseInt(form.totalKills.value),
+            kills: {},
+            timestamp: Date.now()
+        };
+
+        console.log('Match data before adding kills:', matchData);
+
+        ['STARMAN', 'RSKILLA', 'SWFTSWORD', 'VAIDED', 'MOWGLI'].forEach(player => {
+            const kills = parseInt(form[`kills${player}`].value);
+            if (kills !== -1) {
+                matchData.kills[player] = kills;
+            }
+        });
+
+        console.log('Match data after adding kills:', matchData);
+
+        const highlightVideo = form.highlightVideo.files[0];
+        if (highlightVideo) {
+            console.log('Highlight video found:', highlightVideo.name);
+            try {
+                const videoRef = storageRef(storage, `highlights/${sessionId}/${Date.now()}_${highlightVideo.name}`);
+                const snapshot = await uploadBytes(videoRef, highlightVideo);
+                const url = await getDownloadURL(snapshot.ref);
+                console.log('Highlight video URL:', url);
+                if (!url.startsWith('https://') && !url.startsWith('gs://')) {
+                    throw new Error('Invalid video URL generated');
+                }
+                matchData.highlightURL = url;
+            } catch (error) {
+                console.error('Error uploading highlight video:', error);
+                alert('Error uploading highlight video. The match will be saved without the video.');
+            }
+        } else if (matchId) {
+            console.log('Checking for existing highlight URL');
+            try {
+                const existingMatch = await get(ref(database, `gameSessions/${sessionId}/matches/${matchId}`));
+                if (existingMatch.exists() && existingMatch.val().highlightURL) {
+                    matchData.highlightURL = existingMatch.val().highlightURL;
+                    console.log('Existing highlight URL found:', matchData.highlightURL);
+                }
+            } catch (error) {
+                console.error('Error retrieving existing highlight URL:', error);
+            }
+        }
+
+        console.log('Final match data before saving:', matchData);
+
         if (matchId) {
+            console.log('Updating existing match');
             await update(ref(database, `gameSessions/${sessionId}/matches/${matchId}`), matchData);
         } else {
+            console.log('Adding new match');
             await push(ref(database, `gameSessions/${sessionId}/matches`), matchData);
         }
-        await processMatchResult(matchData);
+
+        console.log('Match saved successfully');
         loadMatches(sessionId);
         modal.style.display = "none";
     } catch (error) {
-        console.error("Error adding/updating match: ", error);
+        console.error("Error adding/updating match:", error);
         alert('Error adding/updating match. Please try again.');
     }
 }

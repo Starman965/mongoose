@@ -173,5 +173,5 @@ function initAwards() {
 }
 
 // Export functions to be used in other modules
-export { initAwards, processMatchResult, loadAchievements, loadChallenges };
+export { initAwards, loadAchievements, loadChallenges };
 

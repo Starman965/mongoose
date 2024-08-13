@@ -1,28 +1,14 @@
-import { database } from './firebaseConfig.js';
 import { ref, onValue, push, update, remove, get } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-database.js";
 import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-storage.js";
-// import { showAchievements, showChallenges, processMatchResult, loadAchievements, loadChallenges, initAwards } from './awards.js';
 
+const database = window.database;
 const storage = getStorage();
-
-// App DB initialization code
-// import './initializeDatabase.js'; remove comment if needed to init again
-// initializeAchievements(); remove comment if needed to init again
-// initializeChallenges(); remove comment if needed to init again
 
 // DOM elements
 const mainContent = document.getElementById('mainContent');
 const modal = document.getElementById('modal');
 const modalContent = document.getElementById('modalContent');
 const closeModal = document.getElementsByClassName('close')[0];
-
-
-
-/* // Initialize awards functionality
-document.addEventListener('DOMContentLoaded', () => {
-  initAwards();
-});
-*/
 
 // Close modal when clicking on 'x'
 closeModal.onclick = () => modal.style.display = "none";
@@ -89,8 +75,6 @@ async function updatePlacementInput() {
 // Navigation setup
 document.getElementById('statsNav').addEventListener('click', () => showSection('stats'));
 document.getElementById('sessionsNav').addEventListener('click', () => showSection('sessions'));
-// document.getElementById('achievementsNav').addEventListener('click', () => showSection('achievements'));
-// document.getElementById('challengesNav').addEventListener('click', () => showSection('challenges'));
 document.getElementById('highlightsNav').addEventListener('click', () => showSection('highlights'));
 document.getElementById('mapsNav').addEventListener('click', () => showSection('maps'));
 document.getElementById('modesNav').addEventListener('click', () => showSection('modes'));
@@ -105,12 +89,6 @@ function showSection(section) {
       break;
     case 'sessions':
       showGameSessions();
-      break;
-    case 'achievements':
-      showAchievements();
-      break;
-    case 'challenges':
-      showChallenges();
       break;
     case 'highlights':
       showHighlights();
@@ -874,14 +852,12 @@ function formatDate(dateString, userTimezoneOffset) {
     const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
     return date.toLocaleDateString(undefined, options);
 }
-
 async function addMatch(e) {
     e.preventDefault();
     const form = e.target;
     const sessionId = form.dataset.sessionId;
     const matchId = form.dataset.matchId;
     const gameMode = form.gameMode.value;
-
     const gameModes = await get(ref(database, 'gameModes')).then(snapshot => {
         const modes = {};
         snapshot.forEach(child => {
@@ -925,24 +901,7 @@ async function addMatch(e) {
         }
     }
 
-    try {
-        // Save the match data to Firebase
-        if (matchId) {
-            await update(ref(database, `gameSessions/${sessionId}/matches/${matchId}`), matchData);
-        } else {
-            await push(ref(database, `gameSessions/${sessionId}/matches`), matchData);
-        }
-
-        // After successfully saving the match data, process it for achievements and challenges
-        await processMatchResult(matchData);
-
-        // Reload matches and update UI
-        loadMatches(sessionId);
-        modal.style.display = "none";
-    } catch (error) {
-        console.error("Error adding/updating match: ", error);
-        alert('Error adding/updating match. Please try again.');
-    }
+    await saveMatch(sessionId, matchId, matchData);
 }
 // Make showModal function globally accessible
 window.showModal = async function(action, id = null, subId = null) {

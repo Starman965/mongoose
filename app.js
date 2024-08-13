@@ -1,13 +1,17 @@
+import { database } from './firebaseConfig.js';
 import { ref, onValue, push, update, remove, get } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-database.js";
 import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-storage.js";
+import { showAchievements, showChallenges, processMatchResult } from './awards.js';
+const storage = getStorage();
+
+Award and Challenge elements
+import { loadAchievements, loadChallenges, initAwards, processMatchResult } from './awards.js';
+
 
 // App DB initialization code
-// import './initializeDatabase.js';
+// import './initializeDatabase.js'; remove comment if needed to init again
 // initializeAchievements(); remove comment if needed to init again
 // initializeChallenges(); remove comment if needed to init again
-
-import { database } from './firebaseConfig.js';
-const storage = getStorage();
 
 // DOM elements
 const mainContent = document.getElementById('mainContent');
@@ -15,8 +19,7 @@ const modal = document.getElementById('modal');
 const modalContent = document.getElementById('modalContent');
 const closeModal = document.getElementsByClassName('close')[0];
 
-// Award and Challenge elements
-import { loadAchievements, loadChallenges, initAwards, processMatchResult } from './awards.js';
+
 
 // Initialize awards functionality
 document.addEventListener('DOMContentLoaded', () => {
@@ -96,7 +99,6 @@ document.getElementById('modesNav').addEventListener('click', () => showSection(
 document.getElementById('teamNav').addEventListener('click', () => showSection('team'));
 document.getElementById('helpNav').addEventListener('click', () => showHelp());
 document.getElementById('aboutNav').addEventListener('click', () => showAbout());
-
 
 function showSection(section) {
   switch(section) {

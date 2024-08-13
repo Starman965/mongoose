@@ -1,7 +1,7 @@
 import { database } from './firebaseConfig.js';
 import { ref, onValue, push, update, remove, get } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-database.js";
 import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-storage.js";
-import { showAchievements, showChallenges, processMatchResult, loadAchievements, loadChallenges, initAwards } from './awards.js';
+// import { showAchievements, showChallenges, processMatchResult, loadAchievements, loadChallenges, initAwards } from './awards.js';
 
 const storage = getStorage();
 
@@ -88,8 +88,8 @@ async function updatePlacementInput() {
 // Navigation setup
 document.getElementById('statsNav').addEventListener('click', () => showSection('stats'));
 document.getElementById('sessionsNav').addEventListener('click', () => showSection('sessions'));
-document.getElementById('achievementsNav').addEventListener('click', () => showSection('achievements'));
-document.getElementById('challengesNav').addEventListener('click', () => showSection('challenges'));
+// document.getElementById('achievementsNav').addEventListener('click', () => showSection('achievements'));
+// document.getElementById('challengesNav').addEventListener('click', () => showSection('challenges'));
 document.getElementById('highlightsNav').addEventListener('click', () => showSection('highlights'));
 document.getElementById('mapsNav').addEventListener('click', () => showSection('maps'));
 document.getElementById('modesNav').addEventListener('click', () => showSection('modes'));

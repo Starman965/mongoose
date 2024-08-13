@@ -18,10 +18,11 @@ const closeModal = document.getElementsByClassName('close')[0];
 
 
 
-// Initialize awards functionality
+/* // Initialize awards functionality
 document.addEventListener('DOMContentLoaded', () => {
   initAwards();
 });
+*/
 
 // Close modal when clicking on 'x'
 closeModal.onclick = () => modal.style.display = "none";

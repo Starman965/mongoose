@@ -947,7 +947,48 @@ async function addMatch(e) {
         }
     });
 
-    function createAchievementCard(id, achievement) {
+    const highlightVideo = form.highlightVideo.files[0];
+    if (highlightVideo) {
+        try {
+            const videoRef = storageRef(storage, `highlights/${sessionId}/${Date.now()}_${highlightVideo.name}`);
+            const snapshot = await uploadBytes(videoRef, highlightVideo);
+            const url = await getDownloadURL(snapshot.ref);
+            console.log('Highlight video URL:', url);
+            if (!url.startsWith('https://') && !url.startsWith('gs://')) {
+                throw new Error('Invalid video URL generated');
+            }
+            matchData.highlightURL = url;
+        } catch (error) {
+            console.error('Error uploading highlight video:', error);
+            alert('Error uploading highlight video. The match will be saved without the video.');
+        }
+    } else if (matchId) {
+        try {
+            const existingMatch = await get(ref(database, `gameSessions/${sessionId}/matches/${matchId}`));
+            if (existingMatch.exists() && existingMatch.val().highlightURL) {
+                matchData.highlightURL = existingMatch.val().highlightURL;
+            }
+        } catch (error) {
+            console.error('Error retrieving existing highlight URL:', error);
+        }
+    }
+
+    try {
+        if (matchId) {
+            await update(ref(database, `gameSessions/${sessionId}/matches/${matchId}`), matchData);
+        } else {
+            await push(ref(database, `gameSessions/${sessionId}/matches`), matchData);
+        }
+        await processMatchResult(matchData);
+        loadMatches(sessionId);
+        modal.style.display = "none";
+    } catch (error) {
+        console.error("Error adding/updating match: ", error);
+        alert('Error adding/updating match. Please try again.');
+    }
+}
+
+function createAchievementCard(id, achievement) {
   const card = document.createElement('div');
   card.className = 'card achievement-card';
   

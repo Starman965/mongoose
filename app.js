@@ -13,7 +13,7 @@ const storage = getStorage();
 
 // DOM elements
 const mainContent = document.getElementById('mainContent');
-const modal = .getElementById('modal');
+const modal = document.getElementById('modal');
 const modalContent = .getElementById('modalContent');
 const closeModal = .getElementsByClassName('close')[0];
 

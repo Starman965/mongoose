@@ -115,7 +115,7 @@ function createChallengeCard(id, challenge) {
 }
 
 // Process match results to update achievements and challenges
-async function processMatchResult(matchData) {
+export async function processMatchResult(matchData) {
   console.log("Processing match result:", matchData);
   try {
     // Update achievements
@@ -146,7 +146,7 @@ export async function processMatchResult(matchData) {
       }
     }
 
-   // Update challenges
+// Update challenges
     const challengesRef = ref(database, 'challenges');
     const challengesSnapshot = await get(challengesRef);
     const challenges = challengesSnapshot.val();
@@ -159,6 +159,11 @@ export async function processMatchResult(matchData) {
       }
     }
 
+    console.log("Achievements and challenges updated successfully");
+  } catch (error) {
+    console.error("Error processing match result:", error);
+  }
+}
 // Helper function to check if an achievement's criteria is met
 function checkAchievementCriteria(achievement, matchData) {
   // Implement the logic to check if the match data meets the achievement criteria
@@ -184,6 +189,5 @@ function initAwards() {
 }
 
 // Export functions to be used in other modules
-export { initAwards, processMatchResult };
-export { loadAchievements, loadChallenges };  // Ensure these functions are exported
+export { initAwards, processMatchResult, loadAchievements, loadChallenges };
 

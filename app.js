@@ -266,22 +266,6 @@ function calculateSessionStats(matches) {
   return stats;
 }
 
-function showAchievements() {
-  mainContent.innerHTML = `
-    <h2>Achievements</h2>
-    <div id="achievementsContainer" class="awards-grid"></div>
-  `;
-  loadAchievements();
-}
-
-function showChallenges() {
-  mainContent.innerHTML = `
-    <h2>Challenges</h2>
-    <div id="challengesContainer" class="awards-grid"></div>
-  `;
-  loadChallenges();
-}
-
 function showHelp() {
   mainContent.innerHTML = `
     <h2>Help</h2>

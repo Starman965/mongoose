@@ -7,7 +7,7 @@ import { getAnalytics } from "https://www.gstatic.com/firebasejs/9.22.0/firebase
             authDomain: "gamenight-37cc6.firebaseapp.com",
             databaseURL: "https://gamenight-37cc6-default-rtdb.firebaseio.com",
             projectId: "gamenight-37cc6",
-            storageBucket: "gamenight-37cc6.appspot.com",
+            storageBucket: "gamenight-37cc6.appspot.com/files",
             messagingSenderId: "31368693363",
             appId: "1:31368693363:web:a2c0702234977a07dbcc06"
         };

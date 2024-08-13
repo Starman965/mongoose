@@ -1,6 +1,6 @@
 body {
-    background-color: #000000;
-    color: #ffffff;
+    background-color: #4B5320;
+    color: #2A3439;
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     margin: 0;
     padding: 0;
@@ -15,8 +15,8 @@ body {
 header {
     text-align: center;
     padding: 20px;
-    background-color: #333333;
-    border-bottom: 2px solid #FFD700;
+    background-color: #2B3E50;
+    border-bottom: 2px solid #2F4F4F;
 }
 
 header .logo {
@@ -26,7 +26,7 @@ header .logo {
 }
 
 h1 {
-    color: #FFD700;
+    color: #2F4F4F;
     margin: 0;
     font-size: 1.5em;
 }
@@ -37,20 +37,20 @@ h1 {
 }
 
 .sidebar {
-    background-color: #444444;
+    background-color: #2F4F4F;
     padding: 10px;
     min-width: 200px;
     display: flex;
     flex-direction: column;
     align-items: center;
     gap: 10px;
-    border-right: 2px solid #FFD700;
+    border-right: 2px solid #2F4F4F;
 }
 
 .sidebar button {
-    background-color: #FFD700;
+    background-color: #2F4F4F;
     border: none;
-    color: #000000;
+    color: #4B5320;
     padding: 10px;
     margin: 5px 0;
     cursor: pointer;
@@ -62,7 +62,7 @@ h1 {
 }
 
 .sidebar button:hover {
-    background-color: #FFA500;
+    background-color: #CC5500;
 }
 
 .sidebar .team-logo {
@@ -73,14 +73,14 @@ h1 {
 main {
     flex-grow: 1;
     padding: 20px;
-    background-color: #222222;
+    background-color: #F4E1C1;
     border-radius: 10px;
     overflow-y: auto;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
 .card {
-    background-color: #333333;
+    background-color: #2B3E50;
     padding: 15px;
     margin: 10px 0;
     border-radius: 8px;
@@ -121,15 +121,15 @@ main {
 footer {
     text-align: center;
     padding: 10px;
-    background-color: #333333;
-    color: #FFD700;
-    border-top: 2px solid #FFD700;
+    background-color: #2B3E50;
+    color: #2F4F4F;
+    border-top: 2px solid #2F4F4F;
 }
 
 .button {
-    background-color: #FFD700;
+    background-color: #2F4F4F;
     border: none;
-    color: #000000;
+    color: #4B5320;
     padding: 10px;
     margin: 5px;
     cursor: pointer;
@@ -142,7 +142,7 @@ footer {
 }
 
 .button:hover {
-    background-color: #FFA500;
+    background-color: #CC5500;
 }
 
 .button-group {
@@ -173,7 +173,7 @@ footer {
     justify-content: space-between;
     align-items: center;
     padding: 10px;
-    background-color: #333333;
+    background-color: #2B3E50;
     margin: 10px 0;
     border-radius: 8px;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
@@ -181,7 +181,7 @@ footer {
 
 .table-row .name {
     flex: 2;
-    color: #FFD700;
+    color: #2F4F4F;
 }
 
 .table-row .actions {
@@ -198,7 +198,7 @@ footer {
 }
 
 .team-list .card {
-    background-color: #333333;
+    background-color: #2B3E50;
     border-radius: 10px;
     overflow: hidden;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
@@ -222,7 +222,7 @@ footer {
 
 .team-list .card .member-details h3 {
     margin: 0 0 10px 0;
-    color: #FFD700;
+    color: #2F4F4F;
     font-size: 1.2em;
 }
 
@@ -268,13 +268,13 @@ footer {
 }
 
 .modal-content {
-    background-color: #333333;
+    background-color: #2B3E50;
     padding: 20px;
     border: 1px solid #888;
     width: 90%;
     max-width: 800px;
     max-height: 90%;
-    color: #ffffff;
+    color: #2A3439;
     border-radius: 10px;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     display: flex;
@@ -318,7 +318,7 @@ footer {
     padding: 8px;
     border-radius: 5px;
     border: 1px solid #555;
-    background-color: #444;
+    background-color: #3B4022;
     color: #fff;
 }
 
@@ -327,7 +327,7 @@ footer {
     width: 100%;
     height: 15px;
     border-radius: 5px;
-    background: #444;
+    background: #3B4022;
     outline: none;
     opacity: 0.7;
     transition: opacity .2s;
@@ -339,7 +339,7 @@ footer {
     width: 25px;
     height: 25px;
     border-radius: 50%;
-    background: #FFD700;
+    background: #2F4F4F;
     cursor: pointer;
 }
 
@@ -347,12 +347,12 @@ footer {
     width: 25px;
     height: 25px;
     border-radius: 50%;
-    background: #FFD700;
+    background: #2F4F4F;
     cursor: pointer;
 }
 
 .slider-value {
-    color: #FFD700;
+    color: #2F4F4F;
     margin-left: 10px;
 }
 
@@ -376,7 +376,7 @@ footer {
     left: 0;
     right: 0;
     bottom: 0;
-    background-color: #444;
+    background-color: #3B4022;
     transition: .4s;
     border-radius: 34px;
 }
@@ -388,7 +388,7 @@ footer {
     width: 56px; /* Adjusted size */
     left: 4px;
     bottom: 4px;
-    background-color: #FFD700;
+    background-color: #2F4F4F;
     transition: .4s;
     border-radius: 50px;
 }
@@ -437,20 +437,20 @@ footer {
 .stats-table th, .stats-table td,
 .highlights-table th, .highlights-table td,
 .matches-table th, .matches-table td {
-    border: 1px solid #444444;
+    border: 1px solid #2F4F4F;
     padding: 12px 15px;
     text-align: center;
     font-size: 14px;
 }
 
 .stats-table th, .highlights-table th, .matches-table th {
-    background-color: #333333;
-    color: #FFD700;
+    background-color: #2B3E50;
+    color: #2F4F4F;
     font-weight: bold;
 }
 
 .stats-table td, .highlights-table td, .matches-table td {
-    background-color: #222222;
+    background-color: #F4E1C1;
 }
 
 .stats-table tr:nth-child(even) td,
@@ -461,7 +461,7 @@ footer {
 
 .stats-table tfoot td {
     font-weight: bold;
-    background-color: #333333;
+    background-color: #2B3E50;
 }
 
 .pagination {
@@ -490,7 +490,7 @@ footer {
         width: 100%;
         min-width: auto;
         border-right: none;
-        border-bottom: 2px solid #FFD700;
+        border-bottom: 2px solid #2F4F4F;
     }
 
     main {

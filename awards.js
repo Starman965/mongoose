@@ -1,171 +1,55 @@
-// awards.js
-import { database } from './firebaseConfig.js';
-import { ref, onValue, update, get } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-database.js";
+/* awards.css */
 
-// Load achievements from Firebase
-function loadAchievements() {
-  try {
-    const achievementsRef = ref(database, 'achievements');
-    onValue(achievementsRef, (snapshot) => {
-      const achievements = snapshot.val();
-      displayAchievements(achievements);
-    }, (error) => {
-      console.error("Error loading achievements:", error);
-    });
-  } catch (error) {
-    console.error("Error setting up achievements listener:", error);
+.awards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(385px, 1fr));
+  gap: 20px;
+  padding: 20px;
+}
+
+.achievement-card,
+.challenge-card {
+  background-color: #4B5320;
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 15px;
+  width: 385px;
+  height: 130px;
+}
+
+.achievement-card img,
+.challenge-card img {
+  width: 100%;
+  height: 60px;
+  object-fit: cover;
+  border-radius: 5px;
+}
+
+.achievement-card h3,
+.challenge-card h3 {
+  margin: 10px 0 5px 0;
+  color: #2A3439;
+  font-size: 1.2em;
+}
+
+.achievement-card p,
+.challenge-card p {
+  margin: 5px 0;
+  font-size: 0.9em;
+  text-align: center;
+}
+
+@media (max-width: 768px) {
+  .awards-grid {
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  }
+
+  .achievement-card,
+  .challenge-card {
+    width: 100%;
   }
 }
-
-// Display achievements on the page
-function displayAchievements(achievements) {
-  try {
-    const achievementsContainer = document.getElementById('achievementsContainer');
-    if (!achievementsContainer) {
-      console.error("Achievements container not found");
-      return;
-    }
-    achievementsContainer.innerHTML = '';
-    for (const [id, achievement] of Object.entries(achievements)) {
-      const card = createAchievementCard(id, achievement);
-      achievementsContainer.appendChild(card);
-    }
-  } catch (error) {
-    console.error("Error displaying achievements:", error);
-  }
-}
-
-// Create an achievement card
-function createAchievementCard(id, achievement) {
-  const card = document.createElement('div');
-  card.className = 'card achievement-card';
-  card.innerHTML = `
-    <img src="${achievement.imageUrl || achievement.defaultImageUrl}" alt="${achievement.title}">
-    <h3>${achievement.title}</h3>
-    <p>${achievement.description}</p>
-    <p>Completed: ${achievement.currentCount}/${achievement.completionCount}</p>
-  `;
-  return card;
-}
-
-// Load challenges from Firebase
-function loadChallenges() {
-  try {
-    const challengesRef = ref(database, 'challenges');
-    onValue(challengesRef, (snapshot) => {
-      const challenges = snapshot.val();
-      displayChallenges(challenges);
-    }, (error) => {
-      console.error("Error loading challenges:", error);
-    });
-  } catch (error) {
-    console.error("Error setting up challenges listener:", error);
-  }
-}
-
-// Display challenges on the page
-function displayChallenges(challenges) {
-  try {
-    const challengesContainer = document.getElementById('challengesContainer');
-    if (!challengesContainer) {
-      console.error("Challenges container not found");
-      return;
-    }
-    challengesContainer.innerHTML = '';
-    for (const [id, challenge] of Object.entries(challenges)) {
-      const card = createChallengeCard(id, challenge);
-      challengesContainer.appendChild(card);
-    }
-  } catch (error) {
-    console.error("Error displaying challenges:", error);
-  }
-}
-
-// Create a challenge card
-// awards.js
-
-function createChallengeCard(id, challenge) {
-    console.log('Challenge:', challenge); // Log the challenge to inspect it
-    if (!challenge) {
-        console.error('Invalid challenge data for ID:', id);
-        return; // Exit the function if challenge is undefined or null
-    }
-
-    const card = document.createElement('div');
-    card.className = 'card challenge-card';
-
-    const playersCompleted = challenge.playersCompleted || {}; // Ensure it defaults to an empty object if null/undefined
-    const playersCount = Object.keys(playersCompleted).length;
-
-    card.innerHTML = `
-        <img src="${challenge.imageUrl || challenge.defaultImageUrl}" alt="${challenge.title}">
-        <h3>${challenge.title}</h3>
-        <p>${challenge.description}</p>
-        <p>Players Completed: ${playersCount}</p>
-    `;
-    return card;
-}
-
-// Process match results to update achievements and challenges
-async function processMatchResult(matchData) {
-  console.log("Processing match result:", matchData);
-  try {
-    // Update achievements
-    const achievementsRef = ref(database, 'achievements');
-    const achievementsSnapshot = await get(achievementsRef);
-    const achievements = achievementsSnapshot.val();
-
-    for (const [id, achievement] of Object.entries(achievements)) {
-      if (checkAchievementCriteria(achievement, matchData)) {
-        achievement.currentCount++;
-        await update(ref(database, `achievements/${id}`), { currentCount: achievement.currentCount });
-      }
-    }
-
-    // Update challenges
-    const challengesRef = ref(database, 'challenges');
-    const challengesSnapshot = await get(challengesRef);
-    const challenges = challengesSnapshot.val();
-
-    for (const [id, challenge] of Object.entries(challenges)) {
-      if (checkChallengeCriteria(challenge, matchData)) {
-        if (!challenge.playersCompleted) challenge.playersCompleted = {};
-        challenge.playersCompleted[matchData.playerId] = true;
-        await update(ref(database, `challenges/${id}/playersCompleted`), challenge.playersCompleted);
-      }
-    }
-
-    console.log("Achievements and challenges updated successfully");
-  } catch (error) {
-    console.error("Error processing match result:", error);
-  }
-}
-
-// Helper function to check if an achievement's criteria is met
-function checkAchievementCriteria(achievement, matchData) {
-  // Implement the logic to check if the match data meets the achievement criteria
-  // This is a placeholder and should be replaced with actual logic
-  return false;
-}
-
-// Helper function to check if a challenge's criteria is met
-function checkChallengeCriteria(challenge, matchData) {
-  // Implement the logic to check if the match data meets the challenge criteria
-  // This is a placeholder and should be replaced with actual logic
-  return false;
-}
-
-// Initialize awards functionality
-function initAwards() {
-  try {
-    loadAchievements();
-    loadChallenges();
-  } catch (error) {
-    console.error("Error initializing awards:", error);
-  }
-}
-
-// Export functions to be used in other modules
-export { initAwards, processMatchResult };
-export { loadAchievements, loadChallenges };  // Ensure these functions are exported
-

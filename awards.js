@@ -1,6 +1,6 @@
 // awards.js
-import { database } from './firebaseConfig.js';
-import { ref, onValue, update, get } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-database.js";
+// import { database } from './firebaseConfig.js';
+// import { ref, onValue, update, get } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-database.js";
 
 // Load and display achievements
 export function showAchievements() {
@@ -163,7 +163,7 @@ function checkChallengeCriteria(challenge, matchData) {
 }
 
 // Initialize awards functionality
-function initAwards() {
+/* function initAwards() {
   try {
     loadAchievements();
     loadChallenges();
@@ -171,7 +171,7 @@ function initAwards() {
     console.error("Error initializing awards:", error);
   }
 }
-
+*/
 // Export functions to be used in other modules
 export { initAwards, loadAchievements, loadChallenges };
 

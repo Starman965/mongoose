@@ -105,7 +105,7 @@ function createAchievementCard(id, achievement) {
   let imageUrl = achievement.customImageUrl || achievement.defaultImageUrl;
 
   card.innerHTML = `
-    <img src="${imageUrl}" alt="${achievement.title}" onerror="this.src='https://firebasestorage.googleapis.com/v0/b/gamenight-37cc6.appspot.com/o/achievements%2Fachievementbadgedefault.png?alt=media&token=ee6be1b0-0ec0-49ab-9e4d-c0a9456231e9';">
+    <img src="${imageUrl}" alt="${achievement.title}" onerror="this.src='http://mongoose.mycodsquad.com/achievementbadgedefault.png';">
     <h3>${achievement.title}</h3>
     <p>${achievement.description}</p>
     <p>Difficulty: ${achievement.difficultyLevel}</p>
@@ -326,7 +326,7 @@ function createChallengeCard(challenge) {
   const card = document.createElement('div');
   card.className = 'card challenge-card';
   
-  let imageUrl = challenge.customImageUrl || challenge.defaultImageUrl || 'path/to/default/challenge/image.png';
+  let imageUrl = challenge.customImageUrl || challenge.defaultImageUrl || 'http://mongoose.mycodsquad.com/challengebadgedefault.png';
 
   let progressHtml = '';
   if (challenge.playersCompleted) {

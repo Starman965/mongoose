@@ -516,6 +516,10 @@ function showAchievements() {
     <div id="achievementsContainer" class="awards-grid"></div>
   `;
   loadAchievements();
+  
+  // Add event listeners for filter and sort
+  document.getElementById('achievementFilter').addEventListener('change', loadAchievements);
+  document.getElementById('achievementSort').addEventListener('change', loadAchievements);
 }
 
 function showChallenges() {
@@ -539,6 +543,37 @@ function showChallenges() {
     <div id="challengesContainer" class="awards-grid"></div>
   `;
   loadChallenges();
+  
+  // Add event listeners for filter and sort
+  document.getElementById('challengeFilter').addEventListener('change', loadChallenges);
+  document.getElementById('challengeSort').addEventListener('change', loadChallenges);
+}
+
+function showChallenges() {
+  mainContent.innerHTML = `
+    <h2>Challenges</h2>
+    <div class="filter-sort-container">
+      <select id="challengeFilter">
+        <option value="all">Show All</option>
+        <option value="completedWeek">Completed This Week</option>
+        <option value="completedMonth">Completed This Month</option>
+        <option value="completedYear">Completed This Year</option>
+        <option value="inProgress">In Progress</option>
+      </select>
+      <select id="challengeSort">
+        <option value="difficulty">Sort by Difficulty</option>
+        <option value="cp">Sort by Challenge Points</option>
+        <option value="completionDate">Sort by Completion Date</option>
+        <option value="prize">Sort by Prize</option>
+      </select>
+    </div>
+    <div id="challengesContainer" class="awards-grid"></div>
+  `;
+  loadChallenges();
+  
+  // Add event listeners for filter and sort
+  document.getElementById('challengeFilter').addEventListener('change', loadChallenges);
+  document.getElementById('challengeSort').addEventListener('change', loadChallenges);
 }
 
 function showHelp() {

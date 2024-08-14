@@ -1,12 +1,13 @@
 // awardsmanager.js
 
 import { database } from './firebaseConfig.js';
-import { ref, onValue, update, get } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-database.js";
+import { ref, onValue, update, get, push } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-database.js";
 let achievementsUpdates = [];
 let challengesUpdates = [];
 export function initAwards() {
   // Initialize any necessary data or listeners for awards
 }
+export { initializeSampleAwardsForTesting };
 
 export function loadAchievements() {
   const achievementsContainer = document.getElementById('achievementsContainer');

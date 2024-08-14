@@ -165,7 +165,7 @@ function showAdminSection() {
     </div>
     <div id="adminContent"></div>
     <div class="admin-actions">
-      <button class="button" onclick="initializeSampleAwards()">Initialize Sample Awards</button>
+      <button class="button" onclick="initializeSampleAwardsForTesting()">Initialize Sample Awards for Testing</button>
     </div>
   `;
 }

@@ -973,7 +973,7 @@ function formatDate(dateString, userTimezoneOffset) {
     return date.toLocaleDateString(undefined, options);
 }
 
-  async function addMatch(e) {
+ async function addMatch(e) {
     e.preventDefault();
     console.log('addMatch function called');
     const form = e.target;
@@ -1055,6 +1055,13 @@ function formatDate(dateString, userTimezoneOffset) {
             await push(ref(database, `gameSessions/${sessionId}/matches`), matchData);
         }
         console.log('Match saved successfully');
+
+        // Process achievements and challenges
+        await processMatchResult(matchData);
+
+        // Show notification
+        showNotification(matchData);
+
         loadMatches(sessionId);
         modal.style.display = "none";
     } catch (error) {
@@ -1062,10 +1069,11 @@ function formatDate(dateString, userTimezoneOffset) {
         alert('Error adding/updating match. Please try again.');
     }
 }
-
 function showNotification(matchData) {
-  // Implement the combined notification for achievements and challenges
-  // This function will be called after processing match results
+    // Implement the combined notification for achievements and challenges
+    // This function will be called after processing match results
+    console.log("Showing notification for match:", matchData);
+    // TODO: Implement the actual notification logic
 }
 
 // Make showModal function globally accessible

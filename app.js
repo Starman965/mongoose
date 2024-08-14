@@ -2,6 +2,7 @@ import { ref, onValue, push, update, remove, get } from "https://www.gstatic.com
 import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-storage.js";
 import { database } from './firebaseConfig.js';
 import { initAwards, loadAchievements, loadChallenges, processMatchResult } from './awardsmanager.js';
+import { getAchievementsUpdates, getChallengesUpdates } from './awardsmanager.js';
 
 const storage = getStorage();
 
@@ -123,12 +124,13 @@ function showSection(section) {
 }
 
 function showStats() {
-  mainContent.innerHTML = `
-    <h2>Team Statistics</h2>
-    <p>* Note: Total Kills and Average Kills are based solely on Battle Royale game modes.</p>
-    <div id="statsTable"></div>
-  `;
-  loadStats();
+    mainContent.innerHTML = `
+        <h2>Team Statistics</h2>
+        <p>* Note: Total Kills and Average Kills are based solely on Battle Royale game modes.</p>
+        <div id="statsTable"></div>
+    `;
+    loadStats();
+    updateTeamStats();  // Add this line
 }
 
 function loadStats() {
@@ -1070,10 +1072,44 @@ function formatDate(dateString, userTimezoneOffset) {
     }
 }
 function showNotification(matchData) {
-    // Implement the combined notification for achievements and challenges
-    // This function will be called after processing match results
-    console.log("Showing notification for match:", matchData);
-    // TODO: Implement the actual notification logic
+    const achievementsUpdates = getAchievementsUpdates();
+    const challengesUpdates = getChallengesUpdates();
+
+    let notificationContent = '';
+    let soundToPlay = '';
+
+    if (achievementsUpdates.length > 0 || challengesUpdates.length > 0) {
+        notificationContent += `<h3>Updates</h3>`;
+        
+        if (achievementsUpdates.length > 0) {
+            notificationContent += `<h4>Achievements</h4>`;
+            notificationContent += `<p>${achievementsUpdates.length} achievement(s) updated</p>`;
+            notificationContent += achievementsUpdates.map(update => `<p>${update}</p>`).join('');
+            soundToPlay = '/sounds/achievementsound2.mp3';
+        } else {
+            soundToPlay = '/sounds/achievementsound1.mp3';
+        }
+
+        if (challengesUpdates.length > 0) {
+            notificationContent += `<h4>Challenges</h4>`;
+            notificationContent += `<p>${challengesUpdates.length} challenge(s) updated</p>`;
+            notificationContent += challengesUpdates.map(update => `<p>${update}</p>`).join('');
+            soundToPlay = soundToPlay || '/sounds/challengesound2.mp3';
+        } else if (!soundToPlay) {
+            soundToPlay = '/sounds/challengesound1.mp3';
+        }
+    } else {
+        notificationContent = '<p>No new achievements or challenges updated this match.</p>';
+        soundToPlay = '/sounds/achievementsound1.mp3';
+    }
+
+    // Display the notification
+    modalContent.innerHTML = notificationContent;
+    modal.style.display = "block";
+
+    // Play the sound
+    const audio = new Audio(soundToPlay);
+    audio.play();
 }
 
 // Make showModal function globally accessible
@@ -1326,6 +1362,53 @@ function updateSliderValue(event) {
     const valueSpan = document.getElementById(`${slider.id}Value`);
     const value = parseInt(slider.value);
     valueSpan.textContent = value === -1 ? 'N/A' : value;
+}
+
+function updateTeamStats() {
+    get(ref(database, 'teamMembers')).then((snapshot) => {
+        const teamMembers = snapshot.val();
+        const leaderboardData = [];
+
+        for (const [id, member] of Object.entries(teamMembers)) {
+            leaderboardData.push({
+                name: member.name,
+                completedChallenges: member.completedChallenges || 0,
+                inProgressChallenges: member.inProgressChallenges || 0,
+                totalCP: member.totalCP || 0
+            });
+        }
+
+        // Sort leaderboard by total CP
+        leaderboardData.sort((a, b) => b.totalCP - a.totalCP);
+
+        const leaderboardHTML = `
+            <h3>Challenges Leaderboard</h3>
+            <table class="stats-table">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Completed Challenges</th>
+                        <th>In-Progress Challenges</th>
+                        <th>Total CP</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${leaderboardData.map(member => `
+                        <tr>
+                            <td>${member.name}</td>
+                            <td>${member.completedChallenges}</td>
+                            <td>${member.inProgressChallenges}</td>
+                            <td>${member.totalCP}</td>
+                        </tr>
+                    `).join('')}
+                </tbody>
+            </table>
+        `;
+
+        // Add this leaderboard to the existing stats page
+        const statsContainer = document.getElementById('statsTable');
+        statsContainer.insertAdjacentHTML('afterend', leaderboardHTML);
+    });
 }
 
 window.onload = function() {

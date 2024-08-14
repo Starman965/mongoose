@@ -171,6 +171,7 @@ function showAdminSection() {
   
   document.getElementById('achievementsAdminBtn').addEventListener('click', showAchievementsAdmin);
   document.getElementById('challengesAdminBtn').addEventListener('click', showChallengesAdmin);
+  document.querySelector('.admin-actions .button').addEventListener('click', initializeSampleAwardsForTesting);
 }
 
 function initializeSampleAwardsForTesting() {

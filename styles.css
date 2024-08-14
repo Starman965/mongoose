@@ -606,4 +606,18 @@ footer {
 .admin-actions .button:hover {
   background-color: #45a049;
 }
+#prizePatrolTable {
+  margin-top: 20px;
+}
 
+#prizePatrolTable h3 {
+  margin-bottom: 10px;
+}
+
+#prizePatrolTable .stats-table td {
+  vertical-align: middle;
+}
+
+#prizePatrolTable .stats-table input[type="checkbox"] {
+  transform: scale(1.5);
+}

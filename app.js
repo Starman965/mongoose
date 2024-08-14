@@ -102,12 +102,10 @@ function showSection(section) {
       showGameSessions();
       break;
     case 'achievements':
-      // Show a message if `awards.js` is disabled
-      mainContent.innerHTML = '<p>Achievements are currently unavailable.</p>';
+     showAchievements():     
       break;
     case 'challenges':
-      // Show a message if `awards.js` is disabled
-      mainContent.innerHTML = '<p>Challenges are currently unavailable.</p>';
+      showChallenges():
       break;
     case 'highlights':
       showHighlights();

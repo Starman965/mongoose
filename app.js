@@ -170,16 +170,6 @@ function showAdminSection() {
   `;
 }
 
-// Add this new function to handle the button click
-function initializeSampleAwardsForTesting() {
-  if (confirm('Are you sure you want to initialize sample achievements and challenges? This action cannot be undone.')) {
-    initializeSampleAwardsForTesting();
-    alert('Sample achievements and challenges have been added successfully!');
-    // Refresh the admin view to show the new items
-    showAchievementsAdmin();
-  }
-}
-
 function initializeSampleAwardsForTesting() {
   const sampleAchievements = [
     {

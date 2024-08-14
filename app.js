@@ -171,7 +171,7 @@ function showAdminSection() {
 }
 
 // Add this new function to handle the button click
-function initializeSampleAwards() {
+function initializeSampleAwardsForTesting() {
   if (confirm('Are you sure you want to initialize sample achievements and challenges? This action cannot be undone.')) {
     initializeSampleAwardsForTesting();
     alert('Sample achievements and challenges have been added successfully!');

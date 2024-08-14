@@ -89,6 +89,7 @@ document.getElementById('highlightsNav').addEventListener('click', () => showSec
 document.getElementById('mapsNav').addEventListener('click', () => showSection('maps'));
 document.getElementById('modesNav').addEventListener('click', () => showSection('modes'));
 document.getElementById('teamNav').addEventListener('click', () => showSection('team'));
+document.getElementById('adminNav').addEventListener('click', () => showAdminSection());
 document.getElementById('helpNav').addEventListener('click', () => showHelp());
 document.getElementById('aboutNav').addEventListener('click', () => showAbout());
 
@@ -120,6 +121,190 @@ function showSection(section) {
     case 'team':
       showTeamMembers();
       break;
+  }
+}
+
+function showAdminSection() {
+  mainContent.innerHTML = `
+    <h2>Admin</h2>
+    <div class="admin-tabs">
+      <button class="admin-tab" onclick="showAchievementsAdmin()">Achievements</button>
+      <button class="admin-tab" onclick="showChallengesAdmin()">Challenges</button>
+    </div>
+    <div id="adminContent"></div>
+  `;
+}
+
+function showAchievementsAdmin() {
+  const adminContent = document.getElementById('adminContent');
+  adminContent.innerHTML = `
+    <h3>Achievements Management</h3>
+    <button class="button" onclick="showModal('addAchievement')">Add Achievement</button>
+    <div id="achievementsList"></div>
+  `;
+  loadAchievementsAdmin();
+}
+function showChallengesAdmin() {
+  const adminContent = document.getElementById('adminContent');
+  adminContent.innerHTML = `
+    <h3>Challenges Management</h3>
+    <button class="button" onclick="showModal('addChallenge')">Add Challenge</button>
+    <div id="challengesList"></div>
+  `;
+  loadChallengesAdmin();
+}
+function loadAchievementsAdmin() {
+  const achievementsList = document.getElementById('achievementsList');
+  achievementsList.innerHTML = 'Loading achievements...';
+
+  get(ref(database, 'achievements')).then((snapshot) => {
+    const achievements = snapshot.val();
+    let achievementsHtml = '<table class="admin-table">';
+    achievementsHtml += '<tr><th>Title</th><th>Description</th><th>AP</th><th>Difficulty</th><th>Actions</th></tr>';
+
+    for (const [id, achievement] of Object.entries(achievements)) {
+      achievementsHtml += `
+        <tr>
+          <td>${achievement.title}</td>
+          <td>${achievement.description}</td>
+          <td>${achievement.ap}</td>
+          <td>${achievement.difficultyLevel}</td>
+          <td>
+            <button class="button" onclick="showModal('editAchievement', '${id}')">Edit</button>
+            <button class="button" onclick="deleteAchievement('${id}')">Delete</button>
+          </td>
+        </tr>
+      `;
+    }
+
+    achievementsHtml += '</table>';
+    achievementsList.innerHTML = achievementsHtml;
+  });
+}
+
+function loadChallengesAdmin() {
+  const challengesList = document.getElementById('challengesList');
+  challengesList.innerHTML = 'Loading challenges...';
+
+  get(ref(database, 'challenges')).then((snapshot) => {
+    const challenges = snapshot.val();
+    let challengesHtml = '<table class="admin-table">';
+    challengesHtml += '<tr><th>Title</th><th>Description</th><th>CP</th><th>Difficulty</th><th>Actions</th></tr>';
+
+    for (const [id, challenge] of Object.entries(challenges)) {
+      challengesHtml += `
+        <tr>
+          <td>${challenge.title}</td>
+          <td>${challenge.description}</td>
+          <td>${challenge.cp}</td>
+          <td>${challenge.difficultyLevel}</td>
+          <td>
+            <button class="button" onclick="showModal('editChallenge', '${id}')">Edit</button>
+            <button class="button" onclick="deleteChallenge('${id}')">Delete</button>
+          </td>
+        </tr>
+      `;
+    }
+
+    challengesHtml += '</table>';
+    challengesList.innerHTML = challengesHtml;
+  });
+}
+// Add these functions to handle adding, editing, and deleting achievements and challenges
+function addOrUpdateAchievement(e) {
+  e.preventDefault();
+  const form = e.target;
+  const achievementId = form.dataset.id;
+  const achievementData = {
+    title: form.title.value,
+    description: form.description.value,
+    ap: parseInt(form.ap.value),
+    difficultyLevel: form.difficultyLevel.value,
+    requiredCompletionCount: parseInt(form.requiredCompletionCount.value),
+    repeatable: form.repeatable.checked,
+    gameMode: form.gameMode.value,
+    specificMode: form.specificMode.value,
+    map: form.map.value,
+    logicCriteria: form.logicCriteria.value,
+    locked: form.locked.checked,
+    startDate: form.startDate.value,
+    endDate: form.endDate.value,
+    useHistoricalData: form.useHistoricalData.checked
+  };
+
+  const operation = achievementId
+    ? update(ref(database, `achievements/${achievementId}`), achievementData)
+    : push(ref(database, 'achievements'), achievementData);
+
+  operation
+    .then(() => {
+      loadAchievementsAdmin();
+      modal.style.display = "none";
+    })
+    .catch(error => {
+      console.error("Error adding/updating achievement: ", error);
+      alert('Error adding/updating achievement. Please try again.');
+    });
+}
+
+function addOrUpdateChallenge(e) {
+  e.preventDefault();
+  const form = e.target;
+  const challengeId = form.dataset.id;
+  const challengeData = {
+    title: form.title.value,
+    description: form.description.value,
+    cp: parseInt(form.cp.value),
+    difficultyLevel: form.difficultyLevel.value,
+    requiredCompletionCount: parseInt(form.requiredCompletionCount.value),
+    repeatable: form.repeatable.checked,
+    gameMode: form.gameMode.value,
+    specificMode: form.specificMode.value,
+    map: form.map.value,
+    logicCriteria: form.logicCriteria.value,
+    locked: form.locked.checked,
+    startDate: form.startDate.value,
+    endDate: form.endDate.value,
+    useHistoricalData: form.useHistoricalData.checked,
+    prizeDescription: form.prizeDescription.value,
+    prizeSponsor: form.prizeSponsor.value,
+    soloChallenge: form.soloChallenge.checked
+  };
+
+  const operation = challengeId
+    ? update(ref(database, `challenges/${challengeId}`), challengeData)
+    : push(ref(database, 'challenges'), challengeData);
+
+  operation
+    .then(() => {
+      loadChallengesAdmin();
+      modal.style.display = "none";
+    })
+    .catch(error => {
+      console.error("Error adding/updating challenge: ", error);
+      alert('Error adding/updating challenge. Please try again.');
+    });
+}
+
+window.deleteAchievement = function(id) {
+  if (confirm('Are you sure you want to delete this achievement?')) {
+    remove(ref(database, `achievements/${id}`))
+      .then(() => loadAchievementsAdmin())
+      .catch(error => {
+        console.error("Error deleting achievement: ", error);
+        alert('Error deleting achievement. Please try again.');
+      });
+  }
+}
+
+window.deleteChallenge = function(id) {
+  if (confirm('Are you sure you want to delete this challenge?')) {
+    remove(ref(database, `challenges/${id}`))
+      .then(() => loadChallengesAdmin())
+      .catch(error => {
+        console.error("Error deleting challenge: ", error);
+        alert('Error deleting challenge. Please try again.');
+      });
   }
 }
 
@@ -1335,6 +1520,119 @@ window.showModal = async function(action, id = null, subId = null) {
      }
     modal.style.display = "block";
 }
+// New show modal for admin stuff. Was not sure to append the othe showmodal or make a new one
+window.showModal = async function(action, id = null) {
+  modalContent.innerHTML = '';
+  switch(action) {
+    // ... (existing cases)
+
+    case 'addAchievement':
+    case 'editAchievement':
+      let achievement = {};
+      if (action === 'editAchievement') {
+        const snapshot = await get(ref(database, `achievements/${id}`));
+        achievement = snapshot.val();
+      }
+      modalContent.innerHTML = `
+        <h3>${action === 'addAchievement' ? 'Add' : 'Edit'} Achievement</h3>
+        <form id="achievementForm" data-id="${id || ''}">
+          <input type="text" id="title" value="${achievement.title || ''}" placeholder="Title" required>
+          <textarea id="description" placeholder="Description" required>${achievement.description || ''}</textarea>
+          <input type="number" id="ap" value="${achievement.ap || ''}" placeholder="Achievement Points" required>
+          <select id="difficultyLevel" required>
+            <option value="">Select Difficulty</option>
+            <option value="Easy" ${achievement.difficultyLevel === 'Easy' ? 'selected' : ''}>Easy</option>
+            <option value="Moderate" ${achievement.difficultyLevel === 'Moderate' ? 'selected' : ''}>Moderate</option>
+            <option value="Hard" ${achievement.difficultyLevel === 'Hard' ? 'selected' : ''}>Hard</option>
+            <option value="Extra Hard" ${achievement.difficultyLevel === 'Extra Hard' ? 'selected' : ''}>Extra Hard</option>
+          </select>
+          <input type="number" id="requiredCompletionCount" value="${achievement.requiredCompletionCount || ''}" placeholder="Required Completion Count" required>
+          <label><input type="checkbox" id="repeatable" ${achievement.repeatable ? 'checked' : ''}> Repeatable</label>
+          <select id="gameMode" required>
+            <option value="">Select Game Mode</option>
+            <!-- Add game mode options dynamically -->
+          </select>
+          <select id="specificMode" required>
+            <option value="">Select Specific Mode</option>
+            <!-- Add specific mode options dynamically -->
+          </select>
+          <select id="map" required>
+            <option value="">Select Map</option>
+            <!-- Add map options dynamically -->
+          </select>
+          <textarea id="logicCriteria" placeholder="Logic Criteria (JSON)">${achievement.logicCriteria || ''}</textarea>
+          <label><input type="checkbox" id="locked" ${achievement.locked ? 'checked' : ''}> Locked</label>
+          <input type="date" id="startDate" value="${achievement.startDate || ''}" placeholder="Start Date">
+          <input type="date" id="endDate" value="${achievement.endDate || ''}" placeholder="End Date">
+          <label><input type="checkbox" id="useHistoricalData" ${achievement.useHistoricalData ? 'checked' : ''}> Use Historical Data</label>
+          <button type="submit">${action === 'addAchievement' ? 'Add' : 'Update'} Achievement</button>
+        </form>
+      `;
+      document.getElementById('achievementForm').addEventListener('submit', addOrUpdateAchievement);
+      break;
+
+    case 'addChallenge':
+    case 'editChallenge':
+      let challenge = {};
+      if (action === 'editChallenge') {
+        const snapshot = await get(ref(database, `challenges/${id}`));
+        challenge = snapshot.val();
+      }
+      modalContent.innerHTML = `
+        <h3>${action === 'addChallenge' ? 'Add' : 'Edit'} Challenge</h3>
+        <form id="challengeForm" data-id="${id || ''}">
+          <input type="text" id="title" value="${challenge.title || ''}" placeholder="Title" required>
+          <textarea id="description" placeholder="Description" required>${challenge.description || ''}</textarea>
+          <input type="number" id="cp" value="${challenge.cp || ''}" placeholder="Challenge Points" required>
+          <select id="difficultyLevel" required>
+            <option value="">Select Difficulty</option>
+            <option value="Easy" ${challenge.difficultyLevel === 'Easy' ? 'selected' : ''}>Easy</option>
+            <option value="Moderate" ${challenge.difficultyLevel === 'Moderate' ? 'selected' : ''}>Moderate</option>
+            <option value="Hard" ${challenge.difficultyLevel === 'Hard' ? 'selected' : ''}>Hard</option>
+            <option value="Extra Hard" ${challenge.difficultyLevel === 'Extra Hard' ? 'selected' : ''}>Extra Hard</option>
+          </select>
+          <input type="number" id="requiredCompletionCount" value="${challenge.requiredCompletionCount || ''}" placeholder="Required Completion Count" required>
+          <label><input type="checkbox" id="repeatable" ${challenge.repeatable ? 'checked' : ''}> Repeatable</label>
+          <select id="gameMode" required>
+            <option value="">Select Game Mode</option>
+            <!-- Add game mode options dynamically -->
+          </select>
+          <select id="specificMode" required>
+            <option value="">Select Specific Mode</option>
+            <!-- Add specific mode options dynamically -->
+          </select>
+          <select id="map" required>
+            <option value="">Select Map</option>
+            <!-- Add map options dynamically -->
+          </select>
+          <textarea id="logicCriteria" placeholder="Logic Criteria (JSON)">${challenge.logicCriteria || ''}</textarea>
+          <label><input type="checkbox" id="locked" ${challenge.locked ? 'checked' : ''}> Locked</label>
+          <input type="date" id="startDate" value="${challenge.startDate || ''}" placeholder="Start Date">
+          <input type="date" id="endDate" value="${challenge.endDate || ''}" placeholder="End Date">
+          <label><input type="checkbox" id="useHistoricalData" ${challenge.useHistoricalData ? 'checked' : ''}> Use Historical Data</label>
+          <input type="text" id="prizeDescription" value="${challenge.prizeDescription || ''}" placeholder="Prize Description">
+          <select id="prizeSponsor" required>
+            <option value="">Select Prize Sponsor</option>
+            <!-- Add team members as options dynamically -->
+          </select>
+          <label><input type="checkbox" id="soloChallenge" ${challenge.soloChallenge ? 'checked' : ''}> Solo Challenge</label>
+          <button type="submit">${action === 'addChallenge' ? 'Add' : 'Update'} Challenge</button>
+        </form>
+      `;
+      document.getElementById('challengeForm').addEventListener('submit', addOrUpdateChallenge);
+      break;
+  }
+  modal.style.display = "block";
+
+  // Populate dynamic select options
+  if (action.includes('Achievement') || action.includes('Challenge')) {
+    populateGameModes();
+    populateMaps();
+    if (action.includes('Challenge')) {
+      populateTeamMembers();
+    }
+  }
+}
 
 // Functions to update slider value labels
 function updatePlacementValue() {
@@ -1410,7 +1708,53 @@ function updateTeamStats() {
         statsContainer.insertAdjacentHTML('afterend', leaderboardHTML);
     });
 }
+// Add these helper functions to populate select options
+function populateGameModes() {
+  get(ref(database, 'gameModes')).then((snapshot) => {
+    const gameModes = snapshot.val();
+    const gameModeSelect = document.getElementById('gameMode');
+    const specificModeSelect = document.getElementById('specificMode');
 
+    for (const [id, mode] of Object.entries(gameModes)) {
+      const option = document.createElement('option');
+      option.value = mode.name;
+      option.textContent = mode.name;
+      gameModeSelect.appendChild(option);
+
+      const specificOption = document.createElement('option');
+      specificOption.value = mode.name;
+      specificOption.textContent = mode.name;
+      specificModeSelect.appendChild(specificOption);
+    }
+  });
+}
+function populateMaps() {
+  get(ref(database, 'maps')).then((snapshot) => {
+    const maps = snapshot.val();
+    const mapSelect = document.getElementById('map');
+
+    for (const [id, map] of Object.entries(maps)) {
+      const option = document.createElement('option');
+      option.value = map.name;
+      option.textContent = map.name;
+      mapSelect.appendChild(option);
+    }
+  });
+}
+
+function populateTeamMembers() {
+  get(ref(database, 'teamMembers')).then((snapshot) => {
+    const teamMembers = snapshot.val();
+    const sponsorSelect = document.getElementById('prizeSponsor');
+
+    for (const [id, member] of Object.entries(teamMembers)) {
+      const option = document.createElement('option');
+      option.value = member.name;
+      option.textContent = member.name;
+      sponsorSelect.appendChild(option);
+    }
+  });
+}
 window.onload = function() {
     modal.style.display = "none"; // Ensure modal is hidden on load
 };

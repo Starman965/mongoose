@@ -2,7 +2,8 @@
 
 import { database } from './firebaseConfig.js';
 import { ref, onValue, update, get } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-database.js";
-
+let achievementsUpdates = [];
+let challengesUpdates = [];
 export function initAwards() {
   // Initialize any necessary data or listeners for awards
 }
@@ -46,6 +47,17 @@ function createAchievementCard(id, achievement) {
   return card;
 }
 
+export function getAchievementsUpdates() {
+    const updates = achievementsUpdates;
+    achievementsUpdates = [];  // Clear the updates
+    return updates;
+}
+
+export function getChallengesUpdates() {
+    const updates = challengesUpdates;
+    challengesUpdates = [];  // Clear the updates
+    return updates;
+}
 export function loadChallenges() {
   // Similar implementation to loadAchievements, but for challenges
 }
@@ -59,15 +71,18 @@ export async function processMatchResult(matchData) {
 }
 
 async function processAchievements(matchData) {
-  const achievementsRef = ref(database, 'achievements');
-  const achievementsSnapshot = await get(achievementsRef);
-  const achievements = achievementsSnapshot.val();
+    const achievementsRef = ref(database, 'achievements');
+    const achievementsSnapshot = await get(achievementsRef);
+    const achievements = achievementsSnapshot.val();
 
-  for (const [id, achievement] of Object.entries(achievements)) {
-    if (checkAchievementCriteria(achievement, matchData)) {
-      await updateAchievement(id, achievement, matchData);
+    for (const [id, achievement] of Object.entries(achievements)) {
+        if (checkAchievementCriteria(achievement, matchData)) {
+            const update = await updateAchievement(id, achievement, matchData);
+            if (update) {
+                achievementsUpdates.push(update);
+            }
+        }
     }
-  }
 }
 
 function checkAchievementCriteria(achievement, matchData) {
@@ -83,7 +98,18 @@ async function updateAchievement(id, achievement, matchData) {
 }
 
 async function processChallenges(matchData) {
-  // Similar implementation to processAchievements, but for challenges
+    const challengesRef = ref(database, 'challenges');
+    const challengesSnapshot = await get(challengesRef);
+    const challenges = challengesSnapshot.val();
+
+    for (const [id, challenge] of Object.entries(challenges)) {
+        if (checkChallengeCriteria(challenge, matchData)) {
+            const update = await updateChallenge(id, challenge, matchData);
+            if (update) {
+                challengesUpdates.push(update);
+            }
+        }
+    }
 }
 
 // Add more helper functions as needed

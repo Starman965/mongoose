@@ -251,13 +251,13 @@ function initializeSampleAwardsForTesting() {
   const sampleChallenges = [
     {
       title: "Slayer",
-      description: "Get 10 or more kills on a Battle Royale Resurgence Solos game on Rebirth Island",
-      cp: 100,
+      description: "Get 10 or more kills on a Battle Royale Solos game in Ursikstan",
+      cp: 300,
       difficultyLevel: "Moderate",
       requiredCompletionCount: 1,
       repeatable: false,
-      gameMode: "Battle Royale Resurgence Solos",
-      map: "Rebirth Island",
+      gameMode: "Battle Royale Solos",
+      map: "Urzikstan",
       logicCriteria: JSON.stringify([
         { type: "gameMode", value: "Battle Royale Resurgence Solos" },
         { type: "map", value: "Rebirth Island" },
@@ -267,9 +267,9 @@ function initializeSampleAwardsForTesting() {
       startDate: new Date().toISOString(),
       endDate: new Date("2024-12-31").toISOString(),
       useHistoricalData: false,
-      prizeDescription: "Coffee Mug",
+      prizeDescription: "Custom Slayer T-Shirt",
       prizeSponsor: "STARMAN",
-      soloChallenge: true
+      soloChallenge: false
     }
   ];
 

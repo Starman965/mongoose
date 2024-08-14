@@ -123,6 +123,40 @@ function showSection(section) {
       break;
   }
 }
+function checkAchievementCriteria(achievement, matchData) {
+  // Parse the JSON logic criteria
+  const criteria = JSON.parse(achievement.logicCriteria);
+
+  // Check if the match data meets all the criteria
+  return criteria.every(criterion => {
+    switch (criterion.type) {
+      case 'gameMode':
+        return matchData.gameMode === criterion.value;
+      case 'map':
+        return matchData.map === criterion.value;
+      case 'placement':
+        return matchData.placement <= criterion.value;
+      case 'totalKills':
+        return matchData.totalKills >= criterion.value;
+      case 'playerKills':
+        return Object.values(matchData.kills).some(kills => kills >= criterion.value);
+      // Add more criteria types as needed
+      default:
+        return false;
+    }
+  });
+}
+
+function checkChallengeCriteria(challenge, matchData) {
+  // Similar to checkAchievementCriteria, but may include player-specific checks
+  const criteria = JSON.parse(challenge.logicCriteria);
+
+  return criteria.every(criterion => {
+    // Implement challenge-specific criteria checks
+    // This might include checking individual player performance
+    // or other challenge-specific conditions
+  });
+}
 
 function showAdminSection() {
   mainContent.innerHTML = `

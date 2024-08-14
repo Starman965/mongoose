@@ -57,13 +57,35 @@ function sortAchievements(achievements, sortValue) {
 }
 
 function filterChallenges(challenges, filterValue) {
-  // Similar to filterAchievements, but adapt for challenges
+  const now = new Date();
+  switch(filterValue) {
+    case 'completedWeek':
+      return challenges.filter(c => c.status === 'Completed' && new Date(c.completionDate) > new Date(now - 7 * 24 * 60 * 60 * 1000));
+    case 'completedMonth':
+      return challenges.filter(c => c.status === 'Completed' && new Date(c.completionDate) > new Date(now.getFullYear(), now.getMonth() - 1, now.getDate()));
+    case 'completedYear':
+      return challenges.filter(c => c.status === 'Completed' && new Date(c.completionDate) > new Date(now.getFullYear() - 1, now.getMonth(), now.getDate()));
+    case 'inProgress':
+      return challenges.filter(c => c.status === 'In Progress');
+    default:
+      return challenges;
+  }
 }
 
 function sortChallenges(challenges, sortValue) {
-  // Similar to sortAchievements, but adapt for challenges
+  switch(sortValue) {
+    case 'difficulty':
+      return challenges.sort((a, b) => difficultyOrder.indexOf(a.difficultyLevel) - difficultyOrder.indexOf(b.difficultyLevel));
+    case 'cp':
+      return challenges.sort((a, b) => b.cp - a.cp);
+    case 'completionDate':
+      return challenges.sort((a, b) => new Date(b.completionDate) - new Date(a.completionDate));
+    case 'prize':
+      return challenges.sort((a, b) => (b.prizeDescription || '').localeCompare(a.prizeDescription || ''));
+    default:
+      return challenges;
+  }
 }
-
 const difficultyOrder = ['Easy', 'Moderate', 'Hard', 'Extra Hard'];
 
 function displayAchievements(achievements) {
@@ -121,6 +143,9 @@ export function loadChallenges() {
     challenges = sortChallenges(challenges, sortValue);
     
     displayChallenges(challenges);
+  }).catch((error) => {
+    console.error("Error loading challenges:", error);
+    challengesContainer.innerHTML = '<p>Error loading challenges. Please try again later.</p>';
   });
 }
 
@@ -281,17 +306,12 @@ function displayChallenges(challenges) {
   const container = document.getElementById('challengesContainer');
   container.innerHTML = '';
 
-  // Check if challenges is null or undefined
-  if (!challenges) {
+  if (challenges.length === 0) {
     container.innerHTML = '<p>No challenges available.</p>';
     return;
   }
 
-  // If challenges is an object, convert it to an array
-  const challengesArray = Array.isArray(challenges) ? challenges : Object.values(challenges);
-
-  // Now use challengesArray instead of challenges in your loop
-  for (const challenge of challengesArray) {
+  for (const challenge of challenges) {
     const card = createChallengeCard(challenge);
     container.appendChild(card);
   }
@@ -301,7 +321,7 @@ function createChallengeCard(challenge) {
   const card = document.createElement('div');
   card.className = 'card challenge-card';
   
-  let imageUrl = challenge.customImageUrl || challenge.defaultImageUrl || 'https://firebasestorage.googleapis.com/v0/b/gamenight-37cc6.appspot.com/o/challenges%2Fchallengebadgedefault.png?alt=media&token=your-token-here';
+  let imageUrl = challenge.customImageUrl || challenge.defaultImageUrl || 'path/to/default/challenge/image.png';
 
   let progressHtml = '';
   if (challenge.playersCompleted) {
@@ -311,7 +331,7 @@ function createChallengeCard(challenge) {
   }
 
   card.innerHTML = `
-    <img src="${imageUrl}" alt="${challenge.title}" onerror="this.src='https://firebasestorage.googleapis.com/v0/b/gamenight-37cc6.appspot.com/o/challenges%2Fchallengebadgedefault.png?alt=media&token=your-token-here';">
+    <img src="${imageUrl}" alt="${challenge.title}" onerror="this.src='path/to/fallback/image.png';">
     <h3>${challenge.title}</h3>
     <p>${challenge.description}</p>
     <p>Difficulty: ${challenge.difficultyLevel}</p>
@@ -331,6 +351,7 @@ function createChallengeCard(challenge) {
 
   return card;
 }
+
 // Add more helper functions as needed
 function getPlayerNameFromMatchData(matchData) {
   // This function should return the name of the player who performed the action

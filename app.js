@@ -1,17 +1,10 @@
 import { ref, onValue, push, update, remove, get } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-database.js";
 import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-storage.js";
 import { database } from './firebaseConfig.js';
-// import { showAchievements, showChallenges, processMatchResult, loadAchievements, loadChallenges, initAwards } from './awards.js';
+import { initAwards, loadAchievements, loadChallenges, processMatchResult } from './awardsmanager.js';
 
-// const database = window.database;
 const storage = getStorage();
 
-// App DB initialization code
-// import './initializeDatabase.js'; remove comment if needed to init again
-// initializeAchievements(); remove comment if needed to init again
-// initializeChallenges(); remove comment if needed to init again
-
-// DOM elements
 // DOM elements
 const mainContent = document.getElementById('mainContent');
 const modal = document.getElementById('modal');
@@ -267,6 +260,51 @@ function calculateSessionStats(matches) {
   stats.averageKills = stats.gamesPlayed > 0 ? (stats.totalKills / stats.gamesPlayed).toFixed(2) : 0;
 
   return stats;
+}
+function showAchievements() {
+  mainContent.innerHTML = `
+    <h2>Achievements</h2>
+    <div class="filter-sort-container">
+      <select id="achievementFilter">
+        <option value="all">Show All</option>
+        <option value="completedWeek">Completed This Week</option>
+        <option value="completedMonth">Completed This Month</option>
+        <option value="completedYear">Completed This Year</option>
+        <option value="inProgress">In Progress</option>
+      </select>
+      <select id="achievementSort">
+        <option value="difficulty">Sort by Difficulty</option>
+        <option value="ap">Sort by Achievement Points</option>
+        <option value="progress">Sort by Progress</option>
+        <option value="completionDate">Sort by Completion Date</option>
+      </select>
+    </div>
+    <div id="achievementsContainer" class="awards-grid"></div>
+  `;
+  loadAchievements();
+}
+
+function showChallenges() {
+  mainContent.innerHTML = `
+    <h2>Challenges</h2>
+    <div class="filter-sort-container">
+      <select id="challengeFilter">
+        <option value="all">Show All</option>
+        <option value="completedWeek">Completed This Week</option>
+        <option value="completedMonth">Completed This Month</option>
+        <option value="completedYear">Completed This Year</option>
+        <option value="inProgress">In Progress</option>
+      </select>
+      <select id="challengeSort">
+        <option value="difficulty">Sort by Difficulty</option>
+        <option value="cp">Sort by Challenge Points</option>
+        <option value="completionDate">Sort by Completion Date</option>
+        <option value="prize">Sort by Prize</option>
+      </select>
+    </div>
+    <div id="challengesContainer" class="awards-grid"></div>
+  `;
+  loadChallenges();
 }
 
 function showHelp() {
@@ -1023,6 +1061,11 @@ function formatDate(dateString, userTimezoneOffset) {
         console.error("Error adding/updating match:", error);
         alert('Error adding/updating match. Please try again.');
     }
+}
+
+function showNotification(matchData) {
+  // Implement the combined notification for achievements and challenges
+  // This function will be called after processing match results
 }
 
 // Make showModal function globally accessible

@@ -360,9 +360,83 @@ function showStats() {
         <h2>Team Statistics</h2>
         <p>* Note: Total Kills and Average Kills are based solely on Battle Royale game modes.</p>
         <div id="statsTable"></div>
+        <div id="challengesLeaderboard"></div>
+        <div id="prizePatrolTable"></div>
     `;
     loadStats();
-    updateTeamStats();  // Add this line
+    updateTeamStats();
+    loadPrizePatrol();
+}
+function loadPrizePatrol() {
+    const prizePatrolContainer = document.getElementById('prizePatrolTable');
+    prizePatrolContainer.innerHTML = 'Loading Prize Patrol data...';
+
+    get(ref(database, 'challenges')).then((snapshot) => {
+        const challenges = snapshot.val();
+        let prizePatrolHTML = `
+            <h3>Prize Patrol</h3>
+            <table class="stats-table">
+                <thead>
+                    <tr>
+                        <th>Challenge/Achievement</th>
+                        <th>Winner(s)</th>
+                        <th>Date Earned</th>
+                        <th>Match</th>
+                        <th>Prize</th>
+                        <th>Sponsor</th>
+                        <th>Payout Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+        `;
+
+        for (const [id, challenge] of Object.entries(challenges)) {
+            if (challenge.playersCompleted) {
+                for (const [player, completionInfo] of Object.entries(challenge.playersCompleted)) {
+                    if (completionInfo === 'Completed') {
+                        prizePatrolHTML += `
+                            <tr>
+                                <td>${challenge.title}</td>
+                                <td>${player}</td>
+                                <td>${formatDate(challenge.completionDate)}</td>
+                                <td><a href="#" onclick="viewMatch('${challenge.completionMatchId}')">View Match</a></td>
+                                <td>${challenge.prizeDescription}</td>
+                                <td>${challenge.prizeSponsor}</td>
+                                <td>
+                                    <input type="checkbox" id="payout-${id}-${player}" 
+                                           ${challenge.paidOut ? 'checked' : ''} 
+                                           onchange="updatePayoutStatus('${id}', '${player}', this.checked)">
+                                </td>
+                            </tr>
+                        `;
+                    }
+                }
+            }
+        }
+
+        prizePatrolHTML += `
+                </tbody>
+            </table>
+        `;
+
+        prizePatrolContainer.innerHTML = prizePatrolHTML;
+    });
+}
+
+function viewMatch(matchId) {
+    // Implement this function to show match details
+    console.log(`Viewing match: ${matchId}`);
+    // You might want to open a modal or navigate to a match details page
+}
+
+function updatePayoutStatus(challengeId, player, isPaidOut) {
+    update(ref(database, `challenges/${challengeId}/playersCompleted/${player}`), {
+        paidOut: isPaidOut
+    }).then(() => {
+        console.log(`Updated payout status for ${player} on challenge ${challengeId}`);
+    }).catch((error) => {
+        console.error("Error updating payout status:", error);
+    });
 }
 
 function loadStats() {

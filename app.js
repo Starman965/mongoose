@@ -182,6 +182,119 @@ function initializeSampleAwards() {
   }
 }
 
+function initializeSampleAwardsForTesting() {
+  const sampleAchievements = [
+    {
+      title: "Hump Day",
+      description: "Getting a Win on a Wednesday",
+      ap: 50,
+      difficultyLevel: "Easy",
+      requiredCompletionCount: 1,
+      repeatable: true,
+      gameMode: "Any",
+      map: "Any",
+      logicCriteria: JSON.stringify([
+        { type: "dayOfWeek", days: [3] }, // Wednesday is day 3 (0-indexed)
+        { type: "placement", value: 1 }
+      ]),
+      locked: false,
+      useHistoricalData: true
+    },
+    {
+      title: "Honeymoon Fund",
+      description: "Get 35 wins in a Battle Royale mode game",
+      ap: 500,
+      difficultyLevel: "Hard",
+      requiredCompletionCount: 35,
+      repeatable: false,
+      gameMode: "Battle Royale",
+      map: "Any",
+      logicCriteria: JSON.stringify([
+        { type: "gameMode", value: "Battle Royale" },
+        { type: "placement", value: 1 }
+      ]),
+      locked: false,
+      startDate: new Date().toISOString(),
+      endDate: new Date("2025-04-01").toISOString(),
+      useHistoricalData: false
+    },
+    {
+      title: "Another Win in Paradise",
+      description: "Get a win on Resurgence Quads mode on Rebirth Island map",
+      ap: 100,
+      difficultyLevel: "Moderate",
+      requiredCompletionCount: 1,
+      repeatable: true,
+      gameMode: "Resurgence Quads",
+      map: "Rebirth Island",
+      logicCriteria: JSON.stringify([
+        { type: "gameMode", value: "Resurgence Quads" },
+        { type: "map", value: "Rebirth Island" },
+        { type: "placement", value: 1 }
+      ]),
+      locked: false,
+      useHistoricalData: true
+    },
+    {
+      title: "Odd Man Out",
+      description: "Win a Battle Royale Resurgence game on Rebirth Island with total team kills over 10 and each team member having more than 2 kills",
+      ap: 1000,
+      difficultyLevel: "Extra Hard",
+      requiredCompletionCount: 1,
+      repeatable: false,
+      gameMode: "Battle Royale Resurgence",
+      map: "Rebirth Island",
+      logicCriteria: JSON.stringify([
+        { type: "gameMode", value: "Battle Royale Resurgence" },
+        { type: "map", value: "Rebirth Island" },
+        { type: "placement", value: 1 },
+        { type: "totalKills", value: 10 },
+        { type: "playerKills", value: 2 }
+      ]),
+      locked: false,
+      useHistoricalData: true
+    }
+  ];
+
+  const sampleChallenges = [
+    {
+      title: "Slayer",
+      description: "Get 10 or more kills on a Battle Royale Resurgence Solos game on Rebirth Island",
+      cp: 100,
+      difficultyLevel: "Moderate",
+      requiredCompletionCount: 1,
+      repeatable: false,
+      gameMode: "Battle Royale Resurgence Solos",
+      map: "Rebirth Island",
+      logicCriteria: JSON.stringify([
+        { type: "gameMode", value: "Battle Royale Resurgence Solos" },
+        { type: "map", value: "Rebirth Island" },
+        { type: "playerKills", value: 10 }
+      ]),
+      locked: false,
+      startDate: new Date().toISOString(),
+      endDate: new Date("2024-12-31").toISOString(),
+      useHistoricalData: false,
+      prizeDescription: "Coffee Mug",
+      prizeSponsor: "STARMAN",
+      soloChallenge: true
+    }
+  ];
+
+  // Add sample achievements to the database
+  sampleAchievements.forEach(achievement => {
+    push(ref(database, 'achievements'), achievement);
+  });
+
+  // Add sample challenges to the database
+  sampleChallenges.forEach(challenge => {
+    push(ref(database, 'challenges'), challenge);
+  });
+
+  console.log("Sample achievements and challenges have been added for testing.");
+}
+
+
 function showAchievementsAdmin() {
   const adminContent = document.getElementById('adminContent');
   adminContent.innerHTML = `

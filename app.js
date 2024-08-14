@@ -160,14 +160,17 @@ function showAdminSection() {
   mainContent.innerHTML = `
     <h2>Admin</h2>
     <div class="admin-tabs">
-      <button class="admin-tab" onclick="showAchievementsAdmin()">Achievements</button>
-      <button class="admin-tab" onclick="showChallengesAdmin()">Challenges</button>
+      <button id="achievementsAdminBtn" class="admin-tab">Achievements</button>
+      <button id="challengesAdminBtn" class="admin-tab">Challenges</button>
     </div>
     <div id="adminContent"></div>
     <div class="admin-actions">
       <button class="button" onclick="initializeSampleAwardsForTesting()">Initialize Sample Awards for Testing</button>
     </div>
   `;
+  
+  document.getElementById('achievementsAdminBtn').addEventListener('click', showAchievementsAdmin);
+  document.getElementById('challengesAdminBtn').addEventListener('click', showChallengesAdmin);
 }
 
 function initializeSampleAwardsForTesting() {

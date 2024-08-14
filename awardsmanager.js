@@ -86,15 +86,116 @@ async function processAchievements(matchData) {
 }
 
 function checkAchievementCriteria(achievement, matchData) {
-  // Implement the logic to check if the match data meets the achievement criteria
-  // This should interpret the JSON logic criteria stored in the achievement
-  // Return true if the criteria is met, false otherwise
+  if (achievement.locked) return false;
+  
+  if (!isWithinTimeFrame(achievement, matchData.timestamp)) return false;
+
+  const criteria = JSON.parse(achievement.logicCriteria);
+  return criteria.every(criterion => evaluateCriterion(criterion, matchData));
+}
+
+function checkChallengeCriteria(challenge, matchData) {
+  if (challenge.locked) return false;
+  
+  if (!isWithinTimeFrame(challenge, matchData.timestamp)) return false;
+
+  const criteria = JSON.parse(challenge.logicCriteria);
+  return criteria.every(criterion => evaluateCriterion(criterion, matchData));
+}
+
+function isWithinTimeFrame(item, timestamp) {
+  const now = new Date(timestamp);
+  const startDate = item.startDate ? new Date(item.startDate) : null;
+  const endDate = item.endDate ? new Date(item.endDate) : null;
+
+  if (startDate && now < startDate) return false;
+  if (endDate && now > endDate) return false;
+
+  return true;
+}
+function evaluateCriterion(criterion, matchData) {
+  switch (criterion.type) {
+    case 'gameMode':
+      return matchData.gameMode === criterion.value;
+    case 'map':
+      return matchData.map === criterion.value;
+    case 'placement':
+      return matchData.placement <= criterion.value;
+    case 'totalKills':
+      return matchData.totalKills >= criterion.value;
+    case 'playerKills':
+      return Object.values(matchData.kills).some(kills => kills >= criterion.value);
+    case 'specificPlayerKills':
+      return matchData.kills[criterion.player] >= criterion.value;
+    case 'winStreak':
+      // This would require checking previous matches, which we'll implement later
+      return true;
+    case 'dayOfWeek':
+      const dayOfWeek = new Date(matchData.timestamp).getDay();
+      return criterion.days.includes(dayOfWeek);
+    default:
+      console.warn(`Unknown criterion type: ${criterion.type}`);
+      return false;
+  }
 }
 
 async function updateAchievement(id, achievement, matchData) {
-  // Update the achievement progress or status based on the match data
-  // This function should handle different types of achievements (one-time, repeatable, time-limited)
-  // and respect the "Use Historical Data" flag
+  if (!achievement.useHistoricalData && achievement.creationDate > matchData.timestamp) {
+    return null;
+  }
+
+  let update = null;
+  if (checkAchievementCriteria(achievement, matchData)) {
+    achievement.currentCompletionCount++;
+    if (achievement.currentCompletionCount >= achievement.requiredCompletionCount) {
+      achievement.status = 'Completed';
+      if (!achievement.firstCompletionDate) {
+        achievement.firstCompletionDate = matchData.timestamp;
+      }
+      update = `Achievement "${achievement.title}" completed!`;
+    } else {
+      achievement.status = 'In Progress';
+      update = `Progress made on achievement "${achievement.title}"`;
+    }
+
+    if (!achievement.repeatable && achievement.status === 'Completed') {
+      achievement.locked = true;
+    }
+
+    await update(ref(database, `achievements/${id}`), achievement);
+  }
+
+  return update;
+}
+async function updateChallenge(id, challenge, matchData) {
+  if (!challenge.useHistoricalData && challenge.creationDate > matchData.timestamp) {
+    return null;
+  }
+
+  let update = null;
+  if (checkChallengeCriteria(challenge, matchData)) {
+    // For challenges, we need to track completion for each player
+    const playerName = getPlayerNameFromMatchData(matchData);
+    if (!challenge.playersCompleted) challenge.playersCompleted = {};
+    if (!challenge.playersCompleted[playerName]) {
+      challenge.playersCompleted[playerName] = 0;
+    }
+    challenge.playersCompleted[playerName]++;
+
+    if (challenge.playersCompleted[playerName] >= challenge.requiredCompletionCount) {
+      update = `Player ${playerName} completed the challenge "${challenge.title}"!`;
+      if (!challenge.repeatable) {
+        // Mark as completed for this player
+        challenge.playersCompleted[playerName] = 'Completed';
+      }
+    } else {
+      update = `Player ${playerName} made progress on challenge "${challenge.title}"`;
+    }
+
+    await update(ref(database, `challenges/${id}`), challenge);
+  }
+
+  return update;
 }
 
 async function processChallenges(matchData) {
@@ -113,3 +214,121 @@ async function processChallenges(matchData) {
 }
 
 // Add more helper functions as needed
+function getPlayerNameFromMatchData(matchData) {
+  // This function should return the name of the player who performed the action
+  // You might need to adjust this based on how player information is stored in matchData
+  return Object.keys(matchData.kills)[0] || 'Unknown Player';
+}
+
+// code for sample achievements
+function initializeSampleAwardsForTesting() {
+  const sampleAchievements = [
+    {
+      title: "Hump Day",
+      description: "Getting a Win on a Wednesday",
+      ap: 50,
+      difficultyLevel: "Easy",
+      requiredCompletionCount: 1,
+      repeatable: true,
+      gameMode: "Any",
+      map: "Any",
+      logicCriteria: JSON.stringify([
+        { type: "dayOfWeek", days: [3] }, // Wednesday is day 3 (0-indexed)
+        { type: "placement", value: 1 }
+      ]),
+      locked: false,
+      useHistoricalData: true
+    },
+    {
+      title: "Honeymoon Fund",
+      description: "Get 35 wins in a Battle Royale mode game",
+      ap: 500,
+      difficultyLevel: "Hard",
+      requiredCompletionCount: 35,
+      repeatable: false,
+      gameMode: "Battle Royale",
+      map: "Any",
+      logicCriteria: JSON.stringify([
+        { type: "gameMode", value: "Battle Royale" },
+        { type: "placement", value: 1 }
+      ]),
+      locked: false,
+      startDate: new Date().toISOString(),
+      endDate: new Date("2025-04-01").toISOString(),
+      useHistoricalData: false
+    },
+    {
+      title: "Another Win in Paradise",
+      description: "Get a win on Resurgence Quads mode on Rebirth Island map",
+      ap: 100,
+      difficultyLevel: "Moderate",
+      requiredCompletionCount: 1,
+      repeatable: true,
+      gameMode: "Resurgence Quads",
+      map: "Rebirth Island",
+      logicCriteria: JSON.stringify([
+        { type: "gameMode", value: "Resurgence Quads" },
+        { type: "map", value: "Rebirth Island" },
+        { type: "placement", value: 1 }
+      ]),
+      locked: false,
+      useHistoricalData: true
+    },
+    {
+      title: "Odd Man Out",
+      description: "Win a Battle Royale Resurgence game on Rebirth Island with total team kills over 10 and each team member having more than 2 kills",
+      ap: 1000,
+      difficultyLevel: "Extra Hard",
+      requiredCompletionCount: 1,
+      repeatable: false,
+      gameMode: "Battle Royale Resurgence",
+      map: "Rebirth Island",
+      logicCriteria: JSON.stringify([
+        { type: "gameMode", value: "Battle Royale Resurgence" },
+        { type: "map", value: "Rebirth Island" },
+        { type: "placement", value: 1 },
+        { type: "totalKills", value: 10 },
+        { type: "playerKills", value: 2 }
+      ]),
+      locked: false,
+      useHistoricalData: true
+    }
+  ];
+
+  const sampleChallenges = [
+    {
+      title: "Slayer",
+      description: "Get 10 or more kills on a Battle Royale Resurgence Solos game on Rebirth Island",
+      cp: 100,
+      difficultyLevel: "Moderate",
+      requiredCompletionCount: 1,
+      repeatable: false,
+      gameMode: "Battle Royale Resurgence Solos",
+      map: "Rebirth Island",
+      logicCriteria: JSON.stringify([
+        { type: "gameMode", value: "Battle Royale Resurgence Solos" },
+        { type: "map", value: "Rebirth Island" },
+        { type: "playerKills", value: 10 }
+      ]),
+      locked: false,
+      startDate: new Date().toISOString(),
+      endDate: new Date("2024-12-31").toISOString(),
+      useHistoricalData: false,
+      prizeDescription: "Coffee Mug",
+      prizeSponsor: "STARMAN",
+      soloChallenge: true
+    }
+  ];
+
+  // Add sample achievements to the database
+  sampleAchievements.forEach(achievement => {
+    push(ref(database, 'achievements'), achievement);
+  });
+
+  // Add sample challenges to the database
+  sampleChallenges.forEach(challenge => {
+    push(ref(database, 'challenges'), challenge);
+  });
+
+  console.log("Sample achievements and challenges have been added for testing.");
+}

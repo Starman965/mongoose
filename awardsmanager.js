@@ -232,7 +232,6 @@ async function updateChallenge(id, challenge, matchData) {
   if (!challenge.useHistoricalData && challenge.creationDate > matchData.timestamp) {
     return null;
   }
-
   let update = null;
   if (checkChallengeCriteria(challenge, matchData)) {
     // For challenges, we need to track completion for each player
@@ -243,15 +242,19 @@ async function updateChallenge(id, challenge, matchData) {
     }
     challenge.playersCompleted[playerName]++;
 
-    if (challenge.playersCompleted[playerName] >= challenge.requiredCompletionCount) {
-      update = `Player ${playerName} completed the challenge "${challenge.title}"!`;
-      if (!challenge.repeatable) {
-        // Mark as completed for this player
-        challenge.playersCompleted[playerName] = 'Completed';
-      }
-    } else {
-      update = `Player ${playerName} made progress on challenge "${challenge.title}"`;
+   if (challenge.playersCompleted[playerName] >= challenge.requiredCompletionCount) {
+    update = `Player ${playerName} completed the challenge "${challenge.title}"!`;
+    if (!challenge.repeatable) {
+      // Mark as completed for this player
+      challenge.playersCompleted[playerName] = {
+        status: 'Completed',
+        completionDate: new Date().toISOString(),
+        completionMatchId: matchData.matchId  // Assuming matchData has a matchId field
+      };
     }
+  } else {
+    update = `Player ${playerName} made progress on challenge "${challenge.title}"`;
+  }
 
     await update(ref(database, `challenges/${id}`), challenge);
   }

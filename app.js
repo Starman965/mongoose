@@ -1586,12 +1586,11 @@ window.showModal = async function(action, id = null, subId = null) {
             const session = snapshot.val();
             const sessionDate = new Date(session.date);
             
-            // Adjust the date based on the stored user timezone offset
             if (session.userTimezoneOffset !== undefined) {
                 sessionDate.setTime(sessionDate.getTime() - session.userTimezoneOffset);
             }
             
-            const formattedDate = sessionDate.toISOString().split('T')[0]; // Format for date input
+            const formattedDate = sessionDate.toISOString().split('T')[0];
             modalContent.innerHTML = `
                 <h3>Edit Game Session</h3>
                 <form id="gameSessionForm" data-id="${id}">

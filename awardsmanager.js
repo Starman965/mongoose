@@ -276,7 +276,50 @@ async function processChallenges(matchData) {
         }
     }
 }
+function displayChallenges(challenges) {
+  const container = document.getElementById('challengesContainer');
+  container.innerHTML = '';
 
+  for (const challenge of challenges) {
+    const card = createChallengeCard(challenge);
+    container.appendChild(card);
+  }
+}
+
+function createChallengeCard(challenge) {
+  const card = document.createElement('div');
+  card.className = 'card challenge-card';
+  
+  let imageUrl = challenge.customImageUrl || challenge.defaultImageUrl || 'https://firebasestorage.googleapis.com/v0/b/gamenight-37cc6.appspot.com/o/challenges%2Fchallengebadgedefault.png?alt=media&token=your-token-here';
+
+  let progressHtml = '';
+  if (challenge.playersCompleted) {
+    progressHtml = Object.entries(challenge.playersCompleted)
+      .map(([player, status]) => `<p>${player}: ${typeof status === 'object' ? status.status : status}</p>`)
+      .join('');
+  }
+
+  card.innerHTML = `
+    <img src="${imageUrl}" alt="${challenge.title}" onerror="this.src='https://firebasestorage.googleapis.com/v0/b/gamenight-37cc6.appspot.com/o/challenges%2Fchallengebadgedefault.png?alt=media&token=your-token-here';">
+    <h3>${challenge.title}</h3>
+    <p>${challenge.description}</p>
+    <p>Difficulty: ${challenge.difficultyLevel}</p>
+    <p>Challenge Points: ${challenge.cp}</p>
+    <p>Required Completions: ${challenge.requiredCompletionCount}</p>
+    <p>Game Mode: ${challenge.gameMode}</p>
+    <p>Map: ${challenge.map}</p>
+    <p>Prize: ${challenge.prizeDescription || 'N/A'}</p>
+    <p>Sponsor: ${challenge.prizeSponsor || 'N/A'}</p>
+    <div class="challenge-progress">
+      <h4>Progress:</h4>
+      ${progressHtml}
+    </div>
+    ${challenge.startDate ? `<p>Start Date: ${new Date(challenge.startDate).toLocaleDateString()}</p>` : ''}
+    ${challenge.endDate ? `<p>End Date: ${new Date(challenge.endDate).toLocaleDateString()}</p>` : ''}
+  `;
+
+  return card;
+}
 // Add more helper functions as needed
 function getPlayerNameFromMatchData(matchData) {
   // This function should return the name of the player who performed the action
@@ -396,3 +439,4 @@ function initializeSampleAwardsForTesting() {
 
   console.log("Sample achievements and challenges have been added for testing.");
 }
+export { displayChallenges };

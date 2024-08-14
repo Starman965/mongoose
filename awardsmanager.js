@@ -306,12 +306,17 @@ function displayChallenges(challenges) {
   const container = document.getElementById('challengesContainer');
   container.innerHTML = '';
 
-  if (challenges.length === 0) {
+  // Check if challenges is null or undefined
+  if (!challenges) {
     container.innerHTML = '<p>No challenges available.</p>';
     return;
   }
 
-  for (const challenge of challenges) {
+  // If challenges is an object, convert it to an array
+  const challengesArray = Array.isArray(challenges) ? challenges : Object.values(challenges);
+
+  // Now use challengesArray instead of challenges in your loop
+  for (const challenge of challengesArray) {
     const card = createChallengeCard(challenge);
     container.appendChild(card);
   }

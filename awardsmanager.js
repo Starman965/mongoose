@@ -10,13 +10,60 @@ export function initAwards() {
 
 export function loadAchievements() {
   const achievementsContainer = document.getElementById('achievementsContainer');
-  const achievementsRef = ref(database, 'achievements');
+  const filterValue = document.getElementById('achievementFilter').value;
+  const sortValue = document.getElementById('achievementSort').value;
   
-  onValue(achievementsRef, (snapshot) => {
-    const achievements = snapshot.val();
+  get(ref(database, 'achievements')).then((snapshot) => {
+    let achievements = [];
+    snapshot.forEach((childSnapshot) => {
+      achievements.push({id: childSnapshot.key, ...childSnapshot.val()});
+    });
+    
+    achievements = filterAchievements(achievements, filterValue);
+    achievements = sortAchievements(achievements, sortValue);
+    
     displayAchievements(achievements);
   });
 }
+function filterAchievements(achievements, filterValue) {
+  const now = new Date();
+  switch(filterValue) {
+    case 'completedWeek':
+      return achievements.filter(a => a.status === 'Completed' && new Date(a.completionDate) > new Date(now - 7 * 24 * 60 * 60 * 1000));
+    case 'completedMonth':
+      return achievements.filter(a => a.status === 'Completed' && new Date(a.completionDate) > new Date(now.getFullYear(), now.getMonth() - 1, now.getDate()));
+    case 'completedYear':
+      return achievements.filter(a => a.status === 'Completed' && new Date(a.completionDate) > new Date(now.getFullYear() - 1, now.getMonth(), now.getDate()));
+    case 'inProgress':
+      return achievements.filter(a => a.status === 'In Progress');
+    default:
+      return achievements;
+  }
+}
+function sortAchievements(achievements, sortValue) {
+  switch(sortValue) {
+    case 'difficulty':
+      return achievements.sort((a, b) => difficultyOrder.indexOf(a.difficultyLevel) - difficultyOrder.indexOf(b.difficultyLevel));
+    case 'ap':
+      return achievements.sort((a, b) => b.ap - a.ap);
+    case 'progress':
+      return achievements.sort((a, b) => (b.currentCompletionCount / b.requiredCompletionCount) - (a.currentCompletionCount / a.requiredCompletionCount));
+    case 'completionDate':
+      return achievements.sort((a, b) => new Date(b.completionDate) - new Date(a.completionDate));
+    default:
+      return achievements;
+  }
+}
+
+function filterChallenges(challenges, filterValue) {
+  // Similar to filterAchievements, but adapt for challenges
+}
+
+function sortChallenges(challenges, sortValue) {
+  // Similar to sortAchievements, but adapt for challenges
+}
+
+const difficultyOrder = ['Easy', 'Moderate', 'Hard', 'Extra Hard'];
 
 function displayAchievements(achievements) {
   const container = document.getElementById('achievementsContainer');
@@ -59,7 +106,21 @@ export function getChallengesUpdates() {
     return updates;
 }
 export function loadChallenges() {
-  // Similar implementation to loadAchievements, but for challenges
+  const challengesContainer = document.getElementById('challengesContainer');
+  const filterValue = document.getElementById('challengeFilter').value;
+  const sortValue = document.getElementById('challengeSort').value;
+  
+  get(ref(database, 'challenges')).then((snapshot) => {
+    let challenges = [];
+    snapshot.forEach((childSnapshot) => {
+      challenges.push({id: childSnapshot.key, ...childSnapshot.val()});
+    });
+    
+    challenges = filterChallenges(challenges, filterValue);
+    challenges = sortChallenges(challenges, sortValue);
+    
+    displayChallenges(challenges);
+  });
 }
 
 export async function processMatchResult(matchData) {

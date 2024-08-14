@@ -166,7 +166,20 @@ function showAdminSection() {
       <button class="admin-tab" onclick="showChallengesAdmin()">Challenges</button>
     </div>
     <div id="adminContent"></div>
+    <div class="admin-actions">
+      <button class="button" onclick="initializeSampleAwards()">Initialize Sample Awards</button>
+    </div>
   `;
+}
+
+// Add this new function to handle the button click
+function initializeSampleAwards() {
+  if (confirm('Are you sure you want to initialize sample achievements and challenges? This action cannot be undone.')) {
+    initializeSampleAwardsForTesting();
+    alert('Sample achievements and challenges have been added successfully!');
+    // Refresh the admin view to show the new items
+    showAchievementsAdmin();
+  }
 }
 
 function showAchievementsAdmin() {

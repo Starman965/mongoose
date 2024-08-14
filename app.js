@@ -102,10 +102,10 @@ function showSection(section) {
       showGameSessions();
       break;
     case 'achievements':
-     showAchievements():     
+     showAchievements();    
       break;
     case 'challenges':
-      showChallenges():
+      showChallenges();
       break;
     case 'highlights':
       showHighlights();

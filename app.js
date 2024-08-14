@@ -1531,9 +1531,13 @@ function showNotification(matchData) {
     audio.play();
 }
 
-// Make showModal function globally accessible
+// new combined show modal
 window.showModal = async function(action, id = null, subId = null) {
     modalContent.innerHTML = '';
+    let achievement = {};
+    let challenge = {};
+    let match = null;
+
     switch(action) {
         case 'addTeamMember':
             modalContent.innerHTML = `
@@ -1550,26 +1554,27 @@ window.showModal = async function(action, id = null, subId = null) {
             `;
             document.getElementById('teamMemberForm').addEventListener('submit', addOrUpdateTeamMember);
             break;
+
         case 'editTeamMember':
-            get(ref(database, `teamMembers/${id}`)).then((snapshot) => {
-                if (snapshot.exists()) {
-                    const member = snapshot.val();
-                    modalContent.innerHTML = `
-                        <h3>Edit Team Member</h3>
-                        <form id="teamMemberForm" data-id="${id}">
-                            <input type="text" id="name" value="${member.name}" required>
-                            <input type="text" id="gamertag" value="${member.gamertag}" required>
-                            <input type="text" id="state" value="${member.state}" required>
-                            <input type="date" id="birthdate" value="${member.birthdate}" required>
-                            <input type="text" id="favoriteSnack" value="${member.favoriteSnack}" required>
-                            <input type="file" id="photo" accept="image/*">
-                            <button type="submit">Update Team Member</button>
-                        </form>
-                    `;
-                    document.getElementById('teamMemberForm').addEventListener('submit', addOrUpdateTeamMember);
-                }
-            });
+            const memberSnapshot = await get(ref(database, `teamMembers/${id}`));
+            if (memberSnapshot.exists()) {
+                const member = memberSnapshot.val();
+                modalContent.innerHTML = `
+                    <h3>Edit Team Member</h3>
+                    <form id="teamMemberForm" data-id="${id}">
+                        <input type="text" id="name" value="${member.name}" required>
+                        <input type="text" id="gamertag" value="${member.gamertag}" required>
+                        <input type="text" id="state" value="${member.state}" required>
+                        <input type="date" id="birthdate" value="${member.birthdate}" required>
+                        <input type="text" id="favoriteSnack" value="${member.favoriteSnack}" required>
+                        <input type="file" id="photo" accept="image/*">
+                        <button type="submit">Update Team Member</button>
+                    </form>
+                `;
+                document.getElementById('teamMemberForm').addEventListener('submit', addOrUpdateTeamMember);
+            }
             break;
+
         case 'addGameSession':
             modalContent.innerHTML = `
                 <h3>Add Game Session</h3>
@@ -1580,35 +1585,35 @@ window.showModal = async function(action, id = null, subId = null) {
             `;
             document.getElementById('gameSessionForm').addEventListener('submit', addOrUpdateGameSession);
             break;
-      case 'editGameSession':
-    get(ref(database, `gameSessions/${id}`)).then((snapshot) => {
-        if (snapshot.exists()) {
-            const session = snapshot.val();
-            const sessionDate = new Date(session.date);
-            
-            if (session.userTimezoneOffset !== undefined) {
-                sessionDate.setTime(sessionDate.getTime() - session.userTimezoneOffset);
+
+        case 'editGameSession':
+            const sessionSnapshot = await get(ref(database, `gameSessions/${id}`));
+            if (sessionSnapshot.exists()) {
+                const session = sessionSnapshot.val();
+                const sessionDate = new Date(session.date);
+                
+                if (session.userTimezoneOffset !== undefined) {
+                    sessionDate.setTime(sessionDate.getTime() - session.userTimezoneOffset);
+                }
+                
+                const formattedDate = sessionDate.toISOString().split('T')[0];
+                modalContent.innerHTML = `
+                    <h3>Edit Game Session</h3>
+                    <form id="gameSessionForm" data-id="${id}">
+                        <input type="date" id="date" value="${formattedDate}" required>
+                        <button type="submit">Update Game Session</button>
+                    </form>
+                `;
+                document.getElementById('gameSessionForm').addEventListener('submit', addOrUpdateGameSession);
             }
-            
-            const formattedDate = sessionDate.toISOString().split('T')[0];
-            modalContent.innerHTML = `
-                <h3>Edit Game Session</h3>
-                <form id="gameSessionForm" data-id="${id}">
-                    <input type="date" id="date" value="${formattedDate}" required>
-                    <button type="submit">Update Game Session</button>
-                </form>
-            `;
-            document.getElementById('gameSessionForm').addEventListener('submit', addOrUpdateGameSession);
-        }
-    });
-    break;
+            break;
+
         case 'addMatch':
         case 'editMatch':
-    let match = null;
-    if (action === 'editMatch') {
-        const snapshot = await get(ref(database, `gameSessions/${id}/matches/${subId}`));
-        match = snapshot.val();
-    }
+            if (action === 'editMatch') {
+                const matchSnapshot = await get(ref(database, `gameSessions/${id}/matches/${subId}`));
+                match = matchSnapshot.val();
+            }
             modalContent.innerHTML = `
                 <h3>${action === 'addMatch' ? 'Add' : 'Edit'} Match</h3>
                 <form id="matchForm" data-session-id="${id}" ${action === 'editMatch' ? `data-match-id="${subId}"` : ''} class="vertical-form">
@@ -1661,35 +1666,34 @@ window.showModal = async function(action, id = null, subId = null) {
                     <button type="submit" class="button">${action === 'addMatch' ? 'Add' : 'Update'} Match</button>
                 </form>
             `;
-            await loadGameModesAndMaps(); // Loads maps and modes
+            await loadGameModesAndMaps();
             document.getElementById('matchForm').addEventListener('submit', addMatch);
             document.getElementById('gameMode').addEventListener('change', updatePlacementInput);
 
-            // Set up event listeners for sliders
             ['totalKills', 'killsSTARMAN', 'killsRSKILLA', 'killsSWFTSWORD', 'killsVAIDED', 'killsMOWGLI'].forEach(slider => {
                 document.getElementById(slider).addEventListener('input', updateSliderValue);
             });
 
             if (action === 'editMatch' && match) {
-        // Populate form with existing match data
-        document.getElementById('gameMode').value = match.gameMode;
-        document.getElementById('map').value = match.map;
-        await updatePlacementInput(); // Wait for this to complete
-        if (match.gameMode === 'Battle Royale') {
-            document.getElementById('placement').value = match.placement;
-            updatePlacementValue();
-        } else {
-            document.getElementById('placement').checked = match.placement === 'Won';
-        }
-        document.getElementById('totalKills').value = match.totalKills ?? -1;
-        updateSliderValue({ target: document.getElementById('totalKills') });
-        ['STARMAN', 'RSKILLA', 'SWFTSWORD', 'VAIDED', 'MOWGLI'].forEach(player => {
-            const kills = match.kills?.[player] ?? -1;
-            document.getElementById(`kills${player}`).value = kills;
-            updateSliderValue({ target: document.getElementById(`kills${player}`) });
-        });
-    }
-    break;
+                document.getElementById('gameMode').value = match.gameMode;
+                document.getElementById('map').value = match.map;
+                await updatePlacementInput();
+                if (match.gameMode === 'Battle Royale') {
+                    document.getElementById('placement').value = match.placement;
+                    updatePlacementValue();
+                } else {
+                    document.getElementById('placement').checked = match.placement === 'Won';
+                }
+                document.getElementById('totalKills').value = match.totalKills ?? -1;
+                updateSliderValue({ target: document.getElementById('totalKills') });
+                ['STARMAN', 'RSKILLA', 'SWFTSWORD', 'VAIDED', 'MOWGLI'].forEach(player => {
+                    const kills = match.kills?.[player] ?? -1;
+                    document.getElementById(`kills${player}`).value = kills;
+                    updateSliderValue({ target: document.getElementById(`kills${player}`) });
+                });
+            }
+            break;
+
         case 'addMap':
             modalContent.innerHTML = `
                 <h3>Add Map</h3>
@@ -1700,21 +1704,22 @@ window.showModal = async function(action, id = null, subId = null) {
             `;
             document.getElementById('mapForm').addEventListener('submit', addOrUpdateMap);
             break;
+
         case 'editMap':
-            get(ref(database, `maps/${id}`)).then((snapshot) => {
-                if (snapshot.exists()) {
-                    const map = snapshot.val();
-                    modalContent.innerHTML = `
-                        <h3>Edit Map</h3>
-                        <form id="mapForm" data-id="${id}">
-                            <input type="text" id="name" value="${map.name}" required>
-                            <button type="submit">Update Map</button>
-                        </form>
-                    `;
-                    document.getElementById('mapForm').addEventListener('submit', addOrUpdateMap);
-                }
-            });
+            const mapSnapshot = await get(ref(database, `maps/${id}`));
+            if (mapSnapshot.exists()) {
+                const map = mapSnapshot.val();
+                modalContent.innerHTML = `
+                    <h3>Edit Map</h3>
+                    <form id="mapForm" data-id="${id}">
+                        <input type="text" id="name" value="${map.name}" required>
+                        <button type="submit">Update Map</button>
+                    </form>
+                `;
+                document.getElementById('mapForm').addEventListener('submit', addOrUpdateMap);
+            }
             break;
+
         case 'addGameMode':
             modalContent.innerHTML = `
                 <h3>Add Game Mode</h3>
@@ -1730,143 +1735,132 @@ window.showModal = async function(action, id = null, subId = null) {
             `;
             document.getElementById('gameModeForm').addEventListener('submit', addOrUpdateGameMode);
             break;
+
         case 'editGameMode':
-            get(ref(database, `gameModes/${id}`)).then((snapshot) => {
-                if (snapshot.exists()) {
-                    const gameMode = snapshot.val();
-                    modalContent.innerHTML = `
-                        <h3>Edit Game Mode</h3>
-                        <form id="gameModeForm" data-id="${id}">
-                            <input type="text" id="name" value="${gameMode.name}" required>
-                            <select id="type" required>
-                                <option value="">Select Type</option>
-                                <option value="Battle Royale" ${gameMode.type === 'Battle Royale' ? 'selected' : ''}>Battle Royale</option>
-                                <option value="Multiplayer" ${gameMode.type === 'Multiplayer' ? 'selected' : ''}>Multiplayer</option>
-                            </select>
-                            <button type="submit">Update Game Mode</button>
-                        </form>
-                    `;
-                    document.getElementById('gameModeForm').addEventListener('submit', addOrUpdateGameMode);
-                }
-            });
+            const gameModeSnapshot = await get(ref(database, `gameModes/${id}`));
+            if (gameModeSnapshot.exists()) {
+                const gameMode = gameModeSnapshot.val();
+                modalContent.innerHTML = `
+                    <h3>Edit Game Mode</h3>
+                    <form id="gameModeForm" data-id="${id}">
+                        <input type="text" id="name" value="${gameMode.name}" required>
+                        <select id="type" required>
+                            <option value="">Select Type</option>
+                            <option value="Battle Royale" ${gameMode.type === 'Battle Royale' ? 'selected' : ''}>Battle Royale</option>
+                            <option value="Multiplayer" ${gameMode.type === 'Multiplayer' ? 'selected' : ''}>Multiplayer</option>
+                        </select>
+                        <button type="submit">Update Game Mode</button>
+                    </form>
+                `;
+                document.getElementById('gameModeForm').addEventListener('submit', addOrUpdateGameMode);
+            }
             break;
-     }
-    modal.style.display = "block";
-}
-// New show modal for admin stuff. Was not sure to append the othe showmodal or make a new one
-window.showModal = async function(action, id = null) {
-  modalContent.innerHTML = '';
-  switch(action) {
-    // ... (existing cases)
 
-    case 'addAchievement':
-    case 'editAchievement':
-      let achievement = {};
-      if (action === 'editAchievement') {
-        const snapshot = await get(ref(database, `achievements/${id}`));
-        achievement = snapshot.val();
-      }
-      modalContent.innerHTML = `
-        <h3>${action === 'addAchievement' ? 'Add' : 'Edit'} Achievement</h3>
-        <form id="achievementForm" data-id="${id || ''}">
-          <input type="text" id="title" value="${achievement.title || ''}" placeholder="Title" required>
-          <textarea id="description" placeholder="Description" required>${achievement.description || ''}</textarea>
-          <input type="number" id="ap" value="${achievement.ap || ''}" placeholder="Achievement Points" required>
-          <select id="difficultyLevel" required>
-            <option value="">Select Difficulty</option>
-            <option value="Easy" ${achievement.difficultyLevel === 'Easy' ? 'selected' : ''}>Easy</option>
-            <option value="Moderate" ${achievement.difficultyLevel === 'Moderate' ? 'selected' : ''}>Moderate</option>
-            <option value="Hard" ${achievement.difficultyLevel === 'Hard' ? 'selected' : ''}>Hard</option>
-            <option value="Extra Hard" ${achievement.difficultyLevel === 'Extra Hard' ? 'selected' : ''}>Extra Hard</option>
-          </select>
-          <input type="number" id="requiredCompletionCount" value="${achievement.requiredCompletionCount || ''}" placeholder="Required Completion Count" required>
-          <label><input type="checkbox" id="repeatable" ${achievement.repeatable ? 'checked' : ''}> Repeatable</label>
-          <select id="gameMode" required>
-            <option value="">Select Game Mode</option>
-            <!-- Add game mode options dynamically -->
-          </select>
-          <select id="specificMode" required>
-            <option value="">Select Specific Mode</option>
-            <!-- Add specific mode options dynamically -->
-          </select>
-          <select id="map" required>
-            <option value="">Select Map</option>
-            <!-- Add map options dynamically -->
-          </select>
-          <textarea id="logicCriteria" placeholder="Logic Criteria (JSON)">${achievement.logicCriteria || ''}</textarea>
-          <label><input type="checkbox" id="locked" ${achievement.locked ? 'checked' : ''}> Locked</label>
-          <input type="date" id="startDate" value="${achievement.startDate || ''}" placeholder="Start Date">
-          <input type="date" id="endDate" value="${achievement.endDate || ''}" placeholder="End Date">
-          <label><input type="checkbox" id="useHistoricalData" ${achievement.useHistoricalData ? 'checked' : ''}> Use Historical Data</label>
-          <button type="submit">${action === 'addAchievement' ? 'Add' : 'Update'} Achievement</button>
-        </form>
-      `;
-      document.getElementById('achievementForm').addEventListener('submit', addOrUpdateAchievement);
-      break;
+        case 'addAchievement':
+        case 'editAchievement':
+            if (action === 'editAchievement') {
+                const achievementSnapshot = await get(ref(database, `achievements/${id}`));
+                achievement = achievementSnapshot.val();
+            }
+            modalContent.innerHTML = `
+                <h3>${action === 'addAchievement' ? 'Add' : 'Edit'} Achievement</h3>
+                <form id="achievementForm" data-id="${id || ''}">
+                    <input type="text" id="title" value="${achievement.title || ''}" placeholder="Title" required>
+                    <textarea id="description" placeholder="Description" required>${achievement.description || ''}</textarea>
+                    <input type="number" id="ap" value="${achievement.ap || ''}" placeholder="Achievement Points" required>
+                    <select id="difficultyLevel" required>
+                        <option value="">Select Difficulty</option>
+                        <option value="Easy" ${achievement.difficultyLevel === 'Easy' ? 'selected' : ''}>Easy</option>
+                        <option value="Moderate" ${achievement.difficultyLevel === 'Moderate' ? 'selected' : ''}>Moderate</option>
+                        <option value="Hard" ${achievement.difficultyLevel === 'Hard' ? 'selected' : ''}>Hard</option>
+                        <option value="Extra Hard" ${achievement.difficultyLevel === 'Extra Hard' ? 'selected' : ''}>Extra Hard</option>
+                    </select>
+                    <input type="number" id="requiredCompletionCount" value="${achievement.requiredCompletionCount || ''}" placeholder="Required Completion Count" required>
+                    <label><input type="checkbox" id="repeatable" ${achievement.repeatable ? 'checked' : ''}> Repeatable</label>
+                    <select id="gameMode" required>
+                        <option value="">Select Game Mode</option>
+                    </select>
+                    <select id="specificMode" required>
+                        <option value="">Select Specific Mode</option>
+                    </select>
+                    <select id="map" required>
+                        <option value="">Select Map</option>
+                    </select>
+                    <textarea id="logicCriteria" placeholder="Logic Criteria (JSON)">${achievement.logicCriteria || ''}</textarea>
+                    <label><input type="checkbox" id="locked" ${achievement.locked ? 'checked' : ''}> Locked</label>
+                    <input type="date" id="startDate" value="${achievement.startDate || ''}" placeholder="Start Date">
+                    <input type="date" id="endDate" value="${achievement.endDate || ''}" placeholder="End Date">
+                    <label><input type="checkbox" id="useHistoricalData" ${achievement.useHistoricalData ? 'checked' : ''}> Use Historical Data</label>
+                    <button type="submit">${action === 'addAchievement' ? 'Add' : 'Update'} Achievement</button>
+                </form>
+            `;
+            document.getElementById('achievementForm').addEventListener('submit', addOrUpdateAchievement);
+            break;
 
-    case 'addChallenge':
-    case 'editChallenge':
-      let challenge = {};
-      if (action === 'editChallenge') {
-        const snapshot = await get(ref(database, `challenges/${id}`));
-        challenge = snapshot.val();
-      }
-      modalContent.innerHTML = `
-        <h3>${action === 'addChallenge' ? 'Add' : 'Edit'} Challenge</h3>
-        <form id="challengeForm" data-id="${id || ''}">
-          <input type="text" id="title" value="${challenge.title || ''}" placeholder="Title" required>
-          <textarea id="description" placeholder="Description" required>${challenge.description || ''}</textarea>
-          <input type="number" id="cp" value="${challenge.cp || ''}" placeholder="Challenge Points" required>
-          <select id="difficultyLevel" required>
-            <option value="">Select Difficulty</option>
-            <option value="Easy" ${challenge.difficultyLevel === 'Easy' ? 'selected' : ''}>Easy</option>
-            <option value="Moderate" ${challenge.difficultyLevel === 'Moderate' ? 'selected' : ''}>Moderate</option>
-            <option value="Hard" ${challenge.difficultyLevel === 'Hard' ? 'selected' : ''}>Hard</option>
-            <option value="Extra Hard" ${challenge.difficultyLevel === 'Extra Hard' ? 'selected' : ''}>Extra Hard</option>
-          </select>
-          <input type="number" id="requiredCompletionCount" value="${challenge.requiredCompletionCount || ''}" placeholder="Required Completion Count" required>
-          <label><input type="checkbox" id="repeatable" ${challenge.repeatable ? 'checked' : ''}> Repeatable</label>
-          <select id="gameMode" required>
-            <option value="">Select Game Mode</option>
-            <!-- Add game mode options dynamically -->
-          </select>
-          <select id="specificMode" required>
-            <option value="">Select Specific Mode</option>
-            <!-- Add specific mode options dynamically -->
-          </select>
-          <select id="map" required>
-            <option value="">Select Map</option>
-            <!-- Add map options dynamically -->
-          </select>
-          <textarea id="logicCriteria" placeholder="Logic Criteria (JSON)">${challenge.logicCriteria || ''}</textarea>
-          <label><input type="checkbox" id="locked" ${challenge.locked ? 'checked' : ''}> Locked</label>
-          <input type="date" id="startDate" value="${challenge.startDate || ''}" placeholder="Start Date">
-          <input type="date" id="endDate" value="${challenge.endDate || ''}" placeholder="End Date">
-          <label><input type="checkbox" id="useHistoricalData" ${challenge.useHistoricalData ? 'checked' : ''}> Use Historical Data</label>
-          <input type="text" id="prizeDescription" value="${challenge.prizeDescription || ''}" placeholder="Prize Description">
-          <select id="prizeSponsor" required>
-            <option value="">Select Prize Sponsor</option>
-            <!-- Add team members as options dynamically -->
-          </select>
-          <label><input type="checkbox" id="soloChallenge" ${challenge.soloChallenge ? 'checked' : ''}> Solo Challenge</label>
-          <button type="submit">${action === 'addChallenge' ? 'Add' : 'Update'} Challenge</button>
-        </form>
-      `;
-      document.getElementById('challengeForm').addEventListener('submit', addOrUpdateChallenge);
-      break;
-  }
-  modal.style.display = "block";
+        case 'addChallenge':
+        case 'editChallenge':
+            if (action === 'editChallenge') {
+                const challengeSnapshot = await get(ref(database, `challenges/${id}`));
+                challenge = challengeSnapshot.val();
+            }
+            modalContent.innerHTML = `
+                <h3>${action === 'addChallenge' ? 'Add' : 'Edit'} Challenge</h3>
+                <form id="challengeForm" data-id="${id || ''}">
+                    <input type="text" id="title" value="${challenge.title || ''}" placeholder="Title" required>
+                    <textarea id="description" placeholder="Description" required>${challenge.description || ''}</textarea>
+<input type="number" id="cp" value="${challenge.cp || ''}" placeholder="Challenge Points" required>
+                    <select id="difficultyLevel" required>
+                        <option value="">Select Difficulty</option>
+                        <option value="Easy" ${challenge.difficultyLevel === 'Easy' ? 'selected' : ''}>Easy</option>
+                        <option value="Moderate" ${challenge.difficultyLevel === 'Moderate' ? 'selected' : ''}>Moderate</option>
+                        <option value="Hard" ${challenge.difficultyLevel === 'Hard' ? 'selected' : ''}>Hard</option>
+                        <option value="Extra Hard" ${challenge.difficultyLevel === 'Extra Hard' ? 'selected' : ''}>Extra Hard</option>
+                    </select>
+                    <input type="number" id="requiredCompletionCount" value="${challenge.requiredCompletionCount || ''}" placeholder="Required Completion Count" required>
+                    <label><input type="checkbox" id="repeatable" ${challenge.repeatable ? 'checked' : ''}> Repeatable</label>
+                    <select id="gameMode" required>
+                        <option value="">Select Game Mode</option>
+                    </select>
+                    <select id="specificMode" required>
+                        <option value="">Select Specific Mode</option>
+                    </select>
+                    <select id="map" required>
+                        <option value="">Select Map</option>
+                    </select>
+                    <textarea id="logicCriteria" placeholder="Logic Criteria (JSON)">${challenge.logicCriteria || ''}</textarea>
+                    <label><input type="checkbox" id="locked" ${challenge.locked ? 'checked' : ''}> Locked</label>
+                    <input type="date" id="startDate" value="${challenge.startDate || ''}" placeholder="Start Date">
+                    <input type="date" id="endDate" value="${challenge.endDate || ''}" placeholder="End Date">
+                    <label><input type="checkbox" id="useHistoricalData" ${challenge.useHistoricalData ? 'checked' : ''}> Use Historical Data</label>
+                    <input type="text" id="prizeDescription" value="${challenge.prizeDescription || ''}" placeholder="Prize Description">
+                    <select id="prizeSponsor" required>
+                        <option value="">Select Prize Sponsor</option>
+                    </select>
+                    <label><input type="checkbox" id="soloChallenge" ${challenge.soloChallenge ? 'checked' : ''}> Solo Challenge</label>
+                    <button type="submit">${action === 'addChallenge' ? 'Add' : 'Update'} Challenge</button>
+                </form>
+            `;
+            document.getElementById('challengeForm').addEventListener('submit', addOrUpdateChallenge);
+            break;
 
-  // Populate dynamic select options
-  if (action.includes('Achievement') || action.includes('Challenge')) {
-    populateGameModes();
-    populateMaps();
-    if (action.includes('Challenge')) {
-      populateTeamMembers();
+        default:
+            console.error('Unknown modal action:', action);
+            return;
     }
-  }
-}
 
+    modal.style.display = "block";
+
+    // Populate dynamic select options
+    if (action.includes('Achievement') || action.includes('Challenge')) {
+        populateGameModes();
+        populateMaps();
+        if (action.includes('Challenge')) {
+            populateTeamMembers();
+        }
+    }
+};
+
+                    
 // Functions to update slider value labels
 function updatePlacementValue() {
     const placement = document.getElementById('placement').value;

@@ -32,52 +32,41 @@ async function loadGameModesAndMaps() {
   const gameModeSelect = document.getElementById('gameMode');
   const mapSelect = document.getElementById('map');
 
-  // Load game modes
-  const gameModeSnapshot = await get(ref(database, 'gameModes'));
+  // Load game types and modes
+  const gameTypesSnapshot = await get(ref(database, 'gameTypes'));
   gameModeSelect.innerHTML = '<option value="">Select Game Mode</option>';
-  gameModeSnapshot.forEach((childSnapshot) => {
-    const gameMode = childSnapshot.val();
-    gameModeSelect.innerHTML += `<option value="${gameMode.name}">${gameMode.name}</option>`;
+  gameTypesSnapshot.forEach((typeSnapshot) => {
+    const gameType = typeSnapshot.val();
+    const optgroup = document.createElement('optgroup');
+    optgroup.label = gameType.name;
+    
+    Object.entries(gameType.gameModes || {}).forEach(([modeId, mode]) => {
+      const option = document.createElement('option');
+      option.value = `${gameType.name}|${mode.name}`;
+      option.textContent = mode.name;
+      optgroup.appendChild(option);
+    });
+    
+    gameModeSelect.appendChild(optgroup);
   });
 
   // Load maps
-  const mapSnapshot = await get(ref(database, 'maps'));
+  const mapsSnapshot = await get(ref(database, 'maps'));
   mapSelect.innerHTML = '<option value="">Select Map</option>';
-  mapSnapshot.forEach((childSnapshot) => {
-    const map = childSnapshot.val();
-    mapSelect.innerHTML += `<option value="${map.name}">${map.name}</option>`;
-  });
-}
-async function updatePlacementInput() {
-    const gameMode = document.getElementById('gameMode').value;
-    const placementContainer = document.getElementById('placementContainer');
-    const gameModes = await get(ref(database, 'gameModes')).then(snapshot => {
-        const modes = {};
-        snapshot.forEach(child => {
-            modes[child.val().name] = child.val().type;
-        });
-        return modes;
+  mapsSnapshot.forEach((categorySnapshot) => {
+    const category = categorySnapshot.key;
+    const optgroup = document.createElement('optgroup');
+    optgroup.label = category === 'battleRoyale' ? 'Battle Royale' : 'Multiplayer';
+    
+    Object.entries(categorySnapshot.val() || {}).forEach(([mapId, map]) => {
+      const option = document.createElement('option');
+      option.value = `${category}|${map.name}`;
+      option.textContent = map.name;
+      optgroup.appendChild(option);
     });
-
-    if (gameModes[gameMode] === 'Battle Royale') {
-        placementContainer.innerHTML = `
-            <label for="placement">Placement <span id="placementValue" class="slider-value">1st</span></label>
-            <input type="range" id="placement" class="slider" min="1" max="10" step="1" value="1" required>
-        `;
-        document.getElementById('placement').addEventListener('input', updatePlacementValue);
-    } else if (gameModes[gameMode] === 'Multiplayer') {
-        placementContainer.innerHTML = `
-            <label for="placement">Result</label>
-            <div class="toggle-switch">
-                <input type="checkbox" id="placement" name="placement" class="toggle-input">
-                <label for="placement" class="toggle-label">
-                    <span class="toggle-inner"></span>
-                </label>
-            </div>
-        `;
-       // Set default state to unchecked (Lost)
-        document.getElementById('placement').checked = false;
-    }
+    
+    mapSelect.appendChild(optgroup);
+  });
 }
 
 // Navigation setup
@@ -755,6 +744,42 @@ function showHelp() {
         <li><strong>Team Members:</strong> View, add, and manage team member profiles and their statistics.</li>
     </ul>
   `;
+}
+
+// Update for the updateplacementinput from claude at 3:30 8/15
+async function updatePlacementInput() {
+    const gameMode = document.getElementById('gameMode').value;
+    const placementContainer = document.getElementById('placementContainer');
+    const gameModes = await get(ref(database, 'gameTypes')).then(snapshot => {
+        const modes = {};
+        snapshot.forEach(child => {
+            const type = child.val();
+            Object.values(type.gameModes || {}).forEach(mode => {
+                modes[mode.name] = type.name;
+            });
+        });
+        return modes;
+    });
+
+    if (gameModes[gameMode.split('|')[1]] === 'Warzone') {
+        placementContainer.innerHTML = `
+            <label for="placement">Placement <span id="placementValue" class="slider-value">1st</span></label>
+            <input type="range" id="placement" class="slider" min="1" max="10" step="1" value="1" required>
+        `;
+        document.getElementById('placement').addEventListener('input', updatePlacementValue);
+    } else if (gameModes[gameMode.split('|')[1]] === 'Multiplayer') {
+        placementContainer.innerHTML = `
+            <label for="placement">Result</label>
+            <div class="toggle-switch">
+                <input type="checkbox" id="placement" name="placement" class="toggle-input">
+                <label for="placement" class="toggle-label">
+                    <span class="toggle-inner"></span>
+                </label>
+            </div>
+        `;
+       // Set default state to unchecked (Lost)
+        document.getElementById('placement').checked = false;
+    }
 }
 
 function showAbout() {
@@ -1441,37 +1466,42 @@ function formatDate(dateString, userTimezoneOffset) {
     return date.toLocaleDateString(undefined, options);
 }
 
- async function addMatch(e) {
+async function addMatch(e) {
     e.preventDefault();
     console.log('addMatch function called');
     const form = e.target;
     const sessionId = form.dataset.sessionId;
     const matchId = form.dataset.matchId;
-    const gameMode = form.gameMode.value;
+    const [gameType, gameMode] = form.gameMode.value.split('|');
     console.log('Form data:', {
         sessionId,
         matchId,
+        gameType,
         gameMode
     });
     try {
-        const gameModes = await get(ref(database, 'gameModes')).then(snapshot => {
+        const gameModes = await get(ref(database, 'gameTypes')).then(snapshot => {
             const modes = {};
             snapshot.forEach(child => {
-                modes[child.val().name] = child.val().type;
+                const type = child.val();
+                Object.values(type.gameModes || {}).forEach(mode => {
+                    modes[mode.name] = type.name;
+                });
             });
             return modes;
         });
         console.log('Game modes fetched:', gameModes);
         let placement;
-        if (gameModes[gameMode] === 'Battle Royale') {
+        if (gameModes[gameMode] === 'Warzone') {
             placement = parseInt(form.placement.value);
         } else if (gameModes[gameMode] === 'Multiplayer') {
             placement = form.placement.checked ? 'Won' : 'Lost';
         }
         console.log('Placement:', placement);
         const matchData = {
+            gameType: gameType,
             gameMode: gameMode,
-            map: form.map.value,
+            map: form.map.value.split('|')[1],
             placement: placement,
             totalKills: parseInt(form.totalKills.value) === -1 ? null : parseInt(form.totalKills.value),
             kills: {},

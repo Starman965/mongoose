@@ -162,16 +162,24 @@ function showAdminSection() {
     <div class="admin-tabs">
       <button id="achievementsAdminBtn" class="admin-tab">Achievements</button>
       <button id="challengesAdminBtn" class="admin-tab">Challenges</button>
+      <button id="gameTypesAdminBtn" class="admin-tab">Game Types & Modes</button>
+      <button id="mapsAdminBtn" class="admin-tab">Maps</button>
     </div>
     <div id="adminContent"></div>
-    <div class="admin-actions">
-      <button class="button" onclick="initializeSampleAwardsForTesting()">Initialize Sample Awards for Testing</button>
-    </div>
   `;
   
   document.getElementById('achievementsAdminBtn').addEventListener('click', showAchievementsAdmin);
   document.getElementById('challengesAdminBtn').addEventListener('click', showChallengesAdmin);
-  document.querySelector('.admin-actions .button').addEventListener('click', initializeSampleAwardsForTesting);
+  document.getElementById('gameTypesAdminBtn').addEventListener('click', showGameTypesAdmin);
+  document.getElementById('mapsAdminBtn').addEventListener('click', showMapsAdmin);
+}
+function showGameTypesAdmin() {
+  const adminContent = document.getElementById('adminContent');
+  adminContent.innerHTML = `
+    <h3>Game Types & Modes Management</h3>
+    <div id="gameTypesList"></div>
+  `;
+  loadGameTypes();
 }
 
 function initializeSampleAwardsForTesting() {
@@ -1176,19 +1184,17 @@ function loadGameModes() {
 function addOrUpdateGameMode(e) {
   e.preventDefault();
   const form = e.target;
-  const gameModeId = form.dataset.id;
-  const gameModeData = {
-    name: form.name.value,
-    type: form.type.value
-  };
+  const typeId = form.dataset.typeId;
+  const modeId = form.dataset.modeId;
+  const name = document.getElementById('name').value;
 
-  const operation = gameModeId
-    ? update(ref(database, `gameModes/${gameModeId}`), gameModeData)
-    : push(ref(database, 'gameModes'), gameModeData);
+  const operation = modeId
+    ? update(ref(database, `gameTypes/${typeId}/gameModes/${modeId}`), { name })
+    : push(ref(database, `gameTypes/${typeId}/gameModes`), { name });
 
   operation
     .then(() => {
-      loadGameModes();
+      loadGameTypes();
       modal.style.display = "none";
     })
     .catch(error => {
@@ -1196,18 +1202,51 @@ function addOrUpdateGameMode(e) {
       alert('Error adding/updating game mode. Please try again.');
     });
 }
-
-window.deleteGameMode = function(id) {
+function deleteGameMode(typeId, modeId) {
   if (confirm('Are you sure you want to delete this game mode?')) {
-    remove(ref(database, `gameModes/${id}`))
-      .then(() => loadGameModes())
+    remove(ref(database, `gameTypes/${typeId}/gameModes/${modeId}`))
+      .then(() => loadGameTypes())
       .catch(error => {
         console.error("Error deleting game mode: ", error);
         alert('Error deleting game mode. Please try again.');
       });
   }
 }
+function loadGameTypes() {
+  const gameTypesList = document.getElementById('gameTypesList');
+  gameTypesList.innerHTML = 'Loading game types...';
+  
+  onValue(ref(database, 'gameTypes'), (snapshot) => {
+    const gameTypes = snapshot.val();
+    let html = '';
 
+    for (const [typeId, typeData] of Object.entries(gameTypes)) {
+      html += `
+        <div class="game-type">
+          <h4>${typeData.name}</h4>
+          <button class="button" onclick="showModal('addGameMode', '${typeId}')">Add Game Mode</button>
+          <div class="game-modes-list">
+      `;
+
+      for (const [modeId, modeData] of Object.entries(typeData.gameModes)) {
+        html += `
+          <div class="game-mode">
+            <span>${modeData.name}</span>
+            <button class="button" onclick="showModal('editGameMode', '${typeId}', '${modeId}')">Edit</button>
+            <button class="button" onclick="deleteGameMode('${typeId}', '${modeId}')">Delete</button>
+          </div>
+        `;
+      }
+
+      html += `
+          </div>
+        </div>
+      `;
+    }
+
+    gameTypesList.innerHTML = html;
+  });
+}
 function showMaps() {
   mainContent.innerHTML = `
     <h2>Maps</h2>

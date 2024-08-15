@@ -105,7 +105,7 @@ function createAchievementCard(id, achievement) {
   let imageUrl = achievement.customImageUrl || achievement.defaultImageUrl;
 
   card.innerHTML = `
-    <img src="${imageUrl}" alt="${achievement.title}" onerror="this.src='http://mongoose.mycodsquad.com/achievementbadgedefault.png';">
+    <img src="http://mongoose.mycodsquad.com/achievementbadgedefault.png" alt="${achievement.title}" onerror="this.src='http://mongoose.mycodsquad.com/achievementbadgedefault.png';">
     <h3>${achievement.title}</h3>
     <p>${achievement.description}</p>
     <p>Difficulty: ${achievement.difficultyLevel}</p>

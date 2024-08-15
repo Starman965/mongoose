@@ -1208,7 +1208,7 @@ function addOrUpdateGameMode(e) {
       alert('Error adding/updating game mode. Please try again.');
     });
 }
-function deleteGameMode(typeId, modeId) {
+window.deleteGameMode = function(typeId, modeId) {
   if (confirm('Are you sure you want to delete this game mode?')) {
     remove(ref(database, `gameTypes/${typeId}/gameModes/${modeId}`))
       .then(() => loadGameTypes())
@@ -1234,7 +1234,7 @@ function loadGameTypes() {
           <div class="game-modes-list">
       `;
 
-      for (const [modeId, modeData] of Object.entries(typeData.gameModes)) {
+      for (const [modeId, modeData] of Object.entries(typeData.gameModes || {})) {
         html += `
           <div class="game-mode">
             <span>${modeData.name}</span>

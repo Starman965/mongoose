@@ -153,6 +153,9 @@ function showAdminSection() {
       <button id="mapsAdminBtn" class="admin-tab">Maps</button>
     </div>
     <div id="adminContent"></div>
+    <div class="admin-actions">
+      <button class="button" onclick="initializeSampleAwardsForTesting()">Initialize Sample Awards for Testing</button>
+    </div>
   `;
   
   document.getElementById('achievementsAdminBtn').addEventListener('click', showAchievementsAdmin);

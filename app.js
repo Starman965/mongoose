@@ -181,7 +181,15 @@ function showGameTypesAdmin() {
   `;
   loadGameTypes();
 }
-
+function showMapsAdmin() {
+  const adminContent = document.getElementById('adminContent');
+  adminContent.innerHTML = `
+    <h3>Maps Management</h3>
+    <button class="button" onclick="showModal('addMap')">Add Map</button>
+    <div id="mapsList"></div>
+  `;
+  loadMaps();
+}
 function initializeSampleAwardsForTesting() {
   const sampleAchievements = [
     {
@@ -1257,48 +1265,50 @@ function showMaps() {
 }
 
 function loadMaps() {
-  const mapList = document.getElementById('mapList');
-  mapList.innerHTML = 'Loading maps...';
+  const mapsList = document.getElementById('mapsList');
+  mapsList.innerHTML = 'Loading maps...';
   
   onValue(ref(database, 'maps'), (snapshot) => {
-    const maps = [];
-    snapshot.forEach((childSnapshot) => {
-      const map = childSnapshot.val();
-      map.id = childSnapshot.key;
-      maps.push(map);
-    });
+    const maps = snapshot.val();
+    let html = '';
 
-    maps.sort((a, b) => a.name.localeCompare(b.name));
+    for (const [typeId, typeMaps] of Object.entries(maps)) {
+      html += `
+        <div class="map-type">
+          <h4>${typeId.charAt(0).toUpperCase() + typeId.slice(1)} Maps</h4>
+          <div class="maps-list">
+      `;
 
-    mapList.innerHTML = '';
-    maps.forEach((map) => {
-      mapList.innerHTML += `
-        <div class="table-row">
-          <div class="name">${map.name}</div>
-          <div class="actions">
-            <button class="button" onclick="showModal('editMap', '${map.id}')">Edit</button>
-            <button class="button" onclick="deleteMap('${map.id}')">Delete</button>
+      for (const [mapId, mapData] of Object.entries(typeMaps)) {
+        html += `
+          <div class="map">
+            <span>${mapData.name}</span>
+            <button class="button" onclick="showModal('editMap', '${typeId}', '${mapId}')">Edit</button>
+            <button class="button" onclick="deleteMap('${typeId}', '${mapId}')">Delete</button>
+          </div>
+        `;
+      }
+
+      html += `
           </div>
         </div>
       `;
-    });
-    if (mapList.innerHTML === '') {
-      mapList.innerHTML = 'No maps found. Add some!';
     }
+
+    mapsList.innerHTML = html;
   });
 }
 
 function addOrUpdateMap(e) {
   e.preventDefault();
   const form = e.target;
-  const mapId = form.dataset.id;
-  const mapData = {
-    name: form.name.value
-  };
+  const typeId = form.dataset.typeId || document.getElementById('mapType').value;
+  const mapId = form.dataset.mapId;
+  const name = document.getElementById('name').value;
 
   const operation = mapId
-    ? update(ref(database, `maps/${mapId}`), mapData)
-    : push(ref(database, 'maps'), mapData);
+    ? update(ref(database, `maps/${typeId}/${mapId}`), { name })
+    : push(ref(database, `maps/${typeId}`), { name });
 
   operation
     .then(() => {
@@ -1311,9 +1321,9 @@ function addOrUpdateMap(e) {
     });
 }
 
-window.deleteMap = function(id) {
+function deleteMap(typeId, mapId) {
   if (confirm('Are you sure you want to delete this map?')) {
-    remove(ref(database, `maps/${id}`))
+    remove(ref(database, `maps/${typeId}/${mapId}`))
       .then(() => loadMaps())
       .catch(error => {
         console.error("Error deleting map: ", error);
@@ -1734,65 +1744,37 @@ window.showModal = async function(action, id = null, subId = null) {
             break;
 
         case 'addMap':
+        case 'editMap':
+            let map = subId ? await get(ref(database, `maps/${id}/${subId}`)).then(snapshot => snapshot.val()) : null;
             modalContent.innerHTML = `
-                <h3>Add Map</h3>
-                <form id="mapForm">
-                    <input type="text" id="name" placeholder="Map Name" required>
-                    <button type="submit">Add Map</button>
+                <h3>${action === 'addMap' ? 'Add' : 'Edit'} Map</h3>
+                <form id="mapForm" data-type-id="${id || ''}" data-map-id="${subId || ''}">
+                    <select id="mapType" ${id ? 'disabled' : ''} required>
+                        <option value="battleRoyale">Battle Royale</option>
+                        <option value="multiplayer">Multiplayer</option>
+                    </select>
+                    <input type="text" id="name" value="${map ? map.name : ''}" placeholder="Map Name" required>
+                    <button type="submit">${action === 'addMap' ? 'Add' : 'Update'} Map</button>
                 </form>
             `;
             document.getElementById('mapForm').addEventListener('submit', addOrUpdateMap);
-            break;
-
-        case 'editMap':
-            const mapSnapshot = await get(ref(database, `maps/${id}`));
-            if (mapSnapshot.exists()) {
-                const map = mapSnapshot.val();
-                modalContent.innerHTML = `
-                    <h3>Edit Map</h3>
-                    <form id="mapForm" data-id="${id}">
-                        <input type="text" id="name" value="${map.name}" required>
-                        <button type="submit">Update Map</button>
-                    </form>
-                `;
-                document.getElementById('mapForm').addEventListener('submit', addOrUpdateMap);
+            if (id) {
+                document.getElementById('mapType').value = id;
             }
             break;
 
         case 'addGameMode':
+         case 'editGameMode':
+            let gameType = id ? await get(ref(database, `gameTypes/${id}`)).then(snapshot => snapshot.val()) : null;
+            let gameMode = subId ? gameType.gameModes[subId] : null;
             modalContent.innerHTML = `
-                <h3>Add Game Mode</h3>
-                <form id="gameModeForm">
-                    <input type="text" id="name" placeholder="Game Mode Name" required>
-                    <select id="type" required>
-                        <option value="">Select Type</option>
-                        <option value="Battle Royale">Battle Royale</option>
-                        <option value="Multiplayer">Multiplayer</option>
-                    </select>
-                    <button type="submit">Add Game Mode</button>
+                <h3>${action === 'addGameMode' ? 'Add' : 'Edit'} Game Mode</h3>
+                <form id="gameModeForm" data-type-id="${id}" data-mode-id="${subId || ''}">
+                    <input type="text" id="name" value="${gameMode ? gameMode.name : ''}" placeholder="Game Mode Name" required>
+                    <button type="submit">${action === 'addGameMode' ? 'Add' : 'Update'} Game Mode</button>
                 </form>
             `;
             document.getElementById('gameModeForm').addEventListener('submit', addOrUpdateGameMode);
-            break;
-
-        case 'editGameMode':
-            const gameModeSnapshot = await get(ref(database, `gameModes/${id}`));
-            if (gameModeSnapshot.exists()) {
-                const gameMode = gameModeSnapshot.val();
-                modalContent.innerHTML = `
-                    <h3>Edit Game Mode</h3>
-                    <form id="gameModeForm" data-id="${id}">
-                        <input type="text" id="name" value="${gameMode.name}" required>
-                        <select id="type" required>
-                            <option value="">Select Type</option>
-                            <option value="Battle Royale" ${gameMode.type === 'Battle Royale' ? 'selected' : ''}>Battle Royale</option>
-                            <option value="Multiplayer" ${gameMode.type === 'Multiplayer' ? 'selected' : ''}>Multiplayer</option>
-                        </select>
-                        <button type="submit">Update Game Mode</button>
-                    </form>
-                `;
-                document.getElementById('gameModeForm').addEventListener('submit', addOrUpdateGameMode);
-            }
             break;
 
         case 'addAchievement':
@@ -1889,7 +1871,7 @@ window.showModal = async function(action, id = null, subId = null) {
 
     modal.style.display = "block";
 
-    // Populate dynamic select options
+    // Populate dynamic select options for achievements and challenges
     if (action.includes('Achievement') || action.includes('Challenge')) {
         populateGameModes();
         populateMaps();

@@ -369,42 +369,63 @@ function loadChallengesAdmin() {
   });
 }
 // Add these functions to handle adding, editing, and deleting achievements and challenges
-function addOrUpdateAchievement(e) {
-  e.preventDefault();
-  const form = e.target;
-  const achievementId = form.dataset.id;
-  const achievementData = {
-    title: form.title.value,
-    description: form.description.value,
-    ap: parseInt(form.ap.value),
-    difficultyLevel: form.difficultyLevel.value,
-    requiredCompletionCount: parseInt(form.requiredCompletionCount.value),
-    repeatable: form.repeatable.checked,
-    gameMode: form.gameMode.value,
-    specificMode: form.specificMode.value,
-    map: form.map.value,
-    logicCriteria: form.logicCriteria.value,
-    locked: form.locked.checked,
-    startDate: form.startDate.value,
-    endDate: form.endDate.value,
-    useHistoricalData: form.useHistoricalData.checked
-  };
+async function addOrUpdateAchievement(e) {
+    e.preventDefault();
+    const form = e.target;
+    const achievementId = form.dataset.id;
+    const achievementData = {
+        title: form.title.value,
+        description: form.description.value,
+        ap: parseInt(form.ap.value),
+        difficultyLevel: form.difficultyLevel.value,
+        criteria: {
+            gameType: form.gameType.value,
+            gameMode: form.gameMode.value,
+            map: form.map.value,
+            placement: getPlacementCriteria(form),
+            totalKills: form.totalKills.value ? { min: parseInt(form.totalKills.value) } : null,
+            playerKills: getPlayerKillsCriteria(form),
+            occurrence: form.occurrence.value,
+            dateRange: {
+                start: form.startDate.value || null,
+                end: form.endDate.value || null
+            }
+        }
+    };
 
-  const operation = achievementId
-    ? update(ref(database, `achievements/${achievementId}`), achievementData)
-    : push(ref(database, 'achievements'), achievementData);
-
-  operation
-    .then(() => {
-      loadAchievementsAdmin();
-      modal.style.display = "none";
-    })
-    .catch(error => {
-      console.error("Error adding/updating achievement: ", error);
-      alert('Error adding/updating achievement. Please try again.');
-    });
+    try {
+        if (achievementId) {
+            await update(ref(database, `achievements/${achievementId}`), achievementData);
+        } else {
+            await push(ref(database, 'achievements'), achievementData);
+        }
+        loadAchievementsAdmin();
+        modal.style.display = "none";
+    } catch (error) {
+        console.error("Error adding/updating achievement: ", error);
+        alert('Error adding/updating achievement. Please try again.');
+    }
+}
+function getPlacementCriteria(form) {
+    const gameType = form.gameType.value;
+    if (gameType === 'Multiplayer') {
+        return form.placement.checked ? 'Won' : 'Lost';
+    } else {
+        const placement = parseInt(form.placement.value);
+        return { max: placement };
+    }
 }
 
+function getPlayerKillsCriteria(form) {
+    const playerKills = [];
+    for (let i = 1; i <= 4; i++) {
+        const kills = form[`playerKills${i}`].value;
+        if (kills) {
+            playerKills.push({ player: i, min: parseInt(kills) });
+        }
+    }
+    return playerKills.length > 0 ? playerKills : null;
+}
 function addOrUpdateChallenge(e) {
   e.preventDefault();
   const form = e.target;
@@ -1827,44 +1848,57 @@ window.showModal = async function(action, id = null, subId = null) {
 
         case 'addAchievement':
         case 'editAchievement':
-            if (action === 'editAchievement') {
-                const achievementSnapshot = await get(ref(database, `achievements/${id}`));
-                achievement = achievementSnapshot.val();
-            }
-            modalContent.innerHTML = `
-                <h3>${action === 'addAchievement' ? 'Add' : 'Edit'} Achievement</h3>
-                <form id="achievementForm" data-id="${id || ''}">
-                    <input type="text" id="title" value="${achievement.title || ''}" placeholder="Title" required>
-                    <textarea id="description" placeholder="Description" required>${achievement.description || ''}</textarea>
-                    <input type="number" id="ap" value="${achievement.ap || ''}" placeholder="Achievement Points" required>
-                    <select id="difficultyLevel" required>
-                        <option value="">Select Difficulty</option>
-                        <option value="Easy" ${achievement.difficultyLevel === 'Easy' ? 'selected' : ''}>Easy</option>
-                        <option value="Moderate" ${achievement.difficultyLevel === 'Moderate' ? 'selected' : ''}>Moderate</option>
-                        <option value="Hard" ${achievement.difficultyLevel === 'Hard' ? 'selected' : ''}>Hard</option>
-                        <option value="Extra Hard" ${achievement.difficultyLevel === 'Extra Hard' ? 'selected' : ''}>Extra Hard</option>
-                    </select>
-                    <input type="number" id="requiredCompletionCount" value="${achievement.requiredCompletionCount || ''}" placeholder="Required Completion Count" required>
-                    <label><input type="checkbox" id="repeatable" ${achievement.repeatable ? 'checked' : ''}> Repeatable</label>
-                    <select id="gameMode" required>
-                        <option value="">Select Game Mode</option>
-                    </select>
-                    <select id="specificMode" required>
-                        <option value="">Select Specific Mode</option>
-                    </select>
-                    <select id="map" required>
-                        <option value="">Select Map</option>
-                    </select>
-                    <textarea id="logicCriteria" placeholder="Logic Criteria (JSON)">${achievement.logicCriteria || ''}</textarea>
-                    <label><input type="checkbox" id="locked" ${achievement.locked ? 'checked' : ''}> Locked</label>
-                    <input type="date" id="startDate" value="${achievement.startDate || ''}" placeholder="Start Date">
-                    <input type="date" id="endDate" value="${achievement.endDate || ''}" placeholder="End Date">
-                    <label><input type="checkbox" id="useHistoricalData" ${achievement.useHistoricalData ? 'checked' : ''}> Use Historical Data</label>
-                    <button type="submit">${action === 'addAchievement' ? 'Add' : 'Update'} Achievement</button>
-                </form>
-            `;
-            document.getElementById('achievementForm').addEventListener('submit', addOrUpdateAchievement);
-            break;
+    let achievement = {};
+    if (action === 'editAchievement') {
+        const achievementSnapshot = await get(ref(database, `achievements/${id}`));
+        achievement = achievementSnapshot.val();
+    }
+    modalContent.innerHTML = `
+        <h3>${action === 'addAchievement' ? 'Add' : 'Edit'} Achievement</h3>
+        <form id="achievementForm" data-id="${id || ''}">
+            <input type="text" id="title" value="${achievement.title || ''}" placeholder="Title" required>
+            <textarea id="description" placeholder="Description" required>${achievement.description || ''}</textarea>
+            <input type="number" id="ap" value="${achievement.ap || ''}" placeholder="Achievement Points" required>
+            <select id="difficultyLevel" required>
+                <option value="">Select Difficulty</option>
+                <option value="Easy" ${achievement.difficultyLevel === 'Easy' ? 'selected' : ''}>Easy</option>
+                <option value="Moderate" ${achievement.difficultyLevel === 'Moderate' ? 'selected' : ''}>Moderate</option>
+                <option value="Hard" ${achievement.difficultyLevel === 'Hard' ? 'selected' : ''}>Hard</option>
+                <option value="Extra Hard" ${achievement.difficultyLevel === 'Extra Hard' ? 'selected' : ''}>Extra Hard</option>
+            </select>
+            <select id="gameType" required>
+                <option value="">Select Game Type</option>
+                <option value="Any">Any</option>
+                <option value="Warzone" ${achievement.gameType === 'Warzone' ? 'selected' : ''}>Warzone</option>
+                <option value="Multiplayer" ${achievement.gameType === 'Multiplayer' ? 'selected' : ''}>Multiplayer</option>
+            </select>
+            <select id="gameMode" required>
+                <option value="">Select Game Mode</option>
+            </select>
+            <select id="map" required>
+                <option value="">Select Map</option>
+            </select>
+            <div id="placementContainer">
+                <!-- Placement input will be dynamically added here -->
+            </div>
+            <input type="number" id="totalKills" value="${achievement.totalKills || ''}" placeholder="Minimum Total Kills">
+            <div id="playerKillsContainer">
+                <!-- Player kills inputs will be dynamically added here -->
+            </div>
+            <select id="occurrence" required>
+                <option value="oneTime" ${achievement.occurrence === 'oneTime' ? 'selected' : ''}>One Time</option>
+                <option value="multiple" ${achievement.occurrence === 'multiple' ? 'selected' : ''}>Multiple Times</option>
+            </select>
+            <input type="date" id="startDate" value="${achievement.startDate || ''}" placeholder="Start Date">
+            <input type="date" id="endDate" value="${achievement.endDate || ''}" placeholder="End Date">
+            <button type="submit">${action === 'addAchievement' ? 'Add' : 'Update'} Achievement</button>
+        </form>
+    `;
+    document.getElementById('achievementForm').addEventListener('submit', addOrUpdateAchievement);
+    document.getElementById('gameType').addEventListener('change', updateGameModeAndMapOptions);
+    updateGameModeAndMapOptions();
+    updatePlacementInput();
+    break;
 
         case 'addChallenge':
         case 'editChallenge':
@@ -1929,7 +1963,39 @@ window.showModal = async function(action, id = null, subId = null) {
     }
 };
 
-                    
+async function updateGameModeAndMapOptions() {
+    const gameType = document.getElementById('gameType').value;
+    const gameModeSelect = document.getElementById('gameMode');
+    const mapSelect = document.getElementById('map');
+
+    // Clear existing options
+    gameModeSelect.innerHTML = '<option value="">Select Game Mode</option>';
+    mapSelect.innerHTML = '<option value="">Select Map</option>';
+
+    if (gameType) {
+        // Fetch and populate game modes
+        const gameModesSnapshot = await get(ref(database, `gameTypes/${gameType}/gameModes`));
+        gameModesSnapshot.forEach((modeSnapshot) => {
+            const mode = modeSnapshot.val();
+            const option = document.createElement('option');
+            option.value = mode.name;
+            option.textContent = mode.name;
+            gameModeSelect.appendChild(option);
+        });
+
+        // Fetch and populate maps
+        const mapsSnapshot = await get(ref(database, `maps/${gameType === 'Warzone' ? 'battleRoyale' : 'multiplayer'}`));
+        mapsSnapshot.forEach((mapSnapshot) => {
+            const map = mapSnapshot.val();
+            const option = document.createElement('option');
+            option.value = map.name;
+            option.textContent = map.name;
+            mapSelect.appendChild(option);
+        });
+    }
+
+    updatePlacementInput();
+}              
 // Functions to update slider value labels
 function updatePlacementValue() {
     const placement = document.getElementById('placement').value;

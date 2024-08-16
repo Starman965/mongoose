@@ -133,12 +133,20 @@ export function loadChallenges() {
   const filterValue = document.getElementById('challengeFilter').value;
   const sortValue = document.getElementById('challengeSort').value;
   
+  challengesContainer.innerHTML = '<p>Loading challenges...</p>';
+
   get(ref(database, 'challenges')).then((snapshot) => {
     let challenges = [];
+
     snapshot.forEach((childSnapshot) => {
-      challenges.push({id: childSnapshot.key, ...childSnapshot.val()});
+      challenges.push({ id: childSnapshot.key, ...childSnapshot.val() });
     });
-    
+
+    if (challenges.length === 0) {
+      challengesContainer.innerHTML = '<p>No challenges found.</p>';
+      return;
+    }
+
     challenges = filterChallenges(challenges, filterValue);
     challenges = sortChallenges(challenges, sortValue);
     
@@ -148,7 +156,6 @@ export function loadChallenges() {
     challengesContainer.innerHTML = '<p>Error loading challenges. Please try again later.</p>';
   });
 }
-
 export async function processMatchResult(matchData) {
   // Process achievements
   await processAchievements(matchData);

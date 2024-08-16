@@ -137,7 +137,6 @@ export async function processMatchResult(matchData) {
       }
     }
   }
-}
 */
 async function processAchievements(matchData) {
     const achievementsRef = ref(database, 'achievements');
@@ -263,7 +262,6 @@ async function updateAchievement(id, achievement, matchData) {
   return update;
 }
 
-/* Disabled for now
 
 // new sample from chatgpt as I got an error and claude time is on hold
 function initializeSampleAwardsForTesting() {
@@ -347,4 +345,3 @@ function initializeSampleAwardsForTesting() {
 
   console.log("Sample achievements have been added for testing.");
 }
-*/

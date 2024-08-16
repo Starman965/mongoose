@@ -3,7 +3,7 @@
 import { database } from './firebaseConfig.js';
 import { ref, onValue, update, get, push } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-database.js";
 let achievementsUpdates = [];
-let challengesUpdates = [];
+// let challengesUpdates = [];
 export function initAwards() {
   // Initialize any necessary data or listeners for awards
 }
@@ -112,7 +112,6 @@ export function getChallengesUpdates() {
 
 export async function processMatchResult(matchData) {
   const achievementsRef = ref(database, 'achievements');
-  // const challengesRef = ref(database, 'challenges');
 
   const [achievementsSnapshot, challengesSnapshot] = await Promise.all([
     get(achievementsRef),
@@ -120,7 +119,6 @@ export async function processMatchResult(matchData) {
   ]);
 
   const achievements = achievementsSnapshot.val();
-  // const challenges = challengesSnapshot.val();
 
   for (const [id, achievement] of Object.entries(achievements)) {
     if (checkAchievementCriteria(achievement, matchData)) {
@@ -265,27 +263,8 @@ async function updateAchievement(id, achievement, matchData) {
   return update;
 }
 
-async function processChallenges(matchData) {
-    const challengesRef = ref(database, 'challenges');
-    const challengesSnapshot = await get(challengesRef);
-    const challenges = challengesSnapshot.val();
-
-    for (const [id, challenge] of Object.entries(challenges)) {
-        if (checkChallengeCriteria(challenge, matchData)) {
-            const update = await updateChallenge(id, challenge, matchData);
-            if (update) {
-                challengesUpdates.push(update);
-            }
-        }
-    }
-}
 
 // Add more helper functions as needed
-function getPlayerNameFromMatchData(matchData) {
-  // This function should return the name of the player who performed the action
-  // You might need to adjust this based on how player information is stored in matchData
-  return Object.keys(matchData.kills)[0] || 'Unknown Player';
-}
 
 // code for sample achievements
 function initializeSampleAwardsForTesting() {
@@ -362,41 +341,15 @@ function initializeSampleAwardsForTesting() {
     }
   ];
 
-  const sampleChallenges = [
-    {
-      title: "Slayer",
-      description: "Get 10 or more kills on a Battle Royale Resurgence Solos game on Rebirth Island",
-      cp: 100,
-      difficultyLevel: "Moderate",
-      requiredCompletionCount: 1,
-      repeatable: false,
-      gameMode: "Battle Royale Resurgence Solos",
-      map: "Rebirth Island",
-      logicCriteria: JSON.stringify([
-        { type: "gameMode", value: "Battle Royale Resurgence Solos" },
-        { type: "map", value: "Rebirth Island" },
-        { type: "playerKills", value: 10 }
-      ]),
-      locked: false,
-      startDate: new Date().toISOString(),
-      endDate: new Date("2024-12-31").toISOString(),
-      useHistoricalData: false,
-      prizeDescription: "Coffee Mug",
-      prizeSponsor: "STARMAN",
-      soloChallenge: true
-    }
-  ];
-
   // Add sample achievements to the database
   sampleAchievements.forEach(achievement => {
     push(ref(database, 'achievements'), achievement);
   });
 
   // Add sample challenges to the database
-  sampleChallenges.forEach(challenge => {
-    push(ref(database, 'challenges'), challenge);
+  sampleAchievements.forEach(achievement => {
+    push(ref(database, 'achievements'), achievement);
   });
 
-  console.log("Sample achievements and challenges have been added for testing.");
+  console.log("Sample achievements have been added for testing.");
 }
-export { displayChallenges };

@@ -1348,13 +1348,30 @@ function addOrUpdateMap(e) {
 }
 
 function deleteMap(typeId, mapId) {
-  if (confirm('Are you sure you want to delete this map?')) {
+  // Check if IDs are provided
+  if (!typeId || !mapId) {
+    console.error('Type ID or Map ID is missing.');
+    alert('Error: Unable to delete the map. Invalid map details.');
+    return;
+  }
+
+  // Confirmation prompt
+  if (confirm('Are you sure you want to delete this map? This action cannot be undone.')) {
+    // Proceed with deletion
     remove(ref(database, `maps/${typeId}/${mapId}`))
-      .then(() => loadMaps())
-      .catch(error => {
-        console.error("Error deleting map: ", error);
-        alert('Error deleting map. Please try again.');
+      .then(() => {
+        console.log(`Map with ID ${mapId} from type ${typeId} has been deleted successfully.`);
+        alert('Map deleted successfully.');
+
+        // Reload the maps to reflect the deletion
+        loadMaps();
+      })
+      .catch((error) => {
+        console.error('Error deleting map:', error);
+        alert('Error deleting the map. Please try again.');
       });
+  } else {
+    console.log('Map deletion was cancelled.');
   }
 }
 

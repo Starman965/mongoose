@@ -9,38 +9,45 @@ export function initAwards() {
 }
 export { initializeSampleAwardsForTesting };
 
+// updated 8.16
 export function loadAchievements() {
-  const achievementsContainer = document.getElementById('achievementsContainer');
-  const filterValue = document.getElementById('achievementFilter').value;
-  const sortValue = document.getElementById('achievementSort').value;
-  
-  get(ref(database, 'achievements')).then((snapshot) => {
-    let achievements = [];
-    snapshot.forEach((childSnapshot) => {
-      achievements.push({id: childSnapshot.key, ...childSnapshot.val()});
+    const achievementsContainer = document.getElementById('achievementsContainer');
+    const filterValue = document.getElementById('achievementFilter').value;
+    const sortValue = document.getElementById('achievementSort').value;
+    const gameTypeFilter = document.getElementById('achievementGameTypeFilter').value;
+    
+    get(ref(database, 'achievements')).then((snapshot) => {
+        let achievements = [];
+        snapshot.forEach((childSnapshot) => {
+            achievements.push({id: childSnapshot.key, ...childSnapshot.val()});
+        });
+        
+        achievements = filterAchievements(achievements, filterValue, gameTypeFilter);
+        achievements = sortAchievements(achievements, sortValue);
+        
+        displayAchievements(achievements);
     });
-    
-    achievements = filterAchievements(achievements, filterValue);
-    achievements = sortAchievements(achievements, sortValue);
-    
-    displayAchievements(achievements);
-  });
 }
-function filterAchievements(achievements, filterValue) {
-  const now = new Date();
-  switch(filterValue) {
-    case 'completedWeek':
-      return achievements.filter(a => a.status === 'Completed' && new Date(a.completionDate) > new Date(now - 7 * 24 * 60 * 60 * 1000));
-    case 'completedMonth':
-      return achievements.filter(a => a.status === 'Completed' && new Date(a.completionDate) > new Date(now.getFullYear(), now.getMonth() - 1, now.getDate()));
-    case 'completedYear':
-      return achievements.filter(a => a.status === 'Completed' && new Date(a.completionDate) > new Date(now.getFullYear() - 1, now.getMonth(), now.getDate()));
-    case 'inProgress':
-      return achievements.filter(a => a.status === 'In Progress');
-    default:
-      return achievements;
-  }
+function filterAchievements(achievements, filterValue, gameTypeFilter) {
+    const now = new Date();
+    return achievements.filter(a => {
+        if (gameTypeFilter !== 'Any' && a.criteria.gameType !== gameTypeFilter) return false;
+        
+        switch(filterValue) {
+            case 'completedWeek':
+                return a.status === 'Completed' && new Date(a.completionDate) > new Date(now - 7 * 24 * 60 * 60 * 1000);
+            case 'completedMonth':
+                return a.status === 'Completed' && new Date(a.completionDate) > new Date(now.getFullYear(), now.getMonth() - 1, now.getDate());
+            case 'completedYear':
+                return a.status === 'Completed' && new Date(a.completionDate) > new Date(now.getFullYear() - 1, now.getMonth(), now.getDate());
+            case 'inProgress':
+                return a.status === 'In Progress';
+            default:
+                return true;
+        }
+    });
 }
+
 function sortAchievements(achievements, sortValue) {
   switch(sortValue) {
     case 'difficulty':
@@ -88,33 +95,37 @@ function sortChallenges(challenges, sortValue) {
 }
 const difficultyOrder = ['Easy', 'Moderate', 'Hard', 'Extra Hard'];
 
+// added 8.16
 function displayAchievements(achievements) {
-  const container = document.getElementById('achievementsContainer');
-  container.innerHTML = '';
+    const container = document.getElementById('achievementsContainer');
+    container.innerHTML = '';
 
-  for (const [id, achievement] of Object.entries(achievements)) {
-    const card = createAchievementCard(id, achievement);
-    container.appendChild(card);
-  }
+    achievements.forEach(achievement => {
+        const card = createAchievementCard(achievement);
+        container.appendChild(card);
+    });
 }
 
-function createAchievementCard(id, achievement) {
-  const card = document.createElement('div');
-  card.className = 'card achievement-card';
-  
-  let imageUrl = achievement.customImageUrl || achievement.defaultImageUrl;
+function createAchievementCard(achievement) {
+    const card = document.createElement('div');
+    card.className = 'card achievement-card';
+    
+    let imageUrl = achievement.imageUrl || 'path/to/default/achievement/image.png';
 
-  card.innerHTML = `
-    <img src="https://mongoose.mycodsquad.com/achievementbadgedefault.png" alt="${achievement.title}" onerror="this.src='https://mongoose.mycodsquad.com/achievementbadgedefault.png';">
-    <h3>${achievement.title}</h3>
-    <p>${achievement.description}</p>
-    <p>Difficulty: ${achievement.difficultyLevel}</p>
-    <p>Achievement Points: ${achievement.ap}</p>
-    <p>Status: ${achievement.status}</p>
-    <p>Progress: ${achievement.currentCompletionCount}/${achievement.requiredCompletionCount}</p>
-  `;
+    card.innerHTML = `
+        <img src="${imageUrl}" alt="${achievement.title}" onerror="this.src='path/to/fallback/image.png';">
+        <h3>${achievement.title}</h3>
+        <p>${achievement.description}</p>
+        <p>Difficulty: ${achievement.difficultyLevel}</p>
+        <p>Achievement Points: ${achievement.ap}</p>
+        <p>Game Type: ${achievement.criteria.gameType}</p>
+        <p>Game Mode: ${achievement.criteria.gameMode || 'Any'}</p>
+        <p>Map: ${achievement.criteria.map || 'Any'}</p>
+        <p>Status: ${achievement.status}</p>
+        ${achievement.completionDate ? `<p>Completed: ${new Date(achievement.completionDate).toLocaleDateString()}</p>` : ''}
+    `;
 
-  return card;
+    return card;
 }
 
 export function getAchievementsUpdates() {
@@ -180,14 +191,58 @@ async function processAchievements(matchData) {
 }
 
 function checkAchievementCriteria(achievement, matchData) {
-  if (achievement.locked) return false;
-  
-  if (!isWithinTimeFrame(achievement, matchData.timestamp)) return false;
+    if (achievement.locked) return false;
+    
+    if (!isWithinTimeFrame(achievement.criteria.dateRange, matchData.timestamp)) return false;
 
-  const criteria = JSON.parse(achievement.logicCriteria);
-  return criteria.every(criterion => evaluateCriterion(criterion, matchData));
+    // Check game type
+    if (achievement.criteria.gameType !== 'Any' && achievement.criteria.gameType !== matchData.gameType) return false;
+
+    // Check game mode
+    if (achievement.criteria.gameMode && achievement.criteria.gameMode !== matchData.gameMode) return false;
+
+    // Check map
+    if (achievement.criteria.map && achievement.criteria.map !== matchData.map) return false;
+
+    // Check placement
+    if (!checkPlacement(achievement.criteria.placement, matchData)) return false;
+
+    // Check total kills
+    if (achievement.criteria.totalKills && matchData.totalKills < achievement.criteria.totalKills.min) return false;
+
+    // Check player kills
+    if (achievement.criteria.playerKills && !checkPlayerKills(achievement.criteria.playerKills, matchData.kills)) return false;
+
+    return true;
 }
 
+function isWithinTimeFrame(dateRange, timestamp) {
+    if (!dateRange) return true;
+    const date = new Date(timestamp);
+    if (dateRange.start && date < new Date(dateRange.start)) return false;
+    if (dateRange.end && date > new Date(dateRange.end)) return false;
+    return true;
+}
+
+// new function
+function checkPlacement(placementCriteria, matchData) {
+    if (!placementCriteria) return true;
+    if (typeof placementCriteria === 'string') {
+        // Multiplayer
+        return matchData.placement === placementCriteria;
+    } else {
+        // Warzone
+        return matchData.placement <= placementCriteria.max;
+    }
+}
+
+// new function added 8.16
+function checkPlayerKills(playerKillsCriteria, matchKills) {
+    return playerKillsCriteria.every(criterion => {
+        const playerKills = matchKills[`Player${criterion.player}`] || 0;
+        return playerKills >= criterion.min;
+    });
+}
 function checkChallengeCriteria(challenge, matchData) {
   if (challenge.locked) return false;
   
@@ -197,16 +252,7 @@ function checkChallengeCriteria(challenge, matchData) {
   return criteria.every(criterion => evaluateCriterion(criterion, matchData));
 }
 
-function isWithinTimeFrame(item, timestamp) {
-  const now = new Date(timestamp);
-  const startDate = item.startDate ? new Date(item.startDate) : null;
-  const endDate = item.endDate ? new Date(item.endDate) : null;
 
-  if (startDate && now < startDate) return false;
-  if (endDate && now > endDate) return false;
-
-  return true;
-}
 function evaluateCriterion(criterion, matchData) {
   switch (criterion.type) {
     case 'gameMode':

@@ -1347,7 +1347,7 @@ function addOrUpdateMap(e) {
     });
 }
 
-function deleteMap(typeId, mapId) {
+window.deleteMap = function(typeId, mapId) {
   // Check if IDs are provided
   if (!typeId || !mapId) {
     console.error('Type ID or Map ID is missing.');

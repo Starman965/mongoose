@@ -312,32 +312,36 @@ function showChallengesAdmin() {
   loadChallengesAdmin();
 }
 function loadAchievementsAdmin() {
-  const achievementsList = document.getElementById('achievementsList');
-  achievementsList.innerHTML = 'Loading achievements...';
+    const achievementsList = document.getElementById('achievementsList');
+    achievementsList.innerHTML = 'Loading achievements...';
 
-  get(ref(database, 'achievements')).then((snapshot) => {
-    const achievements = snapshot.val();
-    let achievementsHtml = '<table class="admin-table">';
-    achievementsHtml += '<tr><th>Title</th><th>Description</th><th>AP</th><th>Difficulty</th><th>Actions</th></tr>';
+    get(ref(database, 'achievements')).then((snapshot) => {
+        const achievements = snapshot.val();
+        let achievementsHtml = '<table class="admin-table">';
+        achievementsHtml += '<tr><th>Title</th><th>Description</th><th>AP</th><th>Difficulty</th><th>Game Type</th><th>Game Mode</th><th>Map</th><th>Status</th><th>Actions</th></tr>';
 
-    for (const [id, achievement] of Object.entries(achievements)) {
-      achievementsHtml += `
-        <tr>
-          <td>${achievement.title}</td>
-          <td>${achievement.description}</td>
-          <td>${achievement.ap}</td>
-          <td>${achievement.difficultyLevel}</td>
-          <td>
-            <button class="button" onclick="showModal('editAchievement', '${id}')">Edit</button>
-            <button class="button" onclick="deleteAchievement('${id}')">Delete</button>
-          </td>
-        </tr>
-      `;
-    }
+        for (const [id, achievement] of Object.entries(achievements)) {
+            achievementsHtml += `
+                <tr>
+                    <td>${achievement.title}</td>
+                    <td>${achievement.description}</td>
+                    <td>${achievement.ap}</td>
+                    <td>${achievement.difficultyLevel}</td>
+                    <td>${achievement.criteria.gameType}</td>
+                    <td>${achievement.criteria.gameMode || 'Any'}</td>
+                    <td>${achievement.criteria.map || 'Any'}</td>
+                    <td>${achievement.status || 'Not Started'}</td>
+                    <td>
+                        <button class="button" onclick="showModal('editAchievement', '${id}')">Edit</button>
+                        <button class="button" onclick="deleteAchievement('${id}')">Delete</button>
+                    </td>
+                </tr>
+            `;
+        }
 
-    achievementsHtml += '</table>';
-    achievementsList.innerHTML = achievementsHtml;
-  });
+        achievementsHtml += '</table>';
+        achievementsList.innerHTML = achievementsHtml;
+    });
 }
 
 function loadChallengesAdmin() {

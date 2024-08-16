@@ -757,7 +757,7 @@ function showChallenges() {
     </div>
     <div id="challengesContainer" class="awards-grid"></div>
   `;
-  loadChallenges();
+ // loadChallenges();
   
   // Add event listeners for filter and sort
   document.getElementById('challengeFilter').addEventListener('change', loadChallenges);
@@ -1619,7 +1619,7 @@ async function addMatch(e) {
 }
 function showNotification(matchData) {
     const achievementsUpdates = getAchievementsUpdates();
-    const challengesUpdates = getChallengesUpdates();
+    // const challengesUpdates = getChallengesUpdates();
 
     let notificationContent = '';
     let soundToPlay = '';
@@ -1636,14 +1636,14 @@ function showNotification(matchData) {
             soundToPlay = '/sounds/achievementsound1.mp3';
         }
 
-        if (challengesUpdates.length > 0) {
+     /*   if (challengesUpdates.length > 0) {
             notificationContent += `<h4>Challenges</h4>`;
             notificationContent += `<p>${challengesUpdates.length} challenge(s) updated</p>`;
             notificationContent += challengesUpdates.map(update => `<p>${update}</p>`).join('');
             soundToPlay = soundToPlay || '/sounds/challengesound2.mp3';
         } else if (!soundToPlay) {
             soundToPlay = '/sounds/challengesound1.mp3';
-        }
+        } */
     } else {
         notificationContent = '<p>No new achievements or challenges updated this match.</p>';
         soundToPlay = '/sounds/achievementsound1.mp3';

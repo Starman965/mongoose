@@ -168,13 +168,35 @@ export function loadChallenges() {
   });
 }
 export async function processMatchResult(matchData) {
-  // Process achievements
-  await processAchievements(matchData);
+  const achievementsRef = ref(database, 'achievements');
+  const challengesRef = ref(database, 'challenges');
 
-  // Process challenges
-  await processChallenges(matchData);
+  const [achievementsSnapshot, challengesSnapshot] = await Promise.all([
+    get(achievementsRef),
+    get(challengesRef)
+  ]);
+
+  const achievements = achievementsSnapshot.val();
+  const challenges = challengesSnapshot.val();
+
+  for (const [id, achievement] of Object.entries(achievements)) {
+    if (checkAchievementCriteria(achievement, matchData)) {
+      const update = await updateAchievement(id, achievement, matchData);
+      if (update) {
+        achievementsUpdates.push(update);
+      }
+    }
+  }
+
+  for (const [id, challenge] of Object.entries(challenges)) {
+    if (checkChallengeCriteria(challenge, matchData)) {
+      const update = await updateChallenge(id, challenge, matchData);
+      if (update) {
+        challengesUpdates.push(update);
+      }
+    }
+  }
 }
-
 async function processAchievements(matchData) {
     const achievementsRef = ref(database, 'achievements');
     const achievementsSnapshot = await get(achievementsRef);

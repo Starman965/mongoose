@@ -63,36 +63,6 @@ function sortAchievements(achievements, sortValue) {
   }
 }
 
-function filterChallenges(challenges, filterValue) {
-  const now = new Date();
-  switch(filterValue) {
-    case 'completedWeek':
-      return challenges.filter(c => c.status === 'Completed' && new Date(c.completionDate) > new Date(now - 7 * 24 * 60 * 60 * 1000));
-    case 'completedMonth':
-      return challenges.filter(c => c.status === 'Completed' && new Date(c.completionDate) > new Date(now.getFullYear(), now.getMonth() - 1, now.getDate()));
-    case 'completedYear':
-      return challenges.filter(c => c.status === 'Completed' && new Date(c.completionDate) > new Date(now.getFullYear() - 1, now.getMonth(), now.getDate()));
-    case 'inProgress':
-      return challenges.filter(c => c.status === 'In Progress');
-    default:
-      return challenges;
-  }
-}
-
-function sortChallenges(challenges, sortValue) {
-  switch(sortValue) {
-    case 'difficulty':
-      return challenges.sort((a, b) => difficultyOrder.indexOf(a.difficultyLevel) - difficultyOrder.indexOf(b.difficultyLevel));
-    case 'cp':
-      return challenges.sort((a, b) => b.cp - a.cp);
-    case 'completionDate':
-      return challenges.sort((a, b) => new Date(b.completionDate) - new Date(a.completionDate));
-    case 'prize':
-      return challenges.sort((a, b) => (b.prizeDescription || '').localeCompare(a.prizeDescription || ''));
-    default:
-      return challenges;
-  }
-}
 const difficultyOrder = ['Easy', 'Moderate', 'Hard', 'Extra Hard'];
 
 // added 8.16
@@ -139,37 +109,10 @@ export function getChallengesUpdates() {
     challengesUpdates = [];  // Clear the updates
     return updates;
 }
-export function loadChallenges() {
-  const challengesContainer = document.getElementById('challengesContainer');
-  const filterValue = document.getElementById('challengeFilter').value;
-  const sortValue = document.getElementById('challengeSort').value;
-  
-  challengesContainer.innerHTML = '<p>Loading challenges...</p>';
 
-  get(ref(database, 'challenges')).then((snapshot) => {
-    let challenges = [];
-
-    snapshot.forEach((childSnapshot) => {
-      challenges.push({ id: childSnapshot.key, ...childSnapshot.val() });
-    });
-
-    if (challenges.length === 0) {
-      challengesContainer.innerHTML = '<p>No challenges found.</p>';
-      return;
-    }
-
-    challenges = filterChallenges(challenges, filterValue);
-    challenges = sortChallenges(challenges, sortValue);
-    
-    displayChallenges(challenges);
-  }).catch((error) => {
-    console.error("Error loading challenges:", error);
-    challengesContainer.innerHTML = '<p>Error loading challenges. Please try again later.</p>';
-  });
-}
 export async function processMatchResult(matchData) {
   const achievementsRef = ref(database, 'achievements');
-  const challengesRef = ref(database, 'challenges');
+  // const challengesRef = ref(database, 'challenges');
 
   const [achievementsSnapshot, challengesSnapshot] = await Promise.all([
     get(achievementsRef),
@@ -177,7 +120,7 @@ export async function processMatchResult(matchData) {
   ]);
 
   const achievements = achievementsSnapshot.val();
-  const challenges = challengesSnapshot.val();
+  // const challenges = challengesSnapshot.val();
 
   for (const [id, achievement] of Object.entries(achievements)) {
     if (checkAchievementCriteria(achievement, matchData)) {
@@ -187,7 +130,7 @@ export async function processMatchResult(matchData) {
       }
     }
   }
-
+/*
   for (const [id, challenge] of Object.entries(challenges)) {
     if (checkChallengeCriteria(challenge, matchData)) {
       const update = await updateChallenge(id, challenge, matchData);
@@ -197,6 +140,7 @@ export async function processMatchResult(matchData) {
     }
   }
 }
+*/
 async function processAchievements(matchData) {
     const achievementsRef = ref(database, 'achievements');
     const achievementsSnapshot = await get(achievementsRef);
@@ -265,15 +209,6 @@ function checkPlayerKills(playerKillsCriteria, matchKills) {
         return playerKills >= criterion.min;
     });
 }
-function checkChallengeCriteria(challenge, matchData) {
-  if (challenge.locked) return false;
-  
-  if (!isWithinTimeFrame(challenge, matchData.timestamp)) return false;
-
-  const criteria = JSON.parse(challenge.logicCriteria);
-  return criteria.every(criterion => evaluateCriterion(criterion, matchData));
-}
-
 
 function evaluateCriterion(criterion, matchData) {
   switch (criterion.type) {
@@ -329,39 +264,6 @@ async function updateAchievement(id, achievement, matchData) {
 
   return update;
 }
-async function updateChallenge(id, challenge, matchData) {
-  if (!challenge.useHistoricalData && challenge.creationDate > matchData.timestamp) {
-    return null;
-  }
-  let update = null;
-  if (checkChallengeCriteria(challenge, matchData)) {
-    // For challenges, we need to track completion for each player
-    const playerName = getPlayerNameFromMatchData(matchData);
-    if (!challenge.playersCompleted) challenge.playersCompleted = {};
-    if (!challenge.playersCompleted[playerName]) {
-      challenge.playersCompleted[playerName] = 0;
-    }
-    challenge.playersCompleted[playerName]++;
-
-   if (challenge.playersCompleted[playerName] >= challenge.requiredCompletionCount) {
-    update = `Player ${playerName} completed the challenge "${challenge.title}"!`;
-    if (!challenge.repeatable) {
-      // Mark as completed for this player
-      challenge.playersCompleted[playerName] = {
-        status: 'Completed',
-        completionDate: new Date().toISOString(),
-        completionMatchId: matchData.matchId  // Assuming matchData has a matchId field
-      };
-    }
-  } else {
-    update = `Player ${playerName} made progress on challenge "${challenge.title}"`;
-  }
-
-    await update(ref(database, `challenges/${id}`), challenge);
-  }
-
-  return update;
-}
 
 async function processChallenges(matchData) {
     const challengesRef = ref(database, 'challenges');
@@ -376,60 +278,6 @@ async function processChallenges(matchData) {
             }
         }
     }
-}
-function displayChallenges(challenges) {
-  const container = document.getElementById('challengesContainer');
-  container.innerHTML = '';
-
-  // Check if challenges is null or undefined
-  if (!challenges) {
-    container.innerHTML = '<p>No challenges available.</p>';
-    return;
-  }
-
-  // If challenges is an object, convert it to an array
-  const challengesArray = Array.isArray(challenges) ? challenges : Object.values(challenges);
-
-  // Now use challengesArray instead of challenges in your loop
-  for (const challenge of challengesArray) {
-    const card = createChallengeCard(challenge);
-    container.appendChild(card);
-  }
-}
-
-function createChallengeCard(challenge) {
-  const card = document.createElement('div');
-  card.className = 'card challenge-card';
-  
-  let imageUrl = challenge.customImageUrl || challenge.defaultImageUrl || 'http://mongoose.mycodsquad.com/challengebadgedefault.png';
-
-  let progressHtml = '';
-  if (challenge.playersCompleted) {
-    progressHtml = Object.entries(challenge.playersCompleted)
-      .map(([player, status]) => `<p>${player}: ${typeof status === 'object' ? status.status : status}</p>`)
-      .join('');
-  }
-
-  card.innerHTML = `
-    <img src="${imageUrl}" alt="${challenge.title}" onerror="this.src='path/to/fallback/image.png';">
-    <h3>${challenge.title}</h3>
-    <p>${challenge.description}</p>
-    <p>Difficulty: ${challenge.difficultyLevel}</p>
-    <p>Challenge Points: ${challenge.cp}</p>
-    <p>Required Completions: ${challenge.requiredCompletionCount}</p>
-    <p>Game Mode: ${challenge.gameMode}</p>
-    <p>Map: ${challenge.map}</p>
-    <p>Prize: ${challenge.prizeDescription || 'N/A'}</p>
-    <p>Sponsor: ${challenge.prizeSponsor || 'N/A'}</p>
-    <div class="challenge-progress">
-      <h4>Progress:</h4>
-      ${progressHtml}
-    </div>
-    ${challenge.startDate ? `<p>Start Date: ${new Date(challenge.startDate).toLocaleDateString()}</p>` : ''}
-    ${challenge.endDate ? `<p>End Date: ${new Date(challenge.endDate).toLocaleDateString()}</p>` : ''}
-  `;
-
-  return card;
 }
 
 // Add more helper functions as needed

@@ -1,13 +1,12 @@
-// awardsmanager.js
-
 import { database } from './firebaseConfig.js';
 import { ref, onValue, update, get, push } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-database.js";
+
 let achievementsUpdates = [];
 // let challengesUpdates = [];
+
 export function initAwards() {
   // Initialize any necessary data or listeners for awards
 }
-export { initializeSampleAwardsForTesting };
 
 // updated 8.16
 export function loadAchievements() {
@@ -28,6 +27,7 @@ export function loadAchievements() {
         displayAchievements(achievements);
     });
 }
+
 function filterAchievements(achievements, filterValue, gameTypeFilter) {
     const now = new Date();
     return achievements.filter(a => {
@@ -112,7 +112,8 @@ export function getChallengesUpdates() {
 
 export async function processMatchResult(matchData) {
   const achievementsRef = ref(database, 'achievements');
-
+  const challengesRef = ref(database, 'challenges'); // Added this line to define challengesRef
+  
   const [achievementsSnapshot, challengesSnapshot] = await Promise.all([
     get(achievementsRef),
     get(challengesRef)
@@ -128,7 +129,7 @@ export async function processMatchResult(matchData) {
       }
     }
   }
-/*
+  /*
   for (const [id, challenge] of Object.entries(challenges)) {
     if (checkChallengeCriteria(challenge, matchData)) {
       const update = await updateChallenge(id, challenge, matchData);
@@ -137,7 +138,9 @@ export async function processMatchResult(matchData) {
       }
     }
   }
-*/
+  */
+} // Ensure this function is properly closed
+
 async function processAchievements(matchData) {
     const achievementsRef = ref(database, 'achievements');
     const achievementsSnapshot = await get(achievementsRef);
@@ -262,8 +265,9 @@ async function updateAchievement(id, achievement, matchData) {
   return update;
 }
 
+/* 
+Disabled for now
 
-// new sample from chatgpt as I got an error and claude time is on hold
 function initializeSampleAwardsForTesting() {
   const sampleAchievements = [
     {
@@ -345,3 +349,4 @@ function initializeSampleAwardsForTesting() {
 
   console.log("Sample achievements have been added for testing.");
 }
+*/

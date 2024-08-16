@@ -263,8 +263,7 @@ async function updateAchievement(id, achievement, matchData) {
   return update;
 }
 
-
-// Add more helper functions as needed
+/* Disabled for now
 
 // new sample from chatgpt as I got an error and claude time is on hold
 function initializeSampleAwardsForTesting() {
@@ -348,3 +347,4 @@ function initializeSampleAwardsForTesting() {
 
   console.log("Sample achievements have been added for testing.");
 }
+*/

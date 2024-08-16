@@ -1883,6 +1883,8 @@ window.showModal = async function(action, id = null, subId = null) {
             </select>
             <select id="gameMode" required>
                 <option value="">Select Game Mode</option>
+                <option value="Battle Royale" ${achievement.gameMode === 'Battle Royale' ? 'selected' : ''}>Battle Royale</option>
+                <option value="Resurgence" ${achievement.gameMode === 'Resurgence' ? 'selected' : ''}>Resurgence</option>
             </select>
             <select id="map" required>
                 <option value="">Select Map</option>

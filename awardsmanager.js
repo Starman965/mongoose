@@ -266,7 +266,7 @@ async function updateAchievement(id, achievement, matchData) {
 
 // Add more helper functions as needed
 
-// code for sample achievements
+// new sample from chatgpt as I got an error and claude time is on hold
 function initializeSampleAwardsForTesting() {
   const sampleAchievements = [
     {
@@ -342,11 +342,6 @@ function initializeSampleAwardsForTesting() {
   ];
 
   // Add sample achievements to the database
-  sampleAchievements.forEach(achievement => {
-    push(ref(database, 'achievements'), achievement);
-  });
-
-  // Add sample challenges to the database
   sampleAchievements.forEach(achievement => {
     push(ref(database, 'achievements'), achievement);
   });

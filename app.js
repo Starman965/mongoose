@@ -722,6 +722,11 @@ function showAchievements() {
         <option value="progress">Sort by Progress</option>
         <option value="completionDate">Sort by Completion Date</option>
       </select>
+      <select id="achievementGameTypeFilter">
+        <option value="Any">Any Game Type</option>
+        <option value="Warzone">Warzone</option>
+        <option value="Multiplayer">Multiplayer</option>
+      </select>
     </div>
     <div id="achievementsContainer" class="awards-grid"></div>
   `;
@@ -730,8 +735,8 @@ function showAchievements() {
   // Add event listeners for filter and sort
   document.getElementById('achievementFilter').addEventListener('change', loadAchievements);
   document.getElementById('achievementSort').addEventListener('change', loadAchievements);
+  document.getElementById('achievementGameTypeFilter').addEventListener('change', loadAchievements);
 }
-
 function showChallenges() {
   mainContent.innerHTML = `
     <h2>Challenges</h2>

@@ -88,11 +88,12 @@ function createAchievementCard(achievement) {
         <p>${achievement.description}</p>
         <p>Difficulty: ${achievement.difficultyLevel}</p>
         <p>Achievement Points: ${achievement.ap}</p>
-        <p>Game Type: ${achievement.criteria.gameType}</p>
+        <p>Game Type: ${achievement.criteria.gameType || 'Any'}</p>
         <p>Game Mode: ${achievement.criteria.gameMode || 'Any'}</p>
         <p>Map: ${achievement.criteria.map || 'Any'}</p>
         <p>Status: ${achievement.status}</p>
-        ${achievement.completionDate ? `<p>Completed: ${new Date(achievement.completionDate).toLocaleDateString()}</p>` : ''}
+        <p>Progress: ${achievement.currentCompletionCount}/${achievement.requiredCompletionCount}</p>
+        ${achievement.dateRange ? `<p>Valid: ${new Date(achievement.dateRange.start).toLocaleDateString()} - ${new Date(achievement.dateRange.end).toLocaleDateString()}</p>` : ''}
     `;
 
     return card;

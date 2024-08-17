@@ -374,42 +374,41 @@ function loadChallengesAdmin() {
 }
 // Add these functions to handle adding, editing, and deleting achievements and challenges
 async function addOrUpdateAchievement(e) {
-    e.preventDefault();
-    const form = e.target;
-    const achievementId = form.dataset.id;
-    const achievementData = {
-        title: form.title.value,
-        description: form.description.value,
-        ap: parseInt(form.ap.value),
-        difficultyLevel: form.difficultyLevel.value,
-        criteria: {
-            gameType: form.gameType.value,
-            gameMode: form.gameMode.value,
-            map: form.map.value,
-            placement: getPlacementCriteria(form),
-            totalKills: form.totalKills.value ? { min: parseInt(form.totalKills.value) } : null,
-            playerKills: getPlayerKillsCriteria(form),
-            occurrence: form.occurrence.value,
-            dateRange: {
-                start: form.startDate.value || null,
-                end: form.endDate.value || null
-            }
-        }
-    };
+  e.preventDefault();
+  const form = e.target;
+  const achievementId = form.dataset.id;
+  const achievementData = {
+    title: form.title.value,
+    description: form.description.value,
+    gameTypeOperator: form.gameTypeOperator.value,
+    gameType: form.gameType.value,
+    gameModeOperator: form.gameModeOperator.value,
+    gameMode: form.gameMode.value,
+    mapOperator: form.mapOperator.value,
+    map: form.map.value,
+    placement: form.placement.value,
+    totalKillsOperator: form.totalKillsOperator.value,
+    totalKills: parseInt(form.totalKills.value),
+    teamMemberKills: {}, // This needs to be populated based on team member inputs
+    timesToComplete: parseInt(form.timesToComplete.value),
+    achievementPoints: parseInt(form.achievementPoints.value),
+    difficulty: form.difficulty.value,
+    occursByDate: form.occursByDate.value,
+    occursOnDOW: Array.from(form.querySelectorAll('#occursOnDOW input:checked')).map(input => parseInt(input.value)),
+    canCompleteMultipleTimes: form.canCompleteMultipleTimes.checked,
+    award: form.award.value,
+    awardSponsor: form.awardSponsor.value,
+    awardedTo: form.querySelector('input[name="awardedTo"]:checked').value,
+    useHistoricalData: form.useHistoricalData.checked,
+    isActive: form.isActive.checked,
+    updatedAt: new Date().toISOString()
+  };
 
-    try {
-        if (achievementId) {
-            await update(ref(database, `achievements/${achievementId}`), achievementData);
-        } else {
-            await push(ref(database, 'achievements'), achievementData);
-        }
-        loadAchievementsAdmin();
-        modal.style.display = "none";
-    } catch (error) {
-        console.error("Error adding/updating achievement: ", error);
-        alert('Error adding/updating achievement. Please try again.');
-    }
-}
+  if (!achievementId) {
+    achievementData.createdAt = new Date().toISOString();
+    achievementData.status = 'Not Started';
+    achievementData.currentProgress = 0;
+  }
 function getPlacementCriteria(form) {
     const gameType = form.gameType.value;
     if (gameType === 'Multiplayer') {

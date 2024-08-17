@@ -148,20 +148,23 @@ function showAdminSection() {
     <h2>Admin</h2>
     <div class="admin-tabs">
       <button id="achievementsAdminBtn" class="admin-tab">Achievements</button>
-      <button id="challengesAdminBtn" class="admin-tab">Challenges</button>
       <button id="gameTypesAdminBtn" class="admin-tab">Game Types & Modes</button>
       <button id="mapsAdminBtn" class="admin-tab">Maps</button>
+      <button id="teamMembersAdminBtn" class="admin-tab">Team Members</button>
     </div>
     <div id="adminContent"></div>
     <div class="admin-actions">
-      <button class="button" onclick="initializeSampleAwardsForTesting()">Initialize Sample Awards for Testing</button>
+      <button class="button" onclick="initializeSampleAchievements()">Initialize Sample Achievements</button>
     </div>
   `;
   
-  document.getElementById('achievementsAdminBtn').addEventListener('click', showAchievementsAdmin);
-  document.getElementById('challengesAdminBtn').addEventListener('click', showChallengesAdmin);
+  document.getElementById('achievementsAdminBtn').addEventListener('click', showAchievementManagement);
   document.getElementById('gameTypesAdminBtn').addEventListener('click', showGameTypesAdmin);
   document.getElementById('mapsAdminBtn').addEventListener('click', showMapsAdmin);
+  document.getElementById('teamMembersAdminBtn').addEventListener('click', showTeamMembersAdmin);
+
+  // Show achievements management by default
+  showAchievementManagement();
 }
 function showGameTypesAdmin() {
   const adminContent = document.getElementById('adminContent');
@@ -254,40 +257,12 @@ function initializeSampleAwardsForTesting() {
     }
   ];
 
-  const sampleChallenges = [
-    {
-      title: "Slayer",
-      description: "Get 10 or more kills on a Battle Royale Solos game in Ursikstan",
-      cp: 300,
-      difficultyLevel: "Moderate",
-      requiredCompletionCount: 1,
-      repeatable: false,
-      gameMode: "Battle Royale Solos",
-      map: "Urzikstan",
-      logicCriteria: JSON.stringify([
-        { type: "gameMode", value: "Battle Royale Resurgence Solos" },
-        { type: "map", value: "Rebirth Island" },
-        { type: "playerKills", value: 10 }
-      ]),
-      locked: false,
-      startDate: new Date().toISOString(),
-      endDate: new Date("2024-12-31").toISOString(),
-      useHistoricalData: false,
-      prizeDescription: "Custom Slayer T-Shirt",
-      prizeSponsor: "STARMAN",
-      soloChallenge: false
-    }
-  ];
-
+ 
   // Add sample achievements to the database
   sampleAchievements.forEach(achievement => {
     push(ref(database, 'achievements'), achievement);
   });
 
-  // Add sample challenges to the database
-  sampleChallenges.forEach(challenge => {
-    push(ref(database, 'challenges'), challenge);
-  });
 
   console.log("Sample achievements and challenges have been added for testing.");
 }
@@ -311,6 +286,43 @@ function showChallengesAdmin() {
   `;
   loadChallengesAdmin();
 }
+function showAchievementManagement() {
+  const adminContent = document.getElementById('adminContent');
+  adminContent.innerHTML = `
+    <h3>Achievement Management</h3>
+    <button class="button" onclick="showModal('addAchievement')">Add New Achievement</button>
+    <div id="achievementList"></div>
+  `;
+  loadAchievementList();
+}
+function loadAchievementList() {
+  const achievementList = document.getElementById('achievementList');
+  get(ref(database, 'achievements')).then((snapshot) => {
+    const achievements = snapshot.val();
+    let achievementHtml = '<table class="admin-table">';
+    achievementHtml += '<tr><th>Title</th><th>Description</th><th>Points</th><th>Difficulty</th><th>Status</th><th>Actions</th></tr>';
+
+    for (const [id, achievement] of Object.entries(achievements)) {
+      achievementHtml += `
+        <tr>
+          <td>${achievement.title}</td>
+          <td>${achievement.description}</td>
+          <td>${achievement.achievementPoints}</td>
+          <td>${achievement.difficulty}</td>
+          <td>${achievement.status}</td>
+          <td>
+            <button class="button" onclick="showModal('editAchievement', '${id}')">Edit</button>
+            <button class="button" onclick="deleteAchievement('${id}')">Delete</button>
+          </td>
+        </tr>
+      `;
+    }
+
+    achievementHtml += '</table>';
+    achievementList.innerHTML = achievementHtml;
+  });
+}
+
 function loadAchievementsAdmin() {
     const achievementsList = document.getElementById('achievementsList');
     achievementsList.innerHTML = 'Loading achievements...';
@@ -429,49 +441,10 @@ function getPlayerKillsCriteria(form) {
     }
     return playerKills.length > 0 ? playerKills : null;
 }
-function addOrUpdateChallenge(e) {
-  e.preventDefault();
-  const form = e.target;
-  const challengeId = form.dataset.id;
-  const challengeData = {
-    title: form.title.value,
-    description: form.description.value,
-    cp: parseInt(form.cp.value),
-    difficultyLevel: form.difficultyLevel.value,
-    requiredCompletionCount: parseInt(form.requiredCompletionCount.value),
-    repeatable: form.repeatable.checked,
-    gameMode: form.gameMode.value,
-    specificMode: form.specificMode.value,
-    map: form.map.value,
-    logicCriteria: form.logicCriteria.value,
-    locked: form.locked.checked,
-    startDate: form.startDate.value,
-    endDate: form.endDate.value,
-    useHistoricalData: form.useHistoricalData.checked,
-    prizeDescription: form.prizeDescription.value,
-    prizeSponsor: form.prizeSponsor.value,
-    soloChallenge: form.soloChallenge.checked
-  };
-
-  const operation = challengeId
-    ? update(ref(database, `challenges/${challengeId}`), challengeData)
-    : push(ref(database, 'challenges'), challengeData);
-
-  operation
-    .then(() => {
-      loadChallengesAdmin();
-      modal.style.display = "none";
-    })
-    .catch(error => {
-      console.error("Error adding/updating challenge: ", error);
-      alert('Error adding/updating challenge. Please try again.');
-    });
-}
-
 window.deleteAchievement = function(id) {
   if (confirm('Are you sure you want to delete this achievement?')) {
     remove(ref(database, `achievements/${id}`))
-      .then(() => loadAchievementsAdmin())
+      .then(() => loadAchievementList())
       .catch(error => {
         console.error("Error deleting achievement: ", error);
         alert('Error deleting achievement. Please try again.');
@@ -479,16 +452,6 @@ window.deleteAchievement = function(id) {
   }
 }
 
-window.deleteChallenge = function(id) {
-  if (confirm('Are you sure you want to delete this challenge?')) {
-    remove(ref(database, `challenges/${id}`))
-      .then(() => loadChallengesAdmin())
-      .catch(error => {
-        console.error("Error deleting challenge: ", error);
-        alert('Error deleting challenge. Please try again.');
-      });
-  }
-}
 
 function showStats() {
   mainContent.innerHTML = `
@@ -842,6 +805,15 @@ function showAbout() {
   `;
 }
 
+  function showTeamMembersAdmin() {
+  const adminContent = document.getElementById('adminContent');
+  adminContent.innerHTML = `
+    <h3>Team Members Management</h3>
+    <button class="button" onclick="showModal('addTeamMember')">Add New Team Member</button>
+    <div id="teamMembersList"></div>
+  `;
+  loadTeamMembers();
+}
 function showTeamMembers() {
     mainContent.innerHTML = `
         <h2>Team Members</h2>

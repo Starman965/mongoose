@@ -27,7 +27,7 @@ export function loadAchievements() {
     displayAchievements(achievements);
   });
 }
-
+// First Display Achievements
 function displayAchievements(achievements) {
   const container = document.getElementById('achievementsContainer');
   container.innerHTML = '';
@@ -92,18 +92,6 @@ function sortAchievements(achievements, sortValue) {
 }
 
 const difficultyOrder = ['Easy', 'Moderate', 'Hard', 'Extra Hard'];
-
-// added 8.16
-function displayAchievements(achievements) {
-    const container = document.getElementById('achievementsContainer');
-    container.innerHTML = '';
-
-    achievements.forEach(achievement => {
-        const card = createAchievementCard(achievement);
-        container.appendChild(card);
-    });
-}
-
 
 export function getAchievementsUpdates() {
     const updates = achievementsUpdates;

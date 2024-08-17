@@ -120,6 +120,7 @@ export async function processMatchResult(matchData) {
     }
   }
 }
+// Added 8.17
 async function updateAchievement(id, achievement, matchData) {
   achievement.currentProgress++;
   let update = null;
@@ -145,7 +146,6 @@ async function updateAchievement(id, achievement, matchData) {
 
   return update;
 }
-
 function notifyAchievementUpdate(update) {
   // Implement notification logic (e.g., show a toast message, update UI)
   console.log(update);
@@ -267,35 +267,7 @@ function evaluateCriterion(criterion, matchData) {
   }
 }
 
-async function updateAchievement(id, achievement, matchData) {
-  if (!achievement.useHistoricalData && achievement.creationDate > matchData.timestamp) {
-    return null;
-  }
-
-  let update = null;
-  if (checkAchievementCriteria(achievement, matchData)) {
-    achievement.currentCompletionCount++;
-    if (achievement.currentCompletionCount >= achievement.requiredCompletionCount) {
-      achievement.status = 'Completed';
-      if (!achievement.firstCompletionDate) {
-        achievement.firstCompletionDate = matchData.timestamp;
-      }
-      update = `Achievement "${achievement.title}" completed!`;
-    } else {
-      achievement.status = 'In Progress';
-      update = `Progress made on achievement "${achievement.title}"`;
-    }
-
-    if (!achievement.repeatable && achievement.status === 'Completed') {
-      achievement.locked = true;
-    }
-
-    await update(ref(database, `achievements/${id}`), achievement);
-  }
-
-  return update;
-}
-// initialize the sample set of achievements and challenges
+// initialize the sample set of achievements
 function initializeSampleAchievements() {
   const sampleAchievements = [
     {
@@ -343,6 +315,35 @@ function initializeSampleAchievements() {
       isActive: true,
       status: "Not Started",
       currentProgress: 0
+    },
+    {
+      title: "Team Player",
+      description: "Play 50 matches in any game mode",
+      gameTypeOperator: "=",
+      gameType: "Any",
+      timesToComplete: 50,
+      achievementPoints: 200,
+      difficulty: "Easy",
+      canCompleteMultipleTimes: false,
+      isActive: true,
+      status: "Not Started",
+      currentProgress: 0
+    },
+    {
+      title: "Map Master",
+      description: "Win a match on 5 different maps",
+      gameTypeOperator: "=",
+      gameType: "Any",
+      placement: "1",
+      timesToComplete: 5,
+      achievementPoints: 150,
+      difficulty: "Moderate",
+      canCompleteMultipleTimes: false,
+      isActive: true,
+      status: "Not Started",
+      currentProgress: 0,
+      mapOperator: "IN",
+      map: [] // This will be filled as the player wins on different maps
     }
   ];
 

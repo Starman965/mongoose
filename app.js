@@ -294,6 +294,12 @@ async function addOrUpdateAchievement(e) {
     achievementData.status = 'Not Started';
     achievementData.currentProgress = 0;
   }
+
+  // Add any logic here to process the achievement data
+  
+} 
+
+// Now this function is outside of addOrUpdateAchievement
 function getPlacementCriteria(form) {
     const gameType = form.gameType.value;
     if (gameType === 'Multiplayer') {
@@ -303,6 +309,7 @@ function getPlacementCriteria(form) {
         return { max: placement };
     }
 }
+
 
 function getPlayerKillsCriteria(form) {
     const playerKills = [];
@@ -1333,11 +1340,11 @@ function createAchievementCard(id, achievement) {
    console.log('Attempting to access URL:', imageURL); // Add this line
   if (!imageUrl || (!imageUrl.startsWith('https://') && !imageUrl.startsWith('gs://'))) {
     console.warn(`Invalid image URL for achievement ${id}:`, imageUrl);
-    imageUrl = 'https://firebasestorage.googleapis.com/v0/b/gamenight-37cc6.appspot.com/o/achievements%2Fsample.png?alt=media&token=a96d1b32-4a21-4f92-86a9-6281a19053cf'; // Provide a default image path
+    imageUrl = 'https://mongoose.mycodsquad.com/achievementbadgedefault.png'; // Provide a default image path
   }
 
   card.innerHTML = `
-    <img src="${imageUrl}" alt="${achievement.title}" onerror="this.src='path/to/fallback/image.png';">
+    <img src="${imageUrl}" alt="${achievement.title}" onerror="https://mongoose.mycodsquad.com/achievementbadgedefault.png';">
     <h3>${achievement.title}</h3>
     <p>${achievement.description}</p>
     <p>Completed: ${achievement.currentCount}/${achievement.completionCount}</p>

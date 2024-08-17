@@ -289,15 +289,7 @@ function showAchievementsAdmin() {
   `;
   loadAchievementsAdmin();
 }
-function showChallengesAdmin() {
-  const adminContent = document.getElementById('adminContent');
-  adminContent.innerHTML = `
-    <h3>Challenges Management</h3>
-    <button class="button" onclick="showModal('addChallenge')">Add Challenge</button>
-    <div id="challengesList"></div>
-  `;
-  loadChallengesAdmin();
-}
+
 function showAchievementManagement() {
   const adminContent = document.getElementById('adminContent');
   adminContent.innerHTML = `
@@ -2143,33 +2135,33 @@ function updateTeamStats() {
         for (const [id, member] of Object.entries(teamMembers)) {
             leaderboardData.push({
                 name: member.name,
-                completedChallenges: member.completedChallenges || 0,
-                inProgressChallenges: member.inProgressChallenges || 0,
-                totalCP: member.totalCP || 0
+                completedAchievements: member.completedAchievements || 0,
+                inProgressAchievements: member.inProgressAchievements || 0,
+                totalAP: member.totalAP || 0
             });
         }
 
-        // Sort leaderboard by total CP
-        leaderboardData.sort((a, b) => b.totalCP - a.totalCP);
+        // Sort leaderboard by total AP
+        leaderboardData.sort((a, b) => b.totalAP - a.totalAP);
 
         const leaderboardHTML = `
-            <h3>Challenges Leaderboard</h3>
+            <h3>Achievements Leaderboard</h3>
             <table class="stats-table">
                 <thead>
                     <tr>
                         <th>Name</th>
-                        <th>Completed Challenges</th>
-                        <th>In-Progress Challenges</th>
-                        <th>Total CP</th>
+                        <th>Completed Achievements</th>
+                        <th>In-Progress Achievements</th>
+                        <th>Total AP</th>
                     </tr>
                 </thead>
                 <tbody>
                     ${leaderboardData.map(member => `
                         <tr>
                             <td>${member.name}</td>
-                            <td>${member.completedChallenges}</td>
-                            <td>${member.inProgressChallenges}</td>
-                            <td>${member.totalCP}</td>
+                            <td>${member.completedAchievements}</td>
+                            <td>${member.inProgressAchievements}</td>
+                            <td>${member.totalAP}</td>
                         </tr>
                     `).join('')}
                 </tbody>

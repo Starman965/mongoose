@@ -2,12 +2,33 @@ import { database } from './firebaseConfig.js';
 import { ref, onValue, update, get, push } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-database.js";
 
 let achievementsUpdates = [];
-// let challengesUpdates = [];
 
 export function initAwards() {
   // Initialize any necessary data or listeners for awards
 }
+// added new function 8.17
+function addOrUpdateGameType(e) {
+  e.preventDefault();
+  const form = e.target;
+  const typeId = form.dataset.id;
+  const name = form.name.value;
 
+  const typeData = { name };
+
+  const operation = typeId
+    ? update(ref(database, `gameTypes/${typeId}`), typeData)
+    : push(ref(database, 'gameTypes'), typeData);
+
+  operation
+    .then(() => {
+      loadGameTypes();
+      modal.style.display = "none";
+    })
+    .catch(error => {
+      console.error("Error adding/updating game type: ", error);
+      alert('Error adding/updating game type. Please try again.');
+    });
+}
 // updated 8.16
 export function loadAchievements() {
   const achievementsContainer = document.getElementById('achievementsContainer');
@@ -96,12 +117,6 @@ const difficultyOrder = ['Easy', 'Moderate', 'Hard', 'Extra Hard'];
 export function getAchievementsUpdates() {
     const updates = achievementsUpdates;
     achievementsUpdates = [];  // Clear the updates
-    return updates;
-}
-
-export function getChallengesUpdates() {
-    const updates = challengesUpdates;
-    challengesUpdates = [];  // Clear the updates
     return updates;
 }
 
@@ -271,29 +286,29 @@ function evaluateCriterion(criterion, matchData) {
 function initializeSampleAchievements() {
   const sampleAchievements = [
     {
-      title: "Hump Day",
-      description: "Win a match on a Wednesday",
-      gameTypeOperator: "=",
-      gameType: "Any",
-      placement: "1",
-      timesToComplete: 1,
+       title: "Hump Day",
+      description: "Getting a Win on a Wednesday",
       achievementPoints: 50,
       difficulty: "Easy",
-      occursOnDOW: [3], // Wednesday
+      timesToComplete: 1,
       canCompleteMultipleTimes: true,
+      gameType: "Any",
+      gameTypeOperator: "=",
+      placement: "1",
+      occursOnDOW: [3], // Wednesday
       isActive: true,
       status: "Not Started",
       currentProgress: 0
     },
     {
       title: "Battle Royale Master",
-      description: "Win 10 Battle Royale matches",
+      description: "Win 1 Battle Royale matches",
       gameTypeOperator: "=",
       gameType: "Warzone",
       gameModeOperator: "=",
       gameMode: "Battle Royale",
       placement: "1",
-      timesToComplete: 10,
+      timesToComplete: 1,
       achievementPoints: 500,
       difficulty: "Hard",
       canCompleteMultipleTimes: false,
@@ -303,11 +318,11 @@ function initializeSampleAchievements() {
     },
     {
       title: "Kill Streak",
-      description: "Get 15 or more kills in a single match",
+      description: "Get 5 or more kills in a single match",
       gameTypeOperator: "=",
       gameType: "Any",
       totalKillsOperator: ">=",
-      totalKills: 15,
+      totalKills: 5,
       timesToComplete: 1,
       achievementPoints: 100,
       difficulty: "Moderate",
@@ -316,35 +331,6 @@ function initializeSampleAchievements() {
       status: "Not Started",
       currentProgress: 0
     },
-    {
-      title: "Team Player",
-      description: "Play 50 matches in any game mode",
-      gameTypeOperator: "=",
-      gameType: "Any",
-      timesToComplete: 50,
-      achievementPoints: 200,
-      difficulty: "Easy",
-      canCompleteMultipleTimes: false,
-      isActive: true,
-      status: "Not Started",
-      currentProgress: 0
-    },
-    {
-      title: "Map Master",
-      description: "Win a match on 5 different maps",
-      gameTypeOperator: "=",
-      gameType: "Any",
-      placement: "1",
-      timesToComplete: 5,
-      achievementPoints: 150,
-      difficulty: "Moderate",
-      canCompleteMultipleTimes: false,
-      isActive: true,
-      status: "Not Started",
-      currentProgress: 0,
-      mapOperator: "IN",
-      map: [] // This will be filled as the player wins on different maps
-    }
   ];
 
   sampleAchievements.forEach(achievement => {

@@ -2003,8 +2003,19 @@ async function updateGameModeAndMapOptions() {
         });
     }
 
+    // Add 'Any' option for both game mode and map
+    const anyOptionMode = document.createElement('option');
+    anyOptionMode.value = 'Any';
+    anyOptionMode.textContent = 'Any';
+    gameModeSelect.appendChild(anyOptionMode);
+
+    const anyOptionMap = document.createElement('option');
+    anyOptionMap.value = 'Any';
+    anyOptionMap.textContent = 'Any';
+    mapSelect.appendChild(anyOptionMap);
+
     updatePlacementInput();
-}              
+}      
 // Functions to update slider value labels
 function updatePlacementValue() {
     const placement = document.getElementById('placement').value;

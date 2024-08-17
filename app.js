@@ -1646,7 +1646,166 @@ function showNotification(matchData) {
 // new combined show modal
 window.showModal = async function(action, id = null, subId = null) {
     modalContent.innerHTML = '';
-    let achievement = {};case 'addAchievement':
+    let achievement = {};
+    let match = null;
+
+    switch(action) {
+        case 'addTeamMember':
+            modalContent.innerHTML = `
+                <h3>Add Team Member</h3>
+                <form id="teamMemberForm">
+                    <input type="text" id="name" placeholder="Name" required>
+                    <input type="text" id="gamertag" placeholder="Gamertag" required>
+                    <input type="text" id="state" placeholder="State" required>
+                    <input type="date" id="birthdate" required>
+                    <input type="text" id="favoriteSnack" placeholder="Favorite Snack" required>
+                    <input type="file" id="photo" accept="image/*" required>
+                    <button type="submit">Add Team Member</button>
+                </form>
+            `;
+            document.getElementById('teamMemberForm').addEventListener('submit', addOrUpdateTeamMember);
+            break;
+
+        case 'editTeamMember':
+            const memberSnapshot = await get(ref(database, `teamMembers/${id}`));
+            if (memberSnapshot.exists()) {
+                const member = memberSnapshot.val();
+                modalContent.innerHTML = `
+                    <h3>Edit Team Member</h3>
+                    <form id="teamMemberForm" data-id="${id}">
+                        <input type="text" id="name" value="${member.name}" required>
+                        <input type="text" id="gamertag" value="${member.gamertag}" required>
+                        <input type="text" id="state" value="${member.state}" required>
+                        <input type="date" id="birthdate" value="${member.birthdate}" required>
+                        <input type="text" id="favoriteSnack" value="${member.favoriteSnack}" required>
+                        <input type="file" id="photo" accept="image/*">
+                        <button type="submit">Update Team Member</button>
+                    </form>
+                `;
+                document.getElementById('teamMemberForm').addEventListener('submit', addOrUpdateTeamMember);
+            }
+            break;
+
+        case 'addGameSession':
+            modalContent.innerHTML = `
+                <h3>Add Game Session</h3>
+                <form id="gameSessionForm">
+                    <input type="date" id="date" required>
+                    <button type="submit">Add Game Session</button>
+                </form>
+            `;
+            document.getElementById('gameSessionForm').addEventListener('submit', addOrUpdateGameSession);
+            break;
+
+        case 'editGameSession':
+            const sessionSnapshot = await get(ref(database, `gameSessions/${id}`));
+            if (sessionSnapshot.exists()) {
+                const session = sessionSnapshot.val();
+                const sessionDate = new Date(session.date);
+                
+                if (session.userTimezoneOffset !== undefined) {
+                    sessionDate.setTime(sessionDate.getTime() - session.userTimezoneOffset);
+                }
+                
+                const formattedDate = sessionDate.toISOString().split('T')[0];
+                modalContent.innerHTML = `
+                    <h3>Edit Game Session</h3>
+                    <form id="gameSessionForm" data-id="${id}">
+                        <input type="date" id="date" value="${formattedDate}" required>
+                        <button type="submit">Update Game Session</button>
+                    </form>
+                `;
+                document.getElementById('gameSessionForm').addEventListener('submit', addOrUpdateGameSession);
+            }
+            break;
+
+        case 'addMatch':
+        case 'editMatch':
+            if (action === 'editMatch') {
+                const matchSnapshot = await get(ref(database, `gameSessions/${id}/matches/${subId}`));
+                match = matchSnapshot.val();
+            }
+            modalContent.innerHTML = `
+                <h3>${action === 'addMatch' ? 'Add' : 'Edit'} Match</h3>
+                <form id="matchForm" data-session-id="${id}" ${action === 'editMatch' ? `data-match-id="${subId}"` : ''} class="vertical-form">
+                    <div class="form-group horizontal">
+                        <div class="form-field">
+                            <label for="gameMode">Game Mode</label>
+                            <select id="gameMode" required>
+                                <option value="">Select Game Mode</option>
+                            </select>
+                        </div>
+                        <div class="form-field">
+                            <label for="map">Map</label>
+                            <select id="map" required>
+                                <option value="">Select Map</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div id="placementContainer" class="form-group">
+                        <!-- Placement input will be dynamically added here -->
+                    </div>
+                    <div class="form-group">
+                        <label for="totalKills">Total Kills <span id="totalKillsValue" class="slider-value">N/A</span></label>
+                        <input type="range" id="totalKills" class="slider" min="-1" max="30" step="1" value="-1">
+                    </div>
+                    <div class="form-group">
+                        <label for="killsSTARMAN">Kills (STARMAN) <span id="killsSTARMANValue" class="slider-value">N/A</span></label>
+                        <input type="range" id="killsSTARMAN" class="slider" min="-1" max="30" step="1" value="-1">
+                    </div>
+                    <div class="form-group">
+                        <label for="killsRSKILLA">Kills (RSKILLA) <span id="killsRSKILLAValue" class="slider-value">N/A</span></label>
+                        <input type="range" id="killsRSKILLA" class="slider" min="-1" max="30" step="1" value="-1">
+                    </div>
+                    <div class="form-group">
+                        <label for="killsSWFTSWORD">Kills (SWFTSWORD) <span id="killsSWFTSWORDValue" class="slider-value">N/A</span></label>
+                        <input type="range" id="killsSWFTSWORD" class="slider" min="-1" max="30" step="1" value="-1">
+                    </div>
+                    <div class="form-group">
+                        <label for="killsVAIDED">Kills (VAIDED) <span id="killsVAIDEDValue" class="slider-value">N/A</span></label>
+                        <input type="range" id="killsVAIDED" class="slider" min="-1" max="30" step="1" value="-1">
+                    </div>
+                    <div class="form-group">
+                        <label for="killsMOWGLI">Kills (MOWGLI) <span id="killsMOWGLIValue" class="slider-value">N/A</span></label>
+                        <input type="range" id="killsMOWGLI" class="slider" min="-1" max="30" step="1" value="-1">
+                    </div>
+                    <div class="form-group">
+                        <label for="highlightVideo">Highlight Video</label>
+                        <input type="file" id="highlightVideo" accept="video/*">
+                    </div>
+                    ${match && match.highlightURL ? '<p>A highlight video is already uploaded. Uploading a new one will replace it.</p>' : ''}
+                    <button type="submit" class="button">${action === 'addMatch' ? 'Add' : 'Update'} Match</button>
+                </form>
+            `;
+            await loadGameModesAndMaps();
+            document.getElementById('matchForm').addEventListener('submit', addMatch);
+            document.getElementById('gameMode').addEventListener('change', updatePlacementInput);
+
+            ['totalKills', 'killsSTARMAN', 'killsRSKILLA', 'killsSWFTSWORD', 'killsVAIDED', 'killsMOWGLI'].forEach(slider => {
+                document.getElementById(slider).addEventListener('input', updateSliderValue);
+            });
+
+            if (action === 'editMatch' && match) {
+                document.getElementById('gameMode').value = match.gameMode;
+                document.getElementById('map').value = match.map;
+                await updatePlacementInput();
+                if (match.gameMode === 'Battle Royale') {
+                    document.getElementById('placement').value = match.placement;
+                    updatePlacementValue();
+                } else {
+                    document.getElementById('placement').checked = match.placement === 'Won';
+                }
+                document.getElementById('totalKills').value = match.totalKills ?? -1;
+                updateSliderValue({ target: document.getElementById('totalKills') });
+                ['STARMAN', 'RSKILLA', 'SWFTSWORD', 'VAIDED', 'MOWGLI'].forEach(player => {
+                    const kills = match.kills?.[player] ?? -1;
+                    document.getElementById(`kills${player}`).value = kills;
+                    updateSliderValue({ target: document.getElementById(`kills${player}`) });
+                });
+            }
+            break;
+
+        case 'addAchievement':
         case 'editAchievement':
             if (action === 'editAchievement') {
                 const achievementSnapshot = await get(ref(database, `achievements/${id}`));
@@ -1710,13 +1869,12 @@ window.showModal = async function(action, id = null, subId = null) {
                             <option value="2" ${achievement.placement === '2' ? 'selected' : ''}>2nd</option>
                             <option value="3" ${achievement.placement === '3' ? 'selected' : ''}>3rd</option>
                             <option value="4" ${achievement.placement === '4' ? 'selected' : ''}>4th</option>
-                            <option value="6" ${achievement.placement === '5' ? 'selected' : ''}>5th</option>
+                            <option value="5" ${achievement.placement === '5' ? 'selected' : ''}>5th</option>
                             <option value="6" ${achievement.placement === '6' ? 'selected' : ''}>6th</option>
                             <option value="7" ${achievement.placement === '7' ? 'selected' : ''}>7th</option>
                             <option value="8" ${achievement.placement === '8' ? 'selected' : ''}>8th</option>
                             <option value="9" ${achievement.placement === '9' ? 'selected' : ''}>9th</option>
-                            <option value="10th+" ${achievement.placement === '`0' ? 'selected' : ''}>10th+</option>
-                            <!-- Add more placement options as needed -->
+                            <option value="10th+" ${achievement.placement === '10th+' ? 'selected' : ''}>10th+</option>
                         </select>
                     </div>
 
@@ -1816,10 +1974,65 @@ window.showModal = async function(action, id = null, subId = null) {
                 </form>
             `;
             document.getElementById('achievementForm').addEventListener('submit', addOrUpdateAchievement);
-            // Add event listeners for dynamic form updates (e.g., game type changes)
             document.getElementById('gameType').addEventListener('change', updateGameModeAndMapOptions);
             updateGameModeAndMapOptions();
             break;
+
+        case 'addGameType':
+        case 'editGameType':
+            let gameType = {};
+            if (action === 'editGameType') {
+                const gameTypeSnapshot = await get(ref(database, `gameTypes/${id}`));
+                gameType = gameTypeSnapshot.val();
+            }
+            modalContent.innerHTML = `
+                <h3>${action === 'addGameType' ? 'Add' : 'Edit'} Game Type</h3>
+                <form id="gameTypeForm" data-id="${id || ''}">
+                    <input type="text" id="name" value="${gameType.name || ''}" placeholder="Game Type Name" required>
+                    <button type="submit">${action === 'addGameType' ? 'Add' : 'Update'} Game Type</button>
+                </form>
+            `;
+            document.getElementById('gameTypeForm').addEventListener('submit', addOrUpdateGameType);
+            break;
+
+        case 'addGameMode':
+        case 'editGameMode':
+            let gameMode = {};
+            if (action === 'editGameMode') {
+                const gameModeSnapshot = await get(ref(database, `gameTypes/${id}/gameModes/${subId}`));
+                gameMode = gameModeSnapshot.val();
+            }
+            modalContent.innerHTML = `
+                <h3>${action === 'addGameMode' ? 'Add' : 'Edit'} Game Mode</h3>
+                <form id="gameModeForm" data-type-id="${id}" data-mode-id="${subId || ''}">
+                    <input type="text" id="name" value="${gameMode.name || ''}" placeholder="Game Mode Name" required>
+                    <button type="submit">${action === 'addGameMode' ? 'Add' : 'Update'} Game Mode</button>
+                </form>
+            `;
+            document.getElementById('gameModeForm').addEventListener('submit', addOrUpdateGameMode);
+            break;
+
+        case 'addMap':
+        case 'editMap':
+            let map = {};
+            if (action === 'editMap') {
+                const mapSnapshot = await get(ref(database, `maps/${id}/${subId}`));
+                map = mapSnapshot.val();
+            }
+            modalContent.innerHTML = `
+                <h3>${action === 'addMap' ? 'Add' : 'Edit'} Map</h3>
+                <form id="mapForm" data-map-id="${subId || ''}">
+                    <select id="mapCategory" ${action === 'editMap' ? 'disabled' : ''} required>
+                        <option value="battleRoyale" ${id === 'battleRoyale' ? 'selected' : ''}>Battle Royale</option>
+                        <option value="multiplayer" ${id === 'multiplayer' ? 'selected' : ''}>Multiplayer</option>
+                    </select>
+                    <input type="text" id="name" value="${map.name || ''}" placeholder="Map Name" required>
+                    <button type="submit">${action === 'addMap' ? 'Add' : 'Update'} Map</button>
+                </form>
+            `;
+            document.getElementById('mapForm').addEventListener('submit', addOrUpdateMap);
+            break;
+
         default:
             console.error('Unknown modal action:', action);
             return;
@@ -1827,13 +2040,10 @@ window.showModal = async function(action, id = null, subId = null) {
 
     modal.style.display = "block";
 
-   // Populate dynamic select options for achievements and challenges
-    if (action.includes('Achievement') || action.includes('Challenge')) {
+    // Populate dynamic select options for achievements
+    if (action.includes('Achievement')) {
         populateGameModes();
         populateMaps();
-        if (action.includes('Challenge')) {
-            populateTeamMembers();
-        }
     }
 };
 

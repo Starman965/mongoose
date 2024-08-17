@@ -264,79 +264,125 @@ async function updateAchievement(id, achievement, matchData) {
 
   return update;
 }
-
-/* 
-Disabled for now
-
+// initialize the sample set of achievements and challenges
 function initializeSampleAwardsForTesting() {
   const sampleAchievements = [
     {
-      title: "Hump Day",
-      description: "Getting a Win on a Wednesday",
+      title: "Hump Day Victor",
+      description: "Win a match on a Wednesday",
       ap: 50,
       difficultyLevel: "Easy",
+      criteria: {
+        gameType: "Any",
+        gameMode: "Any",
+        map: "Any",
+        placement: { max: 1 },
+        occurrence: "multiple",
+        dateRange: null
+      },
       requiredCompletionCount: 1,
-      repeatable: true,
-      gameMode: "Any",
-      map: "Any",
-      logicCriteria: JSON.stringify([
-        { type: "dayOfWeek", days: [3] }, // Wednesday is day 3 (0-indexed)
-        { type: "placement", value: 1 }
-      ]),
+      currentCompletionCount: 0,
+      status: "Not Started",
       locked: false,
       useHistoricalData: true
     },
     {
-      title: "Honeymoon Fund",
-      description: "Get 35 wins in a Battle Royale mode game",
+      title: "Battle Royale Dominator",
+      description: "Win 10 Battle Royale matches",
       ap: 500,
       difficultyLevel: "Hard",
-      requiredCompletionCount: 35,
-      repeatable: false,
-      gameMode: "Battle Royale",
-      map: "Any",
-      logicCriteria: JSON.stringify([
-        { type: "gameMode", value: "Battle Royale" },
-        { type: "placement", value: 1 }
-      ]),
+      criteria: {
+        gameType: "Warzone",
+        gameMode: "Battle Royale",
+        map: "Any",
+        placement: { max: 1 },
+        occurrence: "multiple",
+        dateRange: {
+          start: new Date().toISOString(),
+          end: new Date(new Date().setFullYear(new Date().getFullYear() + 1)).toISOString()
+        }
+      },
+      requiredCompletionCount: 10,
+      currentCompletionCount: 0,
+      status: "Not Started",
       locked: false,
-      startDate: new Date().toISOString(),
-      endDate: new Date("2025-04-01").toISOString(),
       useHistoricalData: false
     },
     {
-      title: "Another Win in Paradise",
-      description: "Get a win on Resurgence Quads mode on Rebirth Island map",
-      ap: 100,
+      title: "Urzikstan Marksman",
+      description: "Get 15 or more kills in a single Battle Royale match on Urzikstan",
+      ap: 200,
       difficultyLevel: "Moderate",
+      criteria: {
+        gameType: "Warzone",
+        gameMode: "Battle Royale",
+        map: "Urzikstan",
+        totalKills: { min: 15 },
+        occurrence: "oneTime"
+      },
       requiredCompletionCount: 1,
-      repeatable: true,
-      gameMode: "Resurgence Quads",
-      map: "Rebirth Island",
-      logicCriteria: JSON.stringify([
-        { type: "gameMode", value: "Resurgence Quads" },
-        { type: "map", value: "Rebirth Island" },
-        { type: "placement", value: 1 }
-      ]),
+      currentCompletionCount: 0,
+      status: "Not Started",
       locked: false,
       useHistoricalData: true
     },
     {
-      title: "Odd Man Out",
-      description: "Win a Battle Royale Resurgence game on Rebirth Island with total team kills over 10 and each team member having more than 2 kills",
-      ap: 1000,
-      difficultyLevel: "Extra Hard",
+      title: "Team Wipe Specialist",
+      description: "In Resurgence Quads, have each team member get at least 3 kills and win the match",
+      ap: 300,
+      difficultyLevel: "Hard",
+      criteria: {
+        gameType: "Warzone",
+        gameMode: "Resurgence Quads",
+        map: "Any",
+        placement: { max: 1 },
+        playerKills: [
+          { player: 1, min: 3 },
+          { player: 2, min: 3 },
+          { player: 3, min: 3 },
+          { player: 4, min: 3 }
+        ],
+        occurrence: "multiple"
+      },
       requiredCompletionCount: 1,
-      repeatable: false,
-      gameMode: "Battle Royale Resurgence",
-      map: "Rebirth Island",
-      logicCriteria: JSON.stringify([
-        { type: "gameMode", value: "Battle Royale Resurgence" },
-        { type: "map", value: "Rebirth Island" },
-        { type: "placement", value: 1 },
-        { type: "totalKills", value: 10 },
-        { type: "playerKills", value: 2 }
-      ]),
+      currentCompletionCount: 0,
+      status: "Not Started",
+      locked: false,
+      useHistoricalData: true
+    },
+    {
+      title: "Multiplayer Ace",
+      description: "Win 5 consecutive Multiplayer matches",
+      ap: 150,
+      difficultyLevel: "Moderate",
+      criteria: {
+        gameType: "Multiplayer",
+        gameMode: "Any",
+        map: "Any",
+        placement: "Won",
+        occurrence: "oneTime"
+      },
+      requiredCompletionCount: 5,
+      currentCompletionCount: 0,
+      status: "Not Started",
+      locked: false,
+      useHistoricalData: false
+    },
+    {
+      title: "Weekend Warrior",
+      description: "Play and win a match on Saturday or Sunday",
+      ap: 25,
+      difficultyLevel: "Easy",
+      criteria: {
+        gameType: "Any",
+        gameMode: "Any",
+        map: "Any",
+        placement: { max: 1 },
+        occurrence: "weekly"
+      },
+      requiredCompletionCount: 1,
+      currentCompletionCount: 0,
+      status: "Not Started",
       locked: false,
       useHistoricalData: true
     }
@@ -349,4 +395,3 @@ function initializeSampleAwardsForTesting() {
 
   console.log("Sample achievements have been added for testing.");
 }
-*/

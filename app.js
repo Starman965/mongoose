@@ -767,42 +767,62 @@ function showHelp() {
   `;
 }
 
-// Update for the updateplacementinput from claude at 3:30 8/15
+// Update 8/18
 async function updatePlacementInput() {
-    const gameMode = document.getElementById('gameMode').value;
+    const gameType = document.getElementById('gameType').value;
     const placementContainer = document.getElementById('placementContainer');
-    const gameModes = await get(ref(database, 'gameTypes')).then(snapshot => {
-        const modes = {};
-        snapshot.forEach(child => {
-            const type = child.val();
-            Object.values(type.gameModes || {}).forEach(mode => {
-                modes[mode.name] = type.name;
-            });
-        });
-        return modes;
-    });
+    const isAchievement = document.getElementById('achievementForm') !== null;
 
-    if (gameModes[gameMode.split('|')[1]] === 'Warzone') {
+    if (isAchievement) {
         placementContainer.innerHTML = `
-            <label for="placement">Placement <span id="placementValue" class="slider-value">1st</span></label>
-            <input type="range" id="placement" class="slider" min="1" max="10" step="1" value="1" required>
+            <label for="placement">Placement</label>
+            <select id="placement">
+                <option value="Any">Any</option>
+                <option value="Won">Won (MP Only)</option>
+                <option value="1">1st</option>
+                <option value="2">2nd</option>
+                <option value="3">3rd</option>
+                <option value="4">4th</option>
+                <option value="5">5th</option>
+                <option value="6">6th</option>
+                <option value="7">7th</option>
+                <option value="8">8th</option>
+                <option value="9">9th</option>
+                <option value="10th+">10th+</option>
+            </select>
         `;
-        document.getElementById('placement').addEventListener('input', updatePlacementValue);
-    } else if (gameModes[gameMode.split('|')[1]] === 'Multiplayer') {
-        placementContainer.innerHTML = `
-            <label for="placement">Result</label>
-            <div class="toggle-switch">
-                <input type="checkbox" id="placement" name="placement" class="toggle-input">
-                <label for="placement" class="toggle-label">
-                    <span class="toggle-inner"></span>
-                </label>
-            </div>
-        `;
-       // Set default state to unchecked (Lost)
-        document.getElementById('placement').checked = false;
+    } else {
+        const gameModes = await get(ref(database, 'gameTypes')).then(snapshot => {
+            const modes = {};
+            snapshot.forEach(child => {
+                const type = child.val();
+                Object.values(type.gameModes || {}).forEach(mode => {
+                    modes[mode.name] = type.name;
+                });
+            });
+            return modes;
+        });
+
+        if (gameModes[gameType.split('|')[1]] === 'Warzone') {
+            placementContainer.innerHTML = `
+                <label for="placement">Placement <span id="placementValue" class="slider-value">1st</span></label>
+                <input type="range" id="placement" class="slider" min="1" max="10" step="1" value="1" required>
+            `;
+            document.getElementById('placement').addEventListener('input', updatePlacementValue);
+        } else if (gameModes[gameType.split('|')[1]] === 'Multiplayer') {
+            placementContainer.innerHTML = `
+                <label for="placement">Result</label>
+                <div class="toggle-switch">
+                    <input type="checkbox" id="placement" name="placement" class="toggle-input">
+                    <label for="placement" class="toggle-label">
+                        <span class="toggle-inner"></span>
+                    </label>
+                </div>
+            `;
+            document.getElementById('placement').checked = false;
+        }
     }
 }
-
 function showAbout() {
   mainContent.innerHTML = `
     <h2>About Us</h2>
@@ -1616,33 +1636,18 @@ async function addMatch(e) {
 }
 function showNotification(matchData) {
     const achievementsUpdates = getAchievementsUpdates();
-    // const challengesUpdates = getChallengesUpdates();
 
     let notificationContent = '';
     let soundToPlay = '';
 
-    if (achievementsUpdates.length > 0 || challengesUpdates.length > 0) {
+    if (achievementsUpdates.length > 0) {
         notificationContent += `<h3>Updates</h3>`;
-        
-        if (achievementsUpdates.length > 0) {
-            notificationContent += `<h4>Achievements</h4>`;
-            notificationContent += `<p>${achievementsUpdates.length} achievement(s) updated</p>`;
-            notificationContent += achievementsUpdates.map(update => `<p>${update}</p>`).join('');
-            soundToPlay = '/sounds/achievementsound2.mp3';
-        } else {
-            soundToPlay = '/sounds/achievementsound1.mp3';
-        }
-
-     /*   if (challengesUpdates.length > 0) {
-            notificationContent += `<h4>Challenges</h4>`;
-            notificationContent += `<p>${challengesUpdates.length} challenge(s) updated</p>`;
-            notificationContent += challengesUpdates.map(update => `<p>${update}</p>`).join('');
-            soundToPlay = soundToPlay || '/sounds/challengesound2.mp3';
-        } else if (!soundToPlay) {
-            soundToPlay = '/sounds/challengesound1.mp3';
-        } */
+        notificationContent += `<h4>Achievements</h4>`;
+        notificationContent += `<p>${achievementsUpdates.length} achievement(s) updated</p>`;
+        notificationContent += achievementsUpdates.map(update => `<p>${update}</p>`).join('');
+        soundToPlay = '/sounds/achievementsound2.mp3';
     } else {
-        notificationContent = '<p>No new achievements or challenges updated this match.</p>';
+        notificationContent = '<p>No new achievements updated this match.</p>';
         soundToPlay = '/sounds/achievementsound1.mp3';
     }
 
@@ -1654,7 +1659,6 @@ function showNotification(matchData) {
     const audio = new Audio(soundToPlay);
     audio.play();
 }
-
 // new combined show modal
 window.showModal = async function(action, id = null, subId = null) {
     modalContent.innerHTML = '';

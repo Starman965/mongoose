@@ -1661,300 +1661,180 @@ function showNotification(matchData) {
 // new combined show modal
 window.showModal = async function(action, id = null, subId = null) {
     modalContent.innerHTML = '';
-    let achievement = {};
-    let challenge = {};
-    let match = null;
-
-    switch(action) {
-        case 'addTeamMember':
-            modalContent.innerHTML = `
-                <h3>Add Team Member</h3>
-                <form id="teamMemberForm">
-                    <input type="text" id="name" placeholder="Name" required>
-                    <input type="text" id="gamertag" placeholder="Gamertag" required>
-                    <input type="text" id="state" placeholder="State" required>
-                    <input type="date" id="birthdate" required>
-                    <input type="text" id="favoriteSnack" placeholder="Favorite Snack" required>
-                    <input type="file" id="photo" accept="image/*" required>
-                    <button type="submit">Add Team Member</button>
-                </form>
-            `;
-            document.getElementById('teamMemberForm').addEventListener('submit', addOrUpdateTeamMember);
-            break;
-
-        case 'editTeamMember':
-            const memberSnapshot = await get(ref(database, `teamMembers/${id}`));
-            if (memberSnapshot.exists()) {
-                const member = memberSnapshot.val();
-                modalContent.innerHTML = `
-                    <h3>Edit Team Member</h3>
-                    <form id="teamMemberForm" data-id="${id}">
-                        <input type="text" id="name" value="${member.name}" required>
-                        <input type="text" id="gamertag" value="${member.gamertag}" required>
-                        <input type="text" id="state" value="${member.state}" required>
-                        <input type="date" id="birthdate" value="${member.birthdate}" required>
-                        <input type="text" id="favoriteSnack" value="${member.favoriteSnack}" required>
-                        <input type="file" id="photo" accept="image/*">
-                        <button type="submit">Update Team Member</button>
-                    </form>
-                `;
-                document.getElementById('teamMemberForm').addEventListener('submit', addOrUpdateTeamMember);
-            }
-            break;
-
-        case 'addGameSession':
-            modalContent.innerHTML = `
-                <h3>Add Game Session</h3>
-                <form id="gameSessionForm">
-                    <input type="date" id="date" required>
-                    <button type="submit">Add Game Session</button>
-                </form>
-            `;
-            document.getElementById('gameSessionForm').addEventListener('submit', addOrUpdateGameSession);
-            break;
-
-        case 'editGameSession':
-            const sessionSnapshot = await get(ref(database, `gameSessions/${id}`));
-            if (sessionSnapshot.exists()) {
-                const session = sessionSnapshot.val();
-                const sessionDate = new Date(session.date);
-                
-                if (session.userTimezoneOffset !== undefined) {
-                    sessionDate.setTime(sessionDate.getTime() - session.userTimezoneOffset);
-                }
-                
-                const formattedDate = sessionDate.toISOString().split('T')[0];
-                modalContent.innerHTML = `
-                    <h3>Edit Game Session</h3>
-                    <form id="gameSessionForm" data-id="${id}">
-                        <input type="date" id="date" value="${formattedDate}" required>
-                        <button type="submit">Update Game Session</button>
-                    </form>
-                `;
-                document.getElementById('gameSessionForm').addEventListener('submit', addOrUpdateGameSession);
-            }
-            break;
-
-        case 'addMatch':
-        case 'editMatch':
-            if (action === 'editMatch') {
-                const matchSnapshot = await get(ref(database, `gameSessions/${id}/matches/${subId}`));
-                match = matchSnapshot.val();
+    let achievement = {};case 'addAchievement':
+        case 'editAchievement':
+            if (action === 'editAchievement') {
+                const achievementSnapshot = await get(ref(database, `achievements/${id}`));
+                achievement = achievementSnapshot.val();
             }
             modalContent.innerHTML = `
-                <h3>${action === 'addMatch' ? 'Add' : 'Edit'} Match</h3>
-                <form id="matchForm" data-session-id="${id}" ${action === 'editMatch' ? `data-match-id="${subId}"` : ''} class="vertical-form">
-                    <div class="form-group horizontal">
-                        <div class="form-field">
-                            <label for="gameMode">Game Mode</label>
-                            <select id="gameMode" required>
-                                <option value="">Select Game Mode</option>
-                            </select>
+                <h3>${action === 'addAchievement' ? 'Add' : 'Edit'} Achievement</h3>
+                <form id="achievementForm" data-id="${id || ''}">
+                    <input type="text" id="title" value="${achievement.title || ''}" placeholder="Achievement Title" required>
+                    <textarea id="description" placeholder="Description" required>${achievement.description || ''}</textarea>
+                    
+                    <div class="form-group">
+                        <label for="gameTypeOperator">Game Type</label>
+                        <select id="gameTypeOperator" required>
+                            <option value="=" ${achievement.gameTypeOperator === '=' ? 'selected' : ''}>=</option>
+                            <option value="!=" ${achievement.gameTypeOperator === '!=' ? 'selected' : ''}>!=</option>
+                            <option value="IN" ${achievement.gameTypeOperator === 'IN' ? 'selected' : ''}>IN</option>
+                            <option value="NOT IN" ${achievement.gameTypeOperator === 'NOT IN' ? 'selected' : ''}>NOT IN</option>
+                        </select>
+                        <select id="gameType" required>
+                            <option value="Any" ${achievement.gameType === 'Any' ? 'selected' : ''}>Any</option>
+                            <option value="Warzone" ${achievement.gameType === 'Warzone' ? 'selected' : ''}>Warzone</option>
+                            <option value="Multiplayer" ${achievement.gameType === 'Multiplayer' ? 'selected' : ''}>Multiplayer</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="gameModeOperator">Game Mode</label>
+                        <select id="gameModeOperator">
+                            <option value="=" ${achievement.gameModeOperator === '=' ? 'selected' : ''}>=</option>
+                            <option value="!=" ${achievement.gameModeOperator === '!=' ? 'selected' : ''}>!=</option>
+                            <option value="IN" ${achievement.gameModeOperator === 'IN' ? 'selected' : ''}>IN</option>
+                            <option value="NOT IN" ${achievement.gameModeOperator === 'NOT IN' ? 'selected' : ''}>NOT IN</option>
+                        </select>
+                        <select id="gameMode">
+                            <option value="">Select Game Mode</option>
+                            <!-- Populate with game modes -->
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="mapOperator">Map</label>
+                        <select id="mapOperator">
+                            <option value="=" ${achievement.mapOperator === '=' ? 'selected' : ''}>=</option>
+                            <option value="!=" ${achievement.mapOperator === '!=' ? 'selected' : ''}>!=</option>
+                            <option value="IN" ${achievement.mapOperator === 'IN' ? 'selected' : ''}>IN</option>
+                            <option value="NOT IN" ${achievement.mapOperator === 'NOT IN' ? 'selected' : ''}>NOT IN</option>
+                        </select>
+                        <select id="map">
+                            <option value="">Select Map</option>
+                            <!-- Populate with maps -->
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="placement">Placement</label>
+                        <select id="placement">
+                            <option value="Any" ${achievement.placement === 'Any' ? 'selected' : ''}>Any</option>
+                            <option value="Won" ${achievement.placement === 'Won' ? 'selected' : ''}>Won (MP Only)</option>
+                            <option value="1" ${achievement.placement === '1' ? 'selected' : ''}>1st</option>
+                            <option value="2" ${achievement.placement === '2' ? 'selected' : ''}>2nd</option>
+                            <option value="3" ${achievement.placement === '3' ? 'selected' : ''}>3rd</option>
+                            <option value="4" ${achievement.placement === '4' ? 'selected' : ''}>4th</option>
+                            <option value="6" ${achievement.placement === '5' ? 'selected' : ''}>5th</option>
+                            <option value="6" ${achievement.placement === '6' ? 'selected' : ''}>6th</option>
+                            <option value="7" ${achievement.placement === '7' ? 'selected' : ''}>7th</option>
+                            <option value="8" ${achievement.placement === '8' ? 'selected' : ''}>8th</option>
+                            <option value="9" ${achievement.placement === '9' ? 'selected' : ''}>9th</option>
+                            <option value="10th+" ${achievement.placement === '`0' ? 'selected' : ''}>10th+</option>
+                            <!-- Add more placement options as needed -->
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="totalKillsOperator">Total Kills</label>
+                        <select id="totalKillsOperator">
+                            <option value="=" ${achievement.totalKillsOperator === '=' ? 'selected' : ''}>=</option>
+                            <option value=">=" ${achievement.totalKillsOperator === '>=' ? 'selected' : ''}>>=</option>
+                            <option value="<" ${achievement.totalKillsOperator === '<' ? 'selected' : ''}><</option>
+                            <option value=">" ${achievement.totalKillsOperator === '>' ? 'selected' : ''}>></option>
+                            <option value="is Odd" ${achievement.totalKillsOperator === 'is Odd' ? 'selected' : ''}>is Odd</option>
+                            <option value="is Even" ${achievement.totalKillsOperator === 'is Even' ? 'selected' : ''}>is Even</option>
+                        </select>
+                        <input type="number" id="totalKills" value="${achievement.totalKills || 0}" min="0">
+                    </div>
+
+                    <!-- Add team member kills inputs here -->
+
+                    <div class="form-group">
+                        <label for="timesToComplete">Times to Complete</label>
+                        <input type="number" id="timesToComplete" value="${achievement.timesToComplete || 1}" min="1" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="achievementPoints">Achievement Points</label>
+                        <input type="number" id="achievementPoints" value="${achievement.achievementPoints || 0}" min="0" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="difficulty">Difficulty</label>
+                        <select id="difficulty" required>
+                            <option value="Easy" ${achievement.difficulty === 'Easy' ? 'selected' : ''}>Easy</option>
+                            <option value="Moderate" ${achievement.difficulty === 'Moderate' ? 'selected' : ''}>Moderate</option>
+                            <option value="Hard" ${achievement.difficulty === 'Hard' ? 'selected' : ''}>Hard</option>
+                            <option value="Extra Hard" ${achievement.difficulty === 'Extra Hard' ? 'selected' : ''}>Extra Hard</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="occursByDate">Occurs By Date</label>
+                        <input type="date" id="occursByDate" value="${achievement.occursByDate || ''}">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Occurs on Day of Week</label>
+                        <div id="occursOnDOW">
+                            <label><input type="checkbox" value="0" ${achievement.occursOnDOW && achievement.occursOnDOW.includes(0) ? 'checked' : ''}> Sunday</label>
+                            <label><input type="checkbox" value="1" ${achievement.occursOnDOW && achievement.occursOnDOW.includes(1) ? 'checked' : ''}> Monday</label>
+                            <label><input type="checkbox" value="2" ${achievement.occursOnDOW && achievement.occursOnDOW.includes(2) ? 'checked' : ''}> Tuesday</label>
+                            <label><input type="checkbox" value="3" ${achievement.occursOnDOW && achievement.occursOnDOW.includes(3) ? 'checked' : ''}> Wednesday</label>
+                            <label><input type="checkbox" value="4" ${achievement.occursOnDOW && achievement.occursOnDOW.includes(4) ? 'checked' : ''}> Thursday</label>
+                            <label><input type="checkbox" value="5" ${achievement.occursOnDOW && achievement.occursOnDOW.includes(5) ? 'checked' : ''}> Friday</label>
+                            <label><input type="checkbox" value="6" ${achievement.occursOnDOW && achievement.occursOnDOW.includes(6) ? 'checked' : ''}> Saturday</label>
                         </div>
-                        <div class="form-field">
-                            <label for="map">Map</label>
-                            <select id="map" required>
-                                <option value="">Select Map</option>
-                            </select>
-                        </div>
                     </div>
-                    <div id="placementContainer" class="form-group">
-                        <!-- Placement input will be dynamically added here -->
-                    </div>
+
                     <div class="form-group">
-                        <label for="totalKills">Total Kills <span id="totalKillsValue" class="slider-value">N/A</span></label>
-                        <input type="range" id="totalKills" class="slider" min="-1" max="30" step="1" value="-1">
+                        <label for="canCompleteMultipleTimes">Can Complete More Than Once</label>
+                        <input type="checkbox" id="canCompleteMultipleTimes" ${achievement.canCompleteMultipleTimes ? 'checked' : ''}>
                     </div>
+
                     <div class="form-group">
-                        <label for="killsSTARMAN">Kills (STARMAN) <span id="killsSTARMANValue" class="slider-value">N/A</span></label>
-                        <input type="range" id="killsSTARMAN" class="slider" min="-1" max="30" step="1" value="-1">
+                        <label for="award">Award</label>
+                        <input type="text" id="award" value="${achievement.award || ''}" placeholder="Award Description">
                     </div>
+
                     <div class="form-group">
-                        <label for="killsRSKILLA">Kills (RSKILLA) <span id="killsRSKILLAValue" class="slider-value">N/A</span></label>
-                        <input type="range" id="killsRSKILLA" class="slider" min="-1" max="30" step="1" value="-1">
+                        <label for="awardSponsor">Award Sponsor</label>
+                        <input type="text" id="awardSponsor" value="${achievement.awardSponsor || ''}" placeholder="Award Sponsor">
                     </div>
+
                     <div class="form-group">
-                        <label for="killsSWFTSWORD">Kills (SWFTSWORD) <span id="killsSWFTSWORDValue" class="slider-value">N/A</span></label>
-                        <input type="range" id="killsSWFTSWORD" class="slider" min="-1" max="30" step="1" value="-1">
+                        <label>Awarded To</label>
+                        <label><input type="radio" name="awardedTo" value="Team" ${achievement.awardedTo === 'Team' ? 'checked' : ''} required> Team</label>
+                        <label><input type="radio" name="awardedTo" value="Player" ${achievement.awardedTo === 'Player' ? 'checked' : ''} required> Player</label>
                     </div>
+
                     <div class="form-group">
-                        <label for="killsVAIDED">Kills (VAIDED) <span id="killsVAIDEDValue" class="slider-value">N/A</span></label>
-                        <input type="range" id="killsVAIDED" class="slider" min="-1" max="30" step="1" value="-1">
+                        <label for="imageUrl">Achievement Image</label>
+                        <input type="file" id="imageUpload" accept="image/*">
+                        <input type="text" id="imageUrl" value="${achievement.imageUrl || ''}" placeholder="Image URL" readonly>
                     </div>
+
+                    <a href="http://www.mycodsquad.com" target="_blank">Achievement Image Creator</a>
+
                     <div class="form-group">
-                        <label for="killsMOWGLI">Kills (MOWGLI) <span id="killsMOWGLIValue" class="slider-value">N/A</span></label>
-                        <input type="range" id="killsMOWGLI" class="slider" min="-1" max="30" step="1" value="-1">
+                        <label for="useHistoricalData">Use Historical Data</label>
+                        <input type="checkbox" id="useHistoricalData" ${achievement.useHistoricalData ? 'checked' : ''}>
                     </div>
+
                     <div class="form-group">
-                        <label for="highlightVideo">Highlight Video</label>
-                        <input type="file" id="highlightVideo" accept="video/*">
+                        <label for="isActive">Activate Achievement</label>
+                        <input type="checkbox" id="isActive" ${achievement.isActive !== false ? 'checked' : ''}>
                     </div>
-                    ${match && match.highlightURL ? '<p>A highlight video is already uploaded. Uploading a new one will replace it.</p>' : ''}
-                    <button type="submit" class="button">${action === 'addMatch' ? 'Add' : 'Update'} Match</button>
+
+                    <button type="submit">${action === 'addAchievement' ? 'Add' : 'Update'} Achievement</button>
                 </form>
             `;
-            await loadGameModesAndMaps();
-            document.getElementById('matchForm').addEventListener('submit', addMatch);
-            document.getElementById('gameMode').addEventListener('change', updatePlacementInput);
-
-            ['totalKills', 'killsSTARMAN', 'killsRSKILLA', 'killsSWFTSWORD', 'killsVAIDED', 'killsMOWGLI'].forEach(slider => {
-                document.getElementById(slider).addEventListener('input', updateSliderValue);
-            });
-
-            if (action === 'editMatch' && match) {
-                document.getElementById('gameMode').value = match.gameMode;
-                document.getElementById('map').value = match.map;
-                await updatePlacementInput();
-                if (match.gameMode === 'Battle Royale') {
-                    document.getElementById('placement').value = match.placement;
-                    updatePlacementValue();
-                } else {
-                    document.getElementById('placement').checked = match.placement === 'Won';
-                }
-                document.getElementById('totalKills').value = match.totalKills ?? -1;
-                updateSliderValue({ target: document.getElementById('totalKills') });
-                ['STARMAN', 'RSKILLA', 'SWFTSWORD', 'VAIDED', 'MOWGLI'].forEach(player => {
-                    const kills = match.kills?.[player] ?? -1;
-                    document.getElementById(`kills${player}`).value = kills;
-                    updateSliderValue({ target: document.getElementById(`kills${player}`) });
-                });
-            }
+            document.getElementById('achievementForm').addEventListener('submit', addOrUpdateAchievement);
+            // Add event listeners for dynamic form updates (e.g., game type changes)
+            document.getElementById('gameType').addEventListener('change', updateGameModeAndMapOptions);
+            updateGameModeAndMapOptions();
             break;
-
-        case 'addMap':
-        case 'editMap':
-            let map = subId ? await get(ref(database, `maps/${id}/${subId}`)).then(snapshot => snapshot.val()) : null;
-            modalContent.innerHTML = `
-                <h3>${action === 'addMap' ? 'Add' : 'Edit'} Map</h3>
-                <form id="mapForm" data-type-id="${id || ''}" data-map-id="${subId || ''}">
-                    <select id="mapType" ${id ? 'disabled' : ''} required>
-                        <option value="battleRoyale">Battle Royale</option>
-                        <option value="multiplayer">Multiplayer</option>
-                    </select>
-                    <input type="text" id="name" value="${map ? map.name : ''}" placeholder="Map Name" required>
-                    <button type="submit">${action === 'addMap' ? 'Add' : 'Update'} Map</button>
-                </form>
-            `;
-            document.getElementById('mapForm').addEventListener('submit', addOrUpdateMap);
-            if (id) {
-                document.getElementById('mapType').value = id;
-            }
-            break;
-
-        case 'addGameMode':
-         case 'editGameMode':
-            let gameType = id ? await get(ref(database, `gameTypes/${id}`)).then(snapshot => snapshot.val()) : null;
-            let gameMode = subId ? gameType.gameModes[subId] : null;
-            modalContent.innerHTML = `
-                <h3>${action === 'addGameMode' ? 'Add' : 'Edit'} Game Mode</h3>
-                <form id="gameModeForm" data-type-id="${id}" data-mode-id="${subId || ''}">
-                    <input type="text" id="name" value="${gameMode ? gameMode.name : ''}" placeholder="Game Mode Name" required>
-                    <button type="submit">${action === 'addGameMode' ? 'Add' : 'Update'} Game Mode</button>
-                </form>
-            `;
-            document.getElementById('gameModeForm').addEventListener('submit', addOrUpdateGameMode);
-            break;
-
-        case 'addAchievement':
-case 'editAchievement':
-    let achievement = {};
-    if (action === 'editAchievement') {
-        const achievementSnapshot = await get(ref(database, `achievements/${id}`));
-        achievement = achievementSnapshot.val();
-    }
-    modalContent.innerHTML = `
-        <h3>${action === 'addAchievement' ? 'Add' : 'Edit'} Achievement</h3>
-        <form id="achievementForm" data-id="${id || ''}">
-            <input type="text" id="title" value="${achievement.title || ''}" placeholder="Title" required>
-            <textarea id="description" placeholder="Description" required>${achievement.description || ''}</textarea>
-            <input type="number" id="ap" value="${achievement.ap || ''}" placeholder="Achievement Points" required>
-            <select id="difficultyLevel" required>
-                <option value="">Select Difficulty</option>
-                <option value="Easy" ${achievement.difficultyLevel === 'Easy' ? 'selected' : ''}>Easy</option>
-                <option value="Moderate" ${achievement.difficultyLevel === 'Moderate' ? 'selected' : ''}>Moderate</option>
-                <option value="Hard" ${achievement.difficultyLevel === 'Hard' ? 'selected' : ''}>Hard</option>
-                <option value="Extra Hard" ${achievement.difficultyLevel === 'Extra Hard' ? 'selected' : ''}>Extra Hard</option>
-            </select>
-            <select id="gameType" required>
-                <option value="">Select Game Type</option>
-                <option value="Any" ${achievement.criteria?.gameType === 'Any' ? 'selected' : ''}>Any</option>
-                <option value="Warzone" ${achievement.criteria?.gameType === 'Warzone' ? 'selected' : ''}>Warzone</option>
-                <option value="Multiplayer" ${achievement.criteria?.gameType === 'Multiplayer' ? 'selected' : ''}>Multiplayer</option>
-            </select>
-            <select id="gameMode" required>
-                <option value="">Select Game Mode</option>
-            </select>
-            <select id="map" required>
-                <option value="">Select Map</option>
-            </select>
-            <div id="placementContainer">
-                <!-- Placement input will be dynamically added here -->
-            </div>
-            <input type="number" id="totalKills" value="${achievement.criteria?.totalKills?.min || ''}" placeholder="Minimum Total Kills">
-            <div id="playerKillsContainer">
-                <!-- Player kills inputs will be dynamically added here -->
-            </div>
-            <select id="occurrence" required>
-                <option value="oneTime" ${achievement.criteria?.occurrence === 'oneTime' ? 'selected' : ''}>One Time</option>
-                <option value="multiple" ${achievement.criteria?.occurrence === 'multiple' ? 'selected' : ''}>Multiple Times</option>
-            </select>
-            <input type="date" id="startDate" value="${achievement.criteria?.dateRange?.start || ''}" placeholder="Start Date">
-            <input type="date" id="endDate" value="${achievement.criteria?.dateRange?.end || ''}" placeholder="End Date">
-            <button type="submit">${action === 'addAchievement' ? 'Add' : 'Update'} Achievement</button>
-        </form>
-    `;
-    document.getElementById('achievementForm').addEventListener('submit', addOrUpdateAchievement);
-    document.getElementById('gameType').addEventListener('change', updateGameModeAndMapOptions);
-    updateGameModeAndMapOptions();
-    updatePlacementInput();
-    break;
-
-        case 'addChallenge':
-        case 'editChallenge':
-            if (action === 'editChallenge') {
-                const challengeSnapshot = await get(ref(database, `challenges/${id}`));
-                challenge = challengeSnapshot.val();
-            }
-            modalContent.innerHTML = `
-                <h3>${action === 'addChallenge' ? 'Add' : 'Edit'} Challenge</h3>
-                <form id="challengeForm" data-id="${id || ''}">
-                    <input type="text" id="title" value="${challenge.title || ''}" placeholder="Title" required>
-                    <textarea id="description" placeholder="Description" required>${challenge.description || ''}</textarea>
-<input type="number" id="cp" value="${challenge.cp || ''}" placeholder="Challenge Points" required>
-                    <select id="difficultyLevel" required>
-                        <option value="">Select Difficulty</option>
-                        <option value="Easy" ${challenge.difficultyLevel === 'Easy' ? 'selected' : ''}>Easy</option>
-                        <option value="Moderate" ${challenge.difficultyLevel === 'Moderate' ? 'selected' : ''}>Moderate</option>
-                        <option value="Hard" ${challenge.difficultyLevel === 'Hard' ? 'selected' : ''}>Hard</option>
-                        <option value="Extra Hard" ${challenge.difficultyLevel === 'Extra Hard' ? 'selected' : ''}>Extra Hard</option>
-                    </select>
-                    <input type="number" id="requiredCompletionCount" value="${challenge.requiredCompletionCount || ''}" placeholder="Required Completion Count" required>
-                    <label><input type="checkbox" id="repeatable" ${challenge.repeatable ? 'checked' : ''}> Repeatable</label>
-                    <select id="gameMode" required>
-                        <option value="">Select Game Mode</option>
-                    </select>
-                    <select id="specificMode" required>
-                        <option value="">Select Specific Mode</option>
-                    </select>
-                    <select id="map" required>
-                        <option value="">Select Map</option>
-                    </select>
-                    <textarea id="logicCriteria" placeholder="Logic Criteria (JSON)">${challenge.logicCriteria || ''}</textarea>
-                    <label><input type="checkbox" id="locked" ${challenge.locked ? 'checked' : ''}> Locked</label>
-                    <input type="date" id="startDate" value="${challenge.startDate || ''}" placeholder="Start Date">
-                    <input type="date" id="endDate" value="${challenge.endDate || ''}" placeholder="End Date">
-                    <label><input type="checkbox" id="useHistoricalData" ${challenge.useHistoricalData ? 'checked' : ''}> Use Historical Data</label>
-                    <input type="text" id="prizeDescription" value="${challenge.prizeDescription || ''}" placeholder="Prize Description">
-                    <select id="prizeSponsor" required>
-                        <option value="">Select Prize Sponsor</option>
-                    </select>
-                    <label><input type="checkbox" id="soloChallenge" ${challenge.soloChallenge ? 'checked' : ''}> Solo Challenge</label>
-                    <button type="submit">${action === 'addChallenge' ? 'Add' : 'Update'} Challenge</button>
-                </form>
-            `;
-            document.getElementById('challengeForm').addEventListener('submit', addOrUpdateChallenge);
-            break;
-
         default:
             console.error('Unknown modal action:', action);
             return;
@@ -1962,7 +1842,7 @@ case 'editAchievement':
 
     modal.style.display = "block";
 
-    // Populate dynamic select options for achievements and challenges
+   // Populate dynamic select options for achievements and challenges
     if (action.includes('Achievement') || action.includes('Challenge')) {
         populateGameModes();
         populateMaps();

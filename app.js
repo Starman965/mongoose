@@ -2052,9 +2052,3 @@ function populateTeamMembers() {
     }
   });
 }
-
-window.initializeSampleAwardsForTesting = initializeSampleAwardsForTesting;
-
-window.onload = function() {
-    modal.style.display = "none"; // Ensure modal is hidden on load
-};

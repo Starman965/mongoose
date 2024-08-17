@@ -1856,7 +1856,7 @@ window.showModal = async function(action, id = null, subId = null) {
             break;
 
         case 'addAchievement':
-        case 'editAchievement':
+case 'editAchievement':
     let achievement = {};
     if (action === 'editAchievement') {
         const achievementSnapshot = await get(ref(database, `achievements/${id}`));
@@ -1877,14 +1877,12 @@ window.showModal = async function(action, id = null, subId = null) {
             </select>
             <select id="gameType" required>
                 <option value="">Select Game Type</option>
-                <option value="Any">Any</option>
-                <option value="Warzone" ${achievement.gameType === 'Warzone' ? 'selected' : ''}>Warzone</option>
-                <option value="Multiplayer" ${achievement.gameType === 'Multiplayer' ? 'selected' : ''}>Multiplayer</option>
+                <option value="Any" ${achievement.criteria?.gameType === 'Any' ? 'selected' : ''}>Any</option>
+                <option value="Warzone" ${achievement.criteria?.gameType === 'Warzone' ? 'selected' : ''}>Warzone</option>
+                <option value="Multiplayer" ${achievement.criteria?.gameType === 'Multiplayer' ? 'selected' : ''}>Multiplayer</option>
             </select>
             <select id="gameMode" required>
                 <option value="">Select Game Mode</option>
-                <option value="Battle Royale" ${achievement.gameMode === 'Battle Royale' ? 'selected' : ''}>Battle Royale</option>
-                <option value="Resurgence" ${achievement.gameMode === 'Resurgence' ? 'selected' : ''}>Resurgence</option>
             </select>
             <select id="map" required>
                 <option value="">Select Map</option>
@@ -1892,16 +1890,16 @@ window.showModal = async function(action, id = null, subId = null) {
             <div id="placementContainer">
                 <!-- Placement input will be dynamically added here -->
             </div>
-            <input type="number" id="totalKills" value="${achievement.totalKills || ''}" placeholder="Minimum Total Kills">
+            <input type="number" id="totalKills" value="${achievement.criteria?.totalKills?.min || ''}" placeholder="Minimum Total Kills">
             <div id="playerKillsContainer">
                 <!-- Player kills inputs will be dynamically added here -->
             </div>
             <select id="occurrence" required>
-                <option value="oneTime" ${achievement.occurrence === 'oneTime' ? 'selected' : ''}>One Time</option>
-                <option value="multiple" ${achievement.occurrence === 'multiple' ? 'selected' : ''}>Multiple Times</option>
+                <option value="oneTime" ${achievement.criteria?.occurrence === 'oneTime' ? 'selected' : ''}>One Time</option>
+                <option value="multiple" ${achievement.criteria?.occurrence === 'multiple' ? 'selected' : ''}>Multiple Times</option>
             </select>
-            <input type="date" id="startDate" value="${achievement.startDate || ''}" placeholder="Start Date">
-            <input type="date" id="endDate" value="${achievement.endDate || ''}" placeholder="End Date">
+            <input type="date" id="startDate" value="${achievement.criteria?.dateRange?.start || ''}" placeholder="Start Date">
+            <input type="date" id="endDate" value="${achievement.criteria?.dateRange?.end || ''}" placeholder="End Date">
             <button type="submit">${action === 'addAchievement' ? 'Add' : 'Update'} Achievement</button>
         </form>
     `;

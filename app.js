@@ -2,7 +2,7 @@ import { ref, onValue, push, update, remove, get } from "https://www.gstatic.com
 import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-storage.js";
 import { database } from './firebaseConfig.js';
 import { initAwards, loadAchievements, processMatchResult } from './awardsmanager.js';
-import { getAchievementsUpdates, getChallengesUpdates } from './awardsmanager.js';
+import { getAchievementsUpdates } from './awardsmanager.js';
 
 const storage = getStorage();
 
@@ -67,7 +67,6 @@ async function loadGameModesAndMaps() {
 document.getElementById('statsNav').addEventListener('click', () => showSection('stats'));
 document.getElementById('sessionsNav').addEventListener('click', () => showSection('sessions'));
 document.getElementById('achievementsNav').addEventListener('click', () => showSection('achievements'));
-document.getElementById('challengesNav').addEventListener('click', () => showSection('challenges'));
 document.getElementById('highlightsNav').addEventListener('click', () => showSection('highlights'));
 document.getElementById('teamNav').addEventListener('click', () => showSection('team'));
 document.getElementById('adminNav').addEventListener('click', () => showAdminSection());
@@ -84,9 +83,6 @@ function showSection(section) {
       break;
     case 'achievements':
      showAchievements();    
-      break;
-    case 'challenges':
-      showChallenges();
       break;
     case 'highlights':
       showHighlights();
@@ -123,17 +119,6 @@ function checkAchievementCriteria(achievement, matchData) {
       default:
         return false;
     }
-  });
-}
-
-function checkChallengeCriteria(challenge, matchData) {
-  // Similar to checkAchievementCriteria, but may include player-specific checks
-  const criteria = JSON.parse(challenge.logicCriteria);
-
-  return criteria.every(criterion => {
-    // Implement challenge-specific criteria checks
-    // This might include checking individual player performance
-    // or other challenge-specific conditions
   });
 }
 
@@ -177,89 +162,6 @@ function showMapsAdmin() {
   `;
   loadMaps();
 }
-function initializeSampleAwardsForTesting() {
-  const sampleAchievements = [
-    {
-      title: "Hump Day",
-      description: "Getting a Win on a Wednesday",
-      ap: 50,
-      difficultyLevel: "Easy",
-      requiredCompletionCount: 1,
-      repeatable: true,
-      gameMode: "Any",
-      map: "Any",
-      logicCriteria: JSON.stringify([
-        { type: "dayOfWeek", days: [3] }, // Wednesday is day 3 (0-indexed)
-        { type: "placement", value: 1 }
-      ]),
-      locked: false,
-      useHistoricalData: true
-    },
-    {
-      title: "Honeymoon Fund",
-      description: "Get 35 wins in a Battle Royale mode game",
-      ap: 500,
-      difficultyLevel: "Hard",
-      requiredCompletionCount: 35,
-      repeatable: false,
-      gameMode: "Battle Royale",
-      map: "Any",
-      logicCriteria: JSON.stringify([
-        { type: "gameMode", value: "Battle Royale" },
-        { type: "placement", value: 1 }
-      ]),
-      locked: false,
-      startDate: new Date().toISOString(),
-      endDate: new Date("2025-04-01").toISOString(),
-      useHistoricalData: false
-    },
-    {
-      title: "Another Win in Paradise",
-      description: "Get a win on Resurgence Quads mode on Rebirth Island map",
-      ap: 100,
-      difficultyLevel: "Moderate",
-      requiredCompletionCount: 1,
-      repeatable: true,
-      gameMode: "Resurgence Quads",
-      map: "Rebirth Island",
-      logicCriteria: JSON.stringify([
-        { type: "gameMode", value: "Resurgence Quads" },
-        { type: "map", value: "Rebirth Island" },
-        { type: "placement", value: 1 }
-      ]),
-      locked: false,
-      useHistoricalData: true
-    },
-    {
-      title: "Odd Man Out",
-      description: "Win a Battle Royale Resurgence game on Rebirth Island with total team kills over 10 and each team member having more than 2 kills",
-      ap: 1000,
-      difficultyLevel: "Extra Hard",
-      requiredCompletionCount: 1,
-      repeatable: false,
-      gameMode: "Battle Royale Resurgence",
-      map: "Rebirth Island",
-      logicCriteria: JSON.stringify([
-        { type: "gameMode", value: "Battle Royale Resurgence" },
-        { type: "map", value: "Rebirth Island" },
-        { type: "placement", value: 1 },
-        { type: "totalKills", value: 10 },
-        { type: "playerKills", value: 2 }
-      ]),
-      locked: false,
-      useHistoricalData: true
-    }
-  ];
-
- 
-  // Add sample achievements to the database
-  sampleAchievements.forEach(achievement => {
-    push(ref(database, 'achievements'), achievement);
-  });
-
-
-  console.log("Sample achievements and challenges have been added for testing.");
-}
 
 function showAchievementNotification(message) {
   const notification = document.createElement('div');
@@ -293,6 +195,7 @@ function showAchievementManagement() {
   `;
   loadAchievementList();
 }
+
 function loadAchievementList() {
   const achievementList = document.getElementById('achievementList');
   get(ref(database, 'achievements')).then((snapshot) => {
@@ -354,35 +257,7 @@ function loadAchievementsAdmin() {
     });
 }
 
-function loadChallengesAdmin() {
-  const challengesList = document.getElementById('challengesList');
-  challengesList.innerHTML = 'Loading challenges...';
-
-  get(ref(database, 'challenges')).then((snapshot) => {
-    const challenges = snapshot.val();
-    let challengesHtml = '<table class="admin-table">';
-    challengesHtml += '<tr><th>Title</th><th>Description</th><th>CP</th><th>Difficulty</th><th>Actions</th></tr>';
-
-    for (const [id, challenge] of Object.entries(challenges)) {
-      challengesHtml += `
-        <tr>
-          <td>${challenge.title}</td>
-          <td>${challenge.description}</td>
-          <td>${challenge.cp}</td>
-          <td>${challenge.difficultyLevel}</td>
-          <td>
-            <button class="button" onclick="showModal('editChallenge', '${id}')">Edit</button>
-            <button class="button" onclick="deleteChallenge('${id}')">Delete</button>
-          </td>
-        </tr>
-      `;
-    }
-
-    challengesHtml += '</table>';
-    challengesList.innerHTML = challengesHtml;
-  });
-}
-// Add these functions to handle adding, editing, and deleting achievements and challenges
+// Add these functions to handle adding, editing, and deleting achievements 
 async function addOrUpdateAchievement(e) {
   e.preventDefault();
   const form = e.target;
@@ -449,7 +324,6 @@ window.deleteAchievement = function(id) {
       });
   }
 }
-
 
 function showStats() {
   mainContent.innerHTML = `
@@ -537,16 +411,6 @@ function viewMatch(matchId) {
     // Implement this function to show match details
     console.log(`Viewing match: ${matchId}`);
     // You might want to open a modal or navigate to a match details page
-}
-
-function updatePayoutStatus(challengeId, player, isPaidOut) {
-    update(ref(database, `challenges/${challengeId}/playersCompleted/${player}`), {
-        paidOut: isPaidOut
-    }).then(() => {
-        console.log(`Updated payout status for ${player} on challenge ${challengeId}`);
-    }).catch((error) => {
-        console.error("Error updating payout status:", error);
-    });
 }
 
 function loadStats() {
@@ -711,33 +575,7 @@ function showAchievements() {
   document.getElementById('achievementSort').addEventListener('change', loadAchievements);
   document.getElementById('achievementGameTypeFilter').addEventListener('change', loadAchievements);
 }
-function showChallenges() {
-  mainContent.innerHTML = `
-    <h2>Challenges</h2>
-    <div class="filter-sort-container">
-      <select id="challengeFilter">
-        <option value="all">Show All</option>
-        <option value="completedWeek">Completed This Week</option>
-        <option value="completedMonth">Completed This Month</option>
-        <option value="completedYear">Completed This Year</option>
-        <option value="inProgress">In Progress</option>
-      </select>
-      <select id="challengeSort">
-        <option value="difficulty">Sort by Difficulty</option>
-        <option value="cp">Sort by Challenge Points</option>
-        <option value="completionDate">Sort by Completion Date</option>
-        <option value="prize">Sort by Prize</option>
-      </select>
-    </div>
-    <div id="challengesContainer" class="awards-grid"></div>
-  `;
- // loadChallenges();
   
-  // Add event listeners for filter and sort
-  document.getElementById('challengeFilter').addEventListener('change', loadChallenges);
-  document.getElementById('challengeSort').addEventListener('change', loadChallenges);
-}
-
 function showHelp() {
   mainContent.innerHTML = `
     <h2>Help</h2>
@@ -1607,7 +1445,7 @@ async function addMatch(e) {
         }
         console.log('Match saved successfully');
 
-        // Process achievements and challenges
+        // Process achievements
         await processMatchResult(matchData);
 
         // Show notification

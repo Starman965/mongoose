@@ -278,6 +278,8 @@ function initializeSampleAwardsForTesting() {
         gameMode: "Any",
         map: "Any",
         placement: { max: 1 },
+        totalKills: null,
+        playerKills: null,
         occurrence: "multiple",
         dateRange: null
       },
@@ -297,6 +299,8 @@ function initializeSampleAwardsForTesting() {
         gameMode: "Battle Royale",
         map: "Any",
         placement: { max: 1 },
+        totalKills: null,
+        playerKills: null,
         occurrence: "multiple",
         dateRange: {
           start: new Date().toISOString(),
@@ -318,8 +322,11 @@ function initializeSampleAwardsForTesting() {
         gameType: "Warzone",
         gameMode: "Battle Royale",
         map: "Urzikstan",
+        placement: null,
         totalKills: { min: 15 },
-        occurrence: "oneTime"
+        playerKills: null,
+        occurrence: "oneTime",
+        dateRange: null
       },
       requiredCompletionCount: 1,
       currentCompletionCount: 0,
@@ -337,13 +344,15 @@ function initializeSampleAwardsForTesting() {
         gameMode: "Resurgence Quads",
         map: "Any",
         placement: { max: 1 },
+        totalKills: null,
         playerKills: [
           { player: 1, min: 3 },
           { player: 2, min: 3 },
           { player: 3, min: 3 },
           { player: 4, min: 3 }
         ],
-        occurrence: "multiple"
+        occurrence: "multiple",
+        dateRange: null
       },
       requiredCompletionCount: 1,
       currentCompletionCount: 0,
@@ -361,31 +370,16 @@ function initializeSampleAwardsForTesting() {
         gameMode: "Any",
         map: "Any",
         placement: "Won",
-        occurrence: "oneTime"
+        totalKills: null,
+        playerKills: null,
+        occurrence: "oneTime",
+        dateRange: null
       },
       requiredCompletionCount: 5,
       currentCompletionCount: 0,
       status: "Not Started",
       locked: false,
       useHistoricalData: false
-    },
-    {
-      title: "Weekend Warrior",
-      description: "Play and win a match on Saturday or Sunday",
-      ap: 25,
-      difficultyLevel: "Easy",
-      criteria: {
-        gameType: "Any",
-        gameMode: "Any",
-        map: "Any",
-        placement: { max: 1 },
-        occurrence: "weekly"
-      },
-      requiredCompletionCount: 1,
-      currentCompletionCount: 0,
-      status: "Not Started",
-      locked: false,
-      useHistoricalData: true
     }
   ];
 

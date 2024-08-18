@@ -142,20 +142,6 @@ function filterAchievements(achievements, filterValue, gameTypeFilter) {
     });
 }
 
-function sortAchievements(achievements, sortValue) {
-  switch(sortValue) {
-    case 'difficulty':
-      return achievements.sort((a, b) => difficultyOrder.indexOf(a.difficultyLevel) - difficultyOrder.indexOf(b.difficultyLevel));
-    case 'ap':
-      return achievements.sort((a, b) => b.ap - a.ap);
-    case 'progress':
-      return achievements.sort((a, b) => (b.currentCompletionCount / b.requiredCompletionCount) - (a.currentCompletionCount / a.requiredCompletionCount));
-    case 'completionDate':
-      return achievements.sort((a, b) => new Date(b.completionDate) - new Date(a.completionDate));
-    default:
-      return achievements;
-  }
-}
 function showAdminSection() {
   mainContent.innerHTML = `
     <h2>Admin</h2>

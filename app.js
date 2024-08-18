@@ -2059,3 +2059,60 @@ function populateTeamMembers() {
     }
   });
 }
+// initialize the sample set of achievements
+function initializeSampleAchievements() {
+  const sampleAchievements = [
+    {
+       title: "Hump Day",
+      description: "Getting a Win on a Wednesday",
+      achievementPoints: 50,
+      difficulty: "Easy",
+      timesToComplete: 1,
+      canCompleteMultipleTimes: true,
+      gameType: "Any",
+      gameTypeOperator: "=",
+      placement: "1",
+      occursOnDOW: [3], // Wednesday
+      isActive: true,
+      status: "Not Started",
+      currentProgress: 0
+    },
+    {
+      title: "Battle Royale Master",
+      description: "Win 1 Battle Royale matches",
+      gameTypeOperator: "=",
+      gameType: "Warzone",
+      gameModeOperator: "=",
+      gameMode: "Battle Royale",
+      placement: "1",
+      timesToComplete: 1,
+      achievementPoints: 500,
+      difficulty: "Hard",
+      canCompleteMultipleTimes: false,
+      isActive: true,
+      status: "Not Started",
+      currentProgress: 0
+    },
+    {
+      title: "Kill Streak",
+      description: "Get 5 or more kills in a single match",
+      gameTypeOperator: "=",
+      gameType: "Any",
+      totalKillsOperator: ">=",
+      totalKills: 5,
+      timesToComplete: 1,
+      achievementPoints: 100,
+      difficulty: "Moderate",
+      canCompleteMultipleTimes: true,
+      isActive: true,
+      status: "Not Started",
+      currentProgress: 0
+    },
+  ];
+
+  sampleAchievements.forEach(achievement => {
+    push(ref(database, 'achievements'), achievement);
+  });
+
+  console.log("Sample achievements have been added for testing.");
+}

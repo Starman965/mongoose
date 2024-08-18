@@ -1274,8 +1274,8 @@ function loadMaps() {
   const mapsList = document.getElementById('mapsList');
   mapsList.innerHTML = 'Loading maps...';
   
-  onValue(ref(database, 'maps'), (snapshot) => {
-    const maps = snapshot.val();
+  get(ref(database, 'maps')).then((snapshot) => {
+    const maps = snapshot.val() || {};
     let html = '';
 
     for (const [typeId, typeMaps] of Object.entries(maps)) {
@@ -1301,20 +1301,28 @@ function loadMaps() {
       `;
     }
 
-    mapsList.innerHTML = html;
+    mapsList.innerHTML = html || 'No maps found. Add some!';
+  }).catch(error => {
+    console.error("Error loading maps:", error);
+    mapsList.innerHTML = 'Error loading maps. Please try again.';
   });
 }
 
 function addOrUpdateMap(e) {
   e.preventDefault();
   const form = e.target;
-  const typeId = form.dataset.typeId || document.getElementById('mapType').value;
+  const mapCategory = document.getElementById('mapCategory').value;
   const mapId = form.dataset.mapId;
   const name = document.getElementById('name').value;
 
-  const operation = mapId
-    ? update(ref(database, `maps/${typeId}/${mapId}`), { name })
-    : push(ref(database, `maps/${typeId}`), { name });
+  const mapData = { name };
+
+  let operation;
+  if (mapId) {
+    operation = update(ref(database, `maps/${mapCategory}/${mapId}`), mapData);
+  } else {
+    operation = push(ref(database, `maps/${mapCategory}`), mapData);
+  }
 
   operation
     .then(() => {
@@ -1928,26 +1936,26 @@ case 'editAchievement':
             document.getElementById('gameModeForm').addEventListener('submit', addOrUpdateGameMode);
             break;
 
-        case 'addMap':
-        case 'editMap':
-            let map = {};
-            if (action === 'editMap') {
-                const mapSnapshot = await get(ref(database, `maps/${id}/${subId}`));
-                map = mapSnapshot.val();
-            }
-            modalContent.innerHTML = `
-                <h3>${action === 'addMap' ? 'Add' : 'Edit'} Map</h3>
-                <form id="mapForm" data-map-id="${subId || ''}">
-                    <select id="mapCategory" ${action === 'editMap' ? 'disabled' : ''} required>
-                        <option value="battleRoyale" ${id === 'battleRoyale' ? 'selected' : ''}>Battle Royale</option>
-                        <option value="multiplayer" ${id === 'multiplayer' ? 'selected' : ''}>Multiplayer</option>
-                    </select>
-                    <input type="text" id="name" value="${map.name || ''}" placeholder="Map Name" required>
-                    <button type="submit">${action === 'addMap' ? 'Add' : 'Update'} Map</button>
-                </form>
-            `;
-            document.getElementById('mapForm').addEventListener('submit', addOrUpdateMap);
-            break;
+       case 'addMap':
+case 'editMap':
+    let map = {};
+    if (action === 'editMap') {
+        const mapSnapshot = await get(ref(database, `maps/${id}/${subId}`));
+        map = mapSnapshot.val() || {};
+    }
+    modalContent.innerHTML = `
+        <h3>${action === 'addMap' ? 'Add' : 'Edit'} Map</h3>
+        <form id="mapForm" data-map-id="${subId || ''}">
+            <select id="mapCategory" ${action === 'editMap' ? 'disabled' : ''} required>
+                <option value="battleRoyale" ${id === 'battleRoyale' ? 'selected' : ''}>Battle Royale</option>
+                <option value="multiplayer" ${id === 'multiplayer' ? 'selected' : ''}>Multiplayer</option>
+            </select>
+            <input type="text" id="name" value="${map.name || ''}" placeholder="Map Name" required>
+            <button type="submit">${action === 'addMap' ? 'Add' : 'Update'} Map</button>
+        </form>
+    `;
+    document.getElementById('mapForm').addEventListener('submit', addOrUpdateMap);
+    break;
 
         default:
             console.error('Unknown modal action:', action);

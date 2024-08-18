@@ -1,7 +1,7 @@
 import { ref, onValue, push, update, remove, get } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-database.js";
 import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-storage.js";
 import { database } from './firebaseConfig.js';
-import { initAwards, loadAchievements, processMatchResult } from './awardsmanager.js';
+import { loadAchievements, processMatchResult } from './awardsmanager.js';
 import { getAchievementsUpdates } from './awardsmanager.js';
 
 const storage = getStorage();

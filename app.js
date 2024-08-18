@@ -2144,11 +2144,11 @@ function populateTeamMembers() {
     }
   });
 }
-// initialize the sample set of achievements database
+// initialize the sample set of achievements database updated 8.17
 function initializeSampleAchievements() {
   const sampleAchievements = [
     {
-       title: "Hump Day",
+      title: "Hump Day",
       description: "Getting a Win on a Wednesday",
       achievementPoints: 50,
       difficulty: "Easy",
@@ -2160,11 +2160,16 @@ function initializeSampleAchievements() {
       occursOnDOW: [3], // Wednesday
       isActive: true,
       status: "Not Started",
-      currentProgress: 0
+      currentProgress: 0,
+      completionCount: 0,
+      completionHistory: [],
+      lastCompletedAt: null,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
     },
     {
       title: "Battle Royale Master",
-      description: "Win 1 Battle Royale matches",
+      description: "Win 1 Battle Royale match",
       gameTypeOperator: "=",
       gameType: "Warzone",
       gameModeOperator: "=",
@@ -2176,7 +2181,12 @@ function initializeSampleAchievements() {
       canCompleteMultipleTimes: false,
       isActive: true,
       status: "Not Started",
-      currentProgress: 0
+      currentProgress: 0,
+      completionCount: 0,
+      completionHistory: [],
+      lastCompletedAt: null,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
     },
     {
       title: "Kill Streak",
@@ -2191,13 +2201,24 @@ function initializeSampleAchievements() {
       canCompleteMultipleTimes: true,
       isActive: true,
       status: "Not Started",
-      currentProgress: 0
+      currentProgress: 0,
+      completionCount: 0,
+      completionHistory: [],
+      lastCompletedAt: null,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
     },
   ];
 
   sampleAchievements.forEach(achievement => {
-    push(ref(database, 'achievements'), achievement);
+    push(ref(database, 'achievements'), achievement)
+      .then(() => console.log(`Added sample achievement: ${achievement.title}`))
+      .catch(error => console.error(`Error adding sample achievement ${achievement.title}:`, error));
   });
 
   console.log("Sample achievements have been added for testing.");
+  alert("Sample achievements have been added successfully!");
 }
+
+// Make sure this function is exposed to the global scope if it's called from an onclick attribute
+window.initializeSampleAchievements = initializeSampleAchievements;

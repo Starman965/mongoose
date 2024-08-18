@@ -257,9 +257,134 @@ function loadAchievementsAdmin() {
         achievementsList.innerHTML = achievementsHtml;
     });
 }
+// new functions added 8.17 based on Claudes redo of functions for updating repeatable achievements
 
-// Add these functions to handle adding, editing, and deleting achievements 
-async function addOrUpdateAchievement(e) {
+function showAchievements() {
+  mainContent.innerHTML = `
+    <h2>Achievements</h2>
+    <div class="filter-sort-container">
+      <select id="achievementFilter">
+        <option value="all">Show All</option>
+        <option value="completed">Completed</option>
+        <option value="inProgress">In Progress</option>
+        <option value="notStarted">Not Started</option>
+      </select>
+      <select id="achievementSort">
+        <option value="difficulty">Sort by Difficulty</option>
+        <option value="ap">Sort by Achievement Points</option>
+        <option value="progress">Sort by Progress</option>
+        <option value="completionDate">Sort by Completion Date</option>
+      </select>
+      <select id="achievementGameTypeFilter">
+        <option value="Any">Any Game Type</option>
+        <option value="Warzone">Warzone</option>
+        <option value="Multiplayer">Multiplayer</option>
+      </select>
+    </div>
+    <div id="achievementsContainer" class="awards-grid"></div>
+  `;
+  loadAchievements();
+  
+  // Add event listeners for filter and sort
+  document.getElementById('achievementFilter').addEventListener('change', loadAchievements);
+  document.getElementById('achievementSort').addEventListener('change', loadAchievements);
+  document.getElementById('achievementGameTypeFilter').addEventListener('change', loadAchievements);
+}
+
+function loadAchievements() {
+  const achievementsContainer = document.getElementById('achievementsContainer');
+  const filterValue = document.getElementById('achievementFilter').value;
+  const sortValue = document.getElementById('achievementSort').value;
+  const gameTypeFilter = document.getElementById('achievementGameTypeFilter').value;
+  
+  get(ref(database, 'achievements')).then((snapshot) => {
+    let achievements = [];
+    snapshot.forEach((childSnapshot) => {
+      achievements.push({id: childSnapshot.key, ...childSnapshot.val()});
+    });
+    
+    achievements = filterAchievements(achievements, filterValue, gameTypeFilter);
+    achievements = sortAchievements(achievements, sortValue);
+    
+    displayAchievements(achievements);
+  });
+}
+
+function filterAchievements(achievements, filterValue, gameTypeFilter) {
+  return achievements.filter(a => {
+    if (gameTypeFilter !== 'Any' && a.gameType !== gameTypeFilter) return false;
+    
+    switch(filterValue) {
+      case 'completed':
+        return a.status === 'Completed';
+      case 'inProgress':
+        return a.status === 'In Progress';
+      case 'notStarted':
+        return a.status === 'Not Started';
+      default:
+        return true;
+    }
+  });
+}
+
+function sortAchievements(achievements, sortValue) {
+  switch(sortValue) {
+    case 'difficulty':
+      return achievements.sort((a, b) => difficultyOrder.indexOf(a.difficulty) - difficultyOrder.indexOf(b.difficulty));
+    case 'ap':
+      return achievements.sort((a, b) => b.achievementPoints - a.achievementPoints);
+    case 'progress':
+      return achievements.sort((a, b) => (b.currentProgress / b.timesToComplete) - (a.currentProgress / a.timesToComplete));
+    case 'completionDate':
+      return achievements.sort((a, b) => {
+        if (!a.lastCompletedAt) return 1;
+        if (!b.lastCompletedAt) return -1;
+        return new Date(b.lastCompletedAt) - new Date(a.lastCompletedAt);
+      });
+    default:
+      return achievements;
+  }
+}
+
+const difficultyOrder = ['Easy', 'Moderate', 'Hard', 'Extra Hard'];
+
+function displayAchievements(achievements) {
+  const container = document.getElementById('achievementsContainer');
+  container.innerHTML = '';
+
+  achievements.forEach(achievement => {
+    const card = createAchievementCard(achievement);
+    container.appendChild(card);
+  });
+}
+
+function createAchievementCard(achievement) {
+  const card = document.createElement('div');
+  card.className = 'card achievement-card';
+  
+  let imageUrl = achievement.imageUrl || 'https://mongoose.mycodsquad.com/achievementbadgedefault.png';
+  console.log('Attempting to access URL:', imageUrl);
+  if (!imageUrl.startsWith('https://') && !imageUrl.startsWith('gs://')) {
+    console.warn(`Invalid image URL for achievement ${achievement.id}:`, imageUrl);
+    imageUrl = 'https://mongoose.mycodsquad.com/achievementbadgedefault.png';
+  }
+
+  card.innerHTML = `
+    <img src="${imageUrl}" alt="${achievement.title}" onerror="this.src='https://mongoose.mycodsquad.com/achievementbadgedefault.png';">
+    <h3>${achievement.title}</h3>
+    <p>${achievement.description}</p>
+    <p>Points: ${achievement.achievementPoints}</p>
+    <p>Difficulty: ${achievement.difficulty}</p>
+    <p>Status: ${achievement.status}</p>
+    <p>Times Completed: ${achievement.completionCount || 0}</p>
+    ${achievement.canCompleteMultipleTimes ? `<p>Progress: ${achievement.currentProgress}/${achievement.timesToComplete}</p>` : ''}
+    ${achievement.lastCompletedAt ? `<p>Last Completed: ${new Date(achievement.lastCompletedAt).toLocaleDateString()}</p>` : ''}
+  `;
+
+  return card;
+}
+
+function addOrUpdateAchievement(e) {
   e.preventDefault();
   const form = e.target;
   const achievementId = form.dataset.id;
@@ -294,12 +419,24 @@ async function addOrUpdateAchievement(e) {
     achievementData.createdAt = new Date().toISOString();
     achievementData.status = 'Not Started';
     achievementData.currentProgress = 0;
+    achievementData.completionCount = 0;
+    achievementData.completionHistory = [];
   }
 
-  // Add any logic here to process the achievement data
-  
-} 
+  const operation = achievementId
+    ? update(ref(database, `achievements/${achievementId}`), achievementData)
+    : push(ref(database, 'achievements'), achievementData);
 
+  operation
+    .then(() => {
+      loadAchievements();
+      modal.style.display = "none";
+    })
+    .catch(error => {
+      console.error("Error adding/updating achievement: ", error);
+      alert('Error adding/updating achievement. Please try again.');
+    });
+}
 // Now this function is outside of addOrUpdateAchievement
 function getPlacementCriteria(form) {
     const gameType = form.gameType.value;
@@ -551,39 +688,6 @@ function calculateSessionStats(matches) {
 
   return stats;
 }
-function showAchievements() {
-  mainContent.innerHTML = `
-    <h2>Achievements</h2>
-    <div class="filter-sort-container">
-      <select id="achievementFilter">
-        <option value="all">Show All</option>
-        <option value="completedWeek">Completed This Week</option>
-        <option value="completedMonth">Completed This Month</option>
-        <option value="completedYear">Completed This Year</option>
-        <option value="inProgress">In Progress</option>
-      </select>
-      <select id="achievementSort">
-        <option value="difficulty">Sort by Difficulty</option>
-        <option value="ap">Sort by Achievement Points</option>
-        <option value="progress">Sort by Progress</option>
-        <option value="completionDate">Sort by Completion Date</option>
-      </select>
-      <select id="achievementGameTypeFilter">
-        <option value="Any">Any Game Type</option>
-        <option value="Warzone">Warzone</option>
-        <option value="Multiplayer">Multiplayer</option>
-      </select>
-    </div>
-    <div id="achievementsContainer" class="awards-grid"></div>
-  `;
-  loadAchievements();
-  
-  // Add event listeners for filter and sort
-  document.getElementById('achievementFilter').addEventListener('change', loadAchievements);
-  document.getElementById('achievementSort').addEventListener('change', loadAchievements);
-  document.getElementById('achievementGameTypeFilter').addEventListener('change', loadAchievements);
-}
-  
 function showHelp() {
   mainContent.innerHTML = `
     <h2>Help</h2>
@@ -1331,26 +1435,6 @@ function loadHighlights() {
       highlightsList.innerHTML = 'No highlights found.';
     }
   });
-}
-
-function createAchievementCard(id, achievement) {
-  const card = document.createElement('div');
-  card.className = 'card achievement-card';
-  
-  let imageUrl = achievement.imageUrl || achievement.defaultImageUrl;
-   console.log('Attempting to access URL:', imageURL); // Add this line
-  if (!imageUrl || (!imageUrl.startsWith('https://') && !imageUrl.startsWith('gs://'))) {
-    console.warn(`Invalid image URL for achievement ${id}:`, imageUrl);
-    imageUrl = 'https://mongoose.mycodsquad.com/achievementbadgedefault.png'; // Provide a default image path
-  }
-
-  card.innerHTML = `
-    <img src="${imageUrl}" alt="${achievement.title}" onerror="https://mongoose.mycodsquad.com/achievementbadgedefault.png';">
-    <h3>${achievement.title}</h3>
-    <p>${achievement.description}</p>
-    <p>Completed: ${achievement.currentCount}/${achievement.completionCount}</p>
-  `;
-  return card;
 }
 
 function formatDate(dateString, userTimezoneOffset) {

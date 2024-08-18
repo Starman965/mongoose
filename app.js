@@ -121,6 +121,7 @@ function checkAchievementCriteria(achievement, matchData) {
     }
   });
 }
+// first filter
 function filterAchievements(achievements, filterValue, gameTypeFilter) {
     const now = new Date();
     return achievements.filter(a => {
@@ -290,7 +291,6 @@ function loadAchievementsAdmin() {
         achievementsList.innerHTML = achievementsHtml;
     });
 }
-// new functions added 8.17 based on Claudes redo of functions for updating repeatable achievements
 
 function showAchievements() {
   mainContent.innerHTML = `
@@ -324,7 +324,7 @@ function showAchievements() {
   document.getElementById('achievementGameTypeFilter').addEventListener('change', loadAchievements);
 }
 
-/* Duplicate Load Function as one is in awardsmanager.js
+// Load Function
 function loadAchievements() {
   const achievementsContainer = document.getElementById('achievementsContainer');
   const filterValue = document.getElementById('achievementFilter').value;
@@ -341,23 +341,6 @@ function loadAchievements() {
     achievements = sortAchievements(achievements, sortValue);
     
     displayAchievements(achievements);
-  });
-}
-*/
-function filterAchievements(achievements, filterValue, gameTypeFilter) {
-  return achievements.filter(a => {
-    if (gameTypeFilter !== 'Any' && a.gameType !== gameTypeFilter) return false;
-    
-    switch(filterValue) {
-      case 'completed':
-        return a.status === 'Completed';
-      case 'inProgress':
-        return a.status === 'In Progress';
-      case 'notStarted':
-        return a.status === 'Not Started';
-      default:
-        return true;
-    }
   });
 }
 

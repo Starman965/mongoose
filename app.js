@@ -2059,7 +2059,7 @@ function populateTeamMembers() {
     }
   });
 }
-// initialize the sample set of achievements
+// initialize the sample set of achievements database
 function initializeSampleAchievements() {
   const sampleAchievements = [
     {

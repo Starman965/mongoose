@@ -291,7 +291,7 @@ function showAchievements() {
   document.getElementById('achievementGameTypeFilter').addEventListener('change', loadAchievements);
 }
 
-// First Load Function
+/* Duplicate Load Function as one is in awardsmanager.js
 function loadAchievements() {
   const achievementsContainer = document.getElementById('achievementsContainer');
   const filterValue = document.getElementById('achievementFilter').value;
@@ -310,7 +310,7 @@ function loadAchievements() {
     displayAchievements(achievements);
   });
 }
-
+*/
 function filterAchievements(achievements, filterValue, gameTypeFilter) {
   return achievements.filter(a => {
     if (gameTypeFilter !== 'Any' && a.gameType !== gameTypeFilter) return false;

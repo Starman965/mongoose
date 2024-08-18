@@ -291,6 +291,7 @@ function showAchievements() {
   document.getElementById('achievementGameTypeFilter').addEventListener('change', loadAchievements);
 }
 
+// First Load Function
 function loadAchievements() {
   const achievementsContainer = document.getElementById('achievementsContainer');
   const filterValue = document.getElementById('achievementFilter').value;

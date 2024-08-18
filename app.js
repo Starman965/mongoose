@@ -708,9 +708,10 @@ function showHelp() {
 
 // Update 8/18
 async function updatePlacementInput() {
-    const gameType = document.getElementById('gameType').value;
+    const gameModeSelect = document.getElementById('gameMode');
     const placementContainer = document.getElementById('placementContainer');
     const isAchievement = document.getElementById('achievementForm') !== null;
+    const [gameType, gameMode] = gameModeSelect.value.split('|');
 
     if (isAchievement) {
         placementContainer.innerHTML = `
@@ -731,24 +732,13 @@ async function updatePlacementInput() {
             </select>
         `;
     } else {
-        const gameModes = await get(ref(database, 'gameTypes')).then(snapshot => {
-            const modes = {};
-            snapshot.forEach(child => {
-                const type = child.val();
-                Object.values(type.gameModes || {}).forEach(mode => {
-                    modes[mode.name] = type.name;
-                });
-            });
-            return modes;
-        });
-
-        if (gameModes[gameType.split('|')[1]] === 'Warzone') {
+        if (gameType === 'Warzone') {
             placementContainer.innerHTML = `
                 <label for="placement">Placement <span id="placementValue" class="slider-value">1st</span></label>
                 <input type="range" id="placement" class="slider" min="1" max="10" step="1" value="1" required>
             `;
             document.getElementById('placement').addEventListener('input', updatePlacementValue);
-        } else if (gameModes[gameType.split('|')[1]] === 'Multiplayer') {
+        } else if (gameType === 'Multiplayer') {
             placementContainer.innerHTML = `
                 <label for="placement">Result</label>
                 <div class="toggle-switch">
@@ -758,7 +748,7 @@ async function updatePlacementInput() {
                     </label>
                 </div>
             `;
-            document.getElementById('placement').checked = false;
+            document.getElementById('placement').checked = false; // Default to 'Lost', change if needed
         }
     }
 }
@@ -1466,21 +1456,10 @@ async function addMatch(e) {
         gameMode
     });
     try {
-        const gameModes = await get(ref(database, 'gameTypes')).then(snapshot => {
-            const modes = {};
-            snapshot.forEach(child => {
-                const type = child.val();
-                Object.values(type.gameModes || {}).forEach(mode => {
-                    modes[mode.name] = type.name;
-                });
-            });
-            return modes;
-        });
-        console.log('Game modes fetched:', gameModes);
         let placement;
-        if (gameModes[gameMode] === 'Warzone') {
+        if (gameType === 'Warzone') {
             placement = parseInt(form.placement.value);
-        } else if (gameModes[gameMode] === 'Multiplayer') {
+        } else if (gameType === 'Multiplayer') {
             placement = form.placement.checked ? 'Won' : 'Lost';
         }
         console.log('Placement:', placement);

@@ -3,9 +3,12 @@ import { ref, onValue, update, get, push } from "https://www.gstatic.com/firebas
 
 let achievementsUpdates = [];
 
+/* commented out as I dont think I need
 export function initAwards() {
   // Initialize any necessary data or listeners for awards
 }
+*/
+
 // added new function 8.17
 function addOrUpdateGameType(e) {
   e.preventDefault();

@@ -417,13 +417,17 @@ async function addOrUpdateAchievement(e) {
     isActive: form.isActive.checked,
     updatedAt: new Date().toISOString()
   };
-['STARMAN', 'RSKILLA', 'SWFTSWORD', 'VAIDED', 'MOWGLI'].forEach(member => {
+
+  // Process team member kills
+  ['STARMAN', 'RSKILLA', 'SWFTSWORD', 'VAIDED', 'MOWGLI'].forEach(member => {
     const operator = document.getElementById(`${member}KillsOperator`).value;
     const kills = parseInt(document.getElementById(`${member}Kills`).value);
     if (kills > 0) {
       achievementData.teamMemberKills[member] = { operator, value: kills };
     }
   });
+
+  // Set default values for new achievements
   if (!achievementId) {
     achievementData.createdAt = new Date().toISOString();
     achievementData.status = 'Not Started';
@@ -433,13 +437,19 @@ async function addOrUpdateAchievement(e) {
   }
 
   try {
+    // Determine whether to update or add new achievement
     const operation = achievementId
       ? update(ref(database, `achievements/${achievementId}`), achievementData)
       : push(ref(database, 'achievements'), achievementData);
 
     await operation;
+
+    // Reload achievements and close modal
     loadAchievements();
     modal.style.display = "none";
+
+    // Show success message
+    alert(`Achievement successfully ${achievementId ? 'updated' : 'added'}!`);
   } catch (error) {
     console.error("Error adding/updating achievement: ", error);
     alert('Error adding/updating achievement. Please try again.');
@@ -455,7 +465,6 @@ function getPlacementCriteria(form) {
         return { max: placement };
     }
 }
-
 
 function getPlayerKillsCriteria(form) {
     const playerKills = [];
@@ -1986,7 +1995,7 @@ case 'editMap':
     }
 };
 
-async function updateGameModeAndMapOptions() {
+async function async function updateGameModeAndMapOptions() {
   const gameType = document.getElementById('gameType').value;
   const gameModeSelect = document.getElementById('gameMode');
   const mapSelect = document.getElementById('map');
@@ -2017,6 +2026,18 @@ async function updateGameModeAndMapOptions() {
       });
     }
   }
+
+  // Set the selected values if editing an achievement
+  const achievementId = document.getElementById('achievementForm').dataset.id;
+  if (achievementId) {
+    const achievementSnapshot = await get(ref(database, `achievements/${achievementId}`));
+    const achievement = achievementSnapshot.val();
+    if (achievement) {
+      gameModeSelect.value = achievement.gameMode || 'Any';
+      mapSelect.value = achievement.map || 'Any';
+    }
+  }
+}
 
   // Set the selected values if editing an achievement
   const achievementId = document.getElementById('achievementForm').dataset.id;

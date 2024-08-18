@@ -1,7 +1,7 @@
 import { ref, onValue, push, update, remove, get } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-database.js";
 import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-storage.js";
 import { database } from './firebaseConfig.js';
-import { loadAchievements, processMatchResult } from './awardsmanager.js';
+import { processMatchResult } from './awardsmanager.js';
 import { getAchievementsUpdates } from './awardsmanager.js';
 
 const storage = getStorage();
@@ -121,7 +121,40 @@ function checkAchievementCriteria(achievement, matchData) {
     }
   });
 }
+function filterAchievements(achievements, filterValue, gameTypeFilter) {
+    const now = new Date();
+    return achievements.filter(a => {
+        if (gameTypeFilter !== 'Any' && a.criteria.gameType !== gameTypeFilter) return false;
+        
+        switch(filterValue) {
+            case 'completedWeek':
+                return a.status === 'Completed' && new Date(a.completionDate) > new Date(now - 7 * 24 * 60 * 60 * 1000);
+            case 'completedMonth':
+                return a.status === 'Completed' && new Date(a.completionDate) > new Date(now.getFullYear(), now.getMonth() - 1, now.getDate());
+            case 'completedYear':
+                return a.status === 'Completed' && new Date(a.completionDate) > new Date(now.getFullYear() - 1, now.getMonth(), now.getDate());
+            case 'inProgress':
+                return a.status === 'In Progress';
+            default:
+                return true;
+        }
+    });
+}
 
+function sortAchievements(achievements, sortValue) {
+  switch(sortValue) {
+    case 'difficulty':
+      return achievements.sort((a, b) => difficultyOrder.indexOf(a.difficultyLevel) - difficultyOrder.indexOf(b.difficultyLevel));
+    case 'ap':
+      return achievements.sort((a, b) => b.ap - a.ap);
+    case 'progress':
+      return achievements.sort((a, b) => (b.currentCompletionCount / b.requiredCompletionCount) - (a.currentCompletionCount / a.requiredCompletionCount));
+    case 'completionDate':
+      return achievements.sort((a, b) => new Date(b.completionDate) - new Date(a.completionDate));
+    default:
+      return achievements;
+  }
+}
 function showAdminSection() {
   mainContent.innerHTML = `
     <h2>Admin</h2>

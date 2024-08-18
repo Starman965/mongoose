@@ -138,7 +138,8 @@ export async function processMatchResult(matchData) {
     }
   }
 }
-// Added 8.17
+
+// Added 8.18
 async function updateAchievement(id, achievement, matchData) {
   achievement.currentProgress++;
   let update = null;
@@ -148,11 +149,23 @@ async function updateAchievement(id, achievement, matchData) {
     achievement.completedAt = matchData.timestamp;
     update = `Achievement "${achievement.title}" completed!`;
 
+    // Increment the completion count
+    achievement.completionCount = (achievement.completionCount || 0) + 1;
+
+    // Add to completion history
+    if (!achievement.completionHistory) achievement.completionHistory = [];
+    achievement.completionHistory.push({
+      completedAt: matchData.timestamp,
+      matchId: matchData.id // Assuming matchData has an id field
+    });
+
     if (!achievement.canCompleteMultipleTimes) {
       achievement.isActive = false;
     } else {
       achievement.currentProgress = 0;
     }
+
+    achievement.lastCompletedAt = matchData.timestamp;
   } else {
     achievement.status = 'In Progress';
     update = `Progress made on achievement "${achievement.title}"`;
@@ -209,12 +222,13 @@ function checkAchievementCriteria(achievement, matchData) {
   if (!checkOperatorCondition(achievement.totalKillsOperator, achievement.totalKills, matchData.totalKills)) return false;
 
   // Check team member kills
-  for (const [member, killData] of Object.entries(achievement.teamMemberKills)) {
+  for (const [member, killData] of Object.entries(achievement.teamMemberKills || {})) {
     if (!checkOperatorCondition(killData.operator, killData.value, matchData.kills[member])) return false;
   }
 
   return true;
 }
+
 function checkOperatorCondition(operator, achievementValue, matchValue) {
   switch (operator) {
     case '=': return achievementValue === matchValue;

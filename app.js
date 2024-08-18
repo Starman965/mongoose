@@ -731,25 +731,23 @@ async function updatePlacementInput() {
                 <option value="10th+">10th+</option>
             </select>
         `;
-    } else {
-        if (gameType === 'Warzone') {
-            placementContainer.innerHTML = `
-                <label for="placement">Placement <span id="placementValue" class="slider-value">1st</span></label>
-                <input type="range" id="placement" class="slider" min="1" max="10" step="1" value="1" required>
-            `;
-            document.getElementById('placement').addEventListener('input', updatePlacementValue);
-        } else if (gameType === 'Multiplayer') {
-            placementContainer.innerHTML = `
-                <label for="placement">Result</label>
-                <div class="toggle-switch">
-                    <input type="checkbox" id="placement" name="placement" class="toggle-input">
-                    <label for="placement" class="toggle-label">
-                        <span class="toggle-inner"></span>
-                    </label>
-                </div>
-            `;
-            document.getElementById('placement').checked = false; // Default to 'Lost', change if needed
-        }
+    } else if (gameType === 'Warzone') {
+        placementContainer.innerHTML = `
+            <label for="placement">Placement <span id="placementValue" class="slider-value">1st</span></label>
+            <input type="range" id="placement" class="slider" min="1" max="10" step="1" value="1" required>
+        `;
+        document.getElementById('placement').addEventListener('input', updatePlacementValue);
+    } else if (gameType === 'Multiplayer') {
+        placementContainer.innerHTML = `
+            <label for="placement">Result</label>
+            <div class="toggle-switch">
+                <input type="checkbox" id="placement" name="placement" class="toggle-input">
+                <label for="placement" class="toggle-label">
+                    <span class="toggle-inner"></span>
+                </label>
+            </div>
+        `;
+        document.getElementById('placement').checked = false; // Default to 'Lost'
     }
 }
 function showAbout() {
@@ -1633,7 +1631,7 @@ window.showModal = async function(action, id = null, subId = null) {
             }
             break;
 
-        case 'addMatch':
+       case 'addMatch':
 case 'editMatch':
     if (action === 'editMatch') {
         const matchSnapshot = await get(ref(database, `gameSessions/${id}/matches/${subId}`));
@@ -1716,6 +1714,9 @@ case 'editMatch':
             document.getElementById(`kills${player}`).value = kills;
             updateSliderValue({ target: document.getElementById(`kills${player}`) });
         });
+    } else {
+        // For new matches, we still need to call updatePlacementInput
+        await updatePlacementInput();
     }
     break;
         case 'addAchievement':

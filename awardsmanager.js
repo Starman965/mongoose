@@ -26,25 +26,7 @@ function addOrUpdateGameType(e) {
       alert('Error adding/updating game type. Please try again.');
     });
 }
-// updated 8.16
-export function loadAchievements() {
-  const achievementsContainer = document.getElementById('achievementsContainer');
-  const filterValue = document.getElementById('achievementFilter').value;
-  const sortValue = document.getElementById('achievementSort').value;
-  const gameTypeFilter = document.getElementById('achievementGameTypeFilter').value;
-  
-  get(ref(database, 'achievements')).then((snapshot) => {
-    let achievements = [];
-    snapshot.forEach((childSnapshot) => {
-      achievements.push({id: childSnapshot.key, ...childSnapshot.val()});
-    });
-    
-    achievements = filterAchievements(achievements, filterValue, gameTypeFilter);
-    achievements = sortAchievements(achievements, sortValue);
-    
-    displayAchievements(achievements);
-  });
-}
+
 // First Display Achievements
 function displayAchievements(achievements) {
   const container = document.getElementById('achievementsContainer');
@@ -73,40 +55,6 @@ function createAchievementCard(achievement) {
   `;
 
   return card;
-}
-function filterAchievements(achievements, filterValue, gameTypeFilter) {
-    const now = new Date();
-    return achievements.filter(a => {
-        if (gameTypeFilter !== 'Any' && a.criteria.gameType !== gameTypeFilter) return false;
-        
-        switch(filterValue) {
-            case 'completedWeek':
-                return a.status === 'Completed' && new Date(a.completionDate) > new Date(now - 7 * 24 * 60 * 60 * 1000);
-            case 'completedMonth':
-                return a.status === 'Completed' && new Date(a.completionDate) > new Date(now.getFullYear(), now.getMonth() - 1, now.getDate());
-            case 'completedYear':
-                return a.status === 'Completed' && new Date(a.completionDate) > new Date(now.getFullYear() - 1, now.getMonth(), now.getDate());
-            case 'inProgress':
-                return a.status === 'In Progress';
-            default:
-                return true;
-        }
-    });
-}
-
-function sortAchievements(achievements, sortValue) {
-  switch(sortValue) {
-    case 'difficulty':
-      return achievements.sort((a, b) => difficultyOrder.indexOf(a.difficultyLevel) - difficultyOrder.indexOf(b.difficultyLevel));
-    case 'ap':
-      return achievements.sort((a, b) => b.ap - a.ap);
-    case 'progress':
-      return achievements.sort((a, b) => (b.currentCompletionCount / b.requiredCompletionCount) - (a.currentCompletionCount / a.requiredCompletionCount));
-    case 'completionDate':
-      return achievements.sort((a, b) => new Date(b.completionDate) - new Date(a.completionDate));
-    default:
-      return achievements;
-  }
 }
 
 const difficultyOrder = ['Easy', 'Moderate', 'Hard', 'Extra Hard'];

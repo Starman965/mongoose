@@ -1547,10 +1547,10 @@ function showNotification(matchData) {
         notificationContent += `<h4>Achievements</h4>`;
         notificationContent += `<p>${achievementsUpdates.length} achievement(s) updated</p>`;
         notificationContent += achievementsUpdates.map(update => `<p>${update}</p>`).join('');
-        soundToPlay = '/sounds/achievementsound2.mp3';
+        soundToPlay = 'achievementsound2.mp3';
     } else {
         notificationContent = '<p>No new achievements updated this match.</p>';
-        soundToPlay = '/sounds/achievementsound1.mp3';
+        soundToPlay = 'achievementsound1.mp3';
     }
 
     // Display the notification

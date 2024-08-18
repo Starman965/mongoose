@@ -641,3 +641,56 @@ footer {
 #prizePatrolTable .stats-table input[type="checkbox"] {
   transform: scale(1.5);
 }
+
+.achievement-form {
+  display: grid;
+  gap: 15px;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+
+.input-group {
+  display: flex;
+  gap: 10px;
+}
+
+.input-group select,
+.input-group input {
+  flex: 1;
+}
+
+.checkbox-group,
+.radio-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.checkbox-group label,
+.radio-group label {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+
+.submit-btn:hover {
+  background-color: #45a049;
+}
+
+input[type="text"],
+input[type="number"],
+select,
+textarea {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  box-sizing: border-box;
+}
+
+textarea {
+  height: 100px;
+  resize: vertical;
+}

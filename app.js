@@ -710,9 +710,15 @@ function showHelp() {
 async function updatePlacementInput() {
     const gameModeSelect = document.getElementById('gameMode');
     const placementContainer = document.getElementById('placementContainer');
-    const isAchievement = document.getElementById('achievementForm') !== null;
-    const [gameType, gameMode] = gameModeSelect.value.split('|');
+    
+    if (!placementContainer) {
+        console.error('Placement container not found');
+        return;
+    }
 
+    const isAchievement = document.getElementById('achievementForm') !== null;
+    const [gameType, gameMode] = (gameModeSelect.value || '').split('|');
+  
     if (isAchievement) {
         placementContainer.innerHTML = `
             <label for="placement">Placement</label>
@@ -1973,23 +1979,31 @@ async function updateGameModeAndMapOptions() {
     if (gameType) {
         // Fetch and populate game modes
         const gameModesSnapshot = await get(ref(database, `gameTypes/${gameType}/gameModes`));
-        gameModesSnapshot.forEach((modeSnapshot) => {
-            const mode = modeSnapshot.val();
-            const option = document.createElement('option');
-            option.value = mode.name;
-            option.textContent = mode.name;
-            gameModeSelect.appendChild(option);
-        });
+        if (gameModesSnapshot.exists()) {
+            gameModesSnapshot.forEach((modeSnapshot) => {
+                const mode = modeSnapshot.val();
+                if (mode) {
+                    const option = document.createElement('option');
+                    option.value = mode.name;
+                    option.textContent = mode.name;
+                    gameModeSelect.appendChild(option);
+                }
+            });
+        }
 
         // Fetch and populate maps
         const mapsSnapshot = await get(ref(database, `maps/${gameType === 'Warzone' ? 'battleRoyale' : 'multiplayer'}`));
-        mapsSnapshot.forEach((mapSnapshot) => {
-            const map = mapSnapshot.val();
-            const option = document.createElement('option');
-            option.value = map.name;
-            option.textContent = map.name;
-            mapSelect.appendChild(option);
-        });
+        if (mapsSnapshot.exists()) {
+            mapsSnapshot.forEach((mapSnapshot) => {
+                const map = mapSnapshot.val();
+                if (map) {
+                    const option = document.createElement('option');
+                    option.value = map.name;
+                    option.textContent = map.name;
+                    mapSelect.appendChild(option);
+                }
+            });
+        }
     }
 
     // Add 'Any' option for both game mode and map
@@ -2004,7 +2018,8 @@ async function updateGameModeAndMapOptions() {
     mapSelect.appendChild(anyOptionMap);
 
     updatePlacementInput();
-}      
+}
+
 // Functions to update slider value labels
 function updatePlacementValue() {
     const placement = document.getElementById('placement').value;

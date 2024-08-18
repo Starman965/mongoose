@@ -403,6 +403,7 @@ async function addOrUpdateAchievement(e) {
     placement: form.placement.value,
     totalKillsOperator: form.totalKillsOperator.value,
     totalKills: parseInt(form.totalKills.value),
+    teamMemberKills: {},
     timesToComplete: parseInt(form.timesToComplete.value),
     achievementPoints: parseInt(form.achievementPoints.value),
     difficulty: form.difficulty.value,
@@ -416,7 +417,13 @@ async function addOrUpdateAchievement(e) {
     isActive: form.isActive.checked,
     updatedAt: new Date().toISOString()
   };
-
+['STARMAN', 'RSKILLA', 'SWFTSWORD', 'VAIDED', 'MOWGLI'].forEach(member => {
+    const operator = document.getElementById(`${member}KillsOperator`).value;
+    const kills = parseInt(document.getElementById(`${member}Kills`).value);
+    if (kills > 0) {
+      achievementData.teamMemberKills[member] = { operator, value: kills };
+    }
+  });
   if (!achievementId) {
     achievementData.createdAt = new Date().toISOString();
     achievementData.status = 'Not Started';
@@ -1824,6 +1831,25 @@ case 'editAchievement':
         </div>
       </div>
       <div class="form-group">
+  <label>Team Member Kills</label>
+  <div id="teamMemberKills">
+    ${['STARMAN', 'RSKILLA', 'SWFTSWORD', 'VAIDED', 'MOWGLI'].map(member => `
+      <div class="input-group">
+        <select id="${member}KillsOperator">
+          <option value="=">=</option>
+          <option value=">=">>=</option>
+          <option value="<"><</option>
+          <option value=">">></option>
+          <option value="is Odd">is Odd</option>
+          <option value="is Even">is Even</option>
+        </select>
+        <input type="number" id="${member}Kills" value="0" min="0">
+        <label>${member}</label>
+      </div>
+    `).join('')}
+  </div>
+</div>
+      <div class="form-group">
         <label for="timesToComplete">Times to Complete</label>
         <input type="number" id="timesToComplete" value="${achievement.timesToComplete || 1}" min="1" required>
       </div>
@@ -1989,6 +2015,17 @@ async function updateGameModeAndMapOptions() {
         option.textContent = map.name;
         mapSelect.appendChild(option);
       });
+    }
+  }
+
+  // Set the selected values if editing an achievement
+  const achievementId = document.getElementById('achievementForm').dataset.id;
+  if (achievementId) {
+    const achievementSnapshot = await get(ref(database, `achievements/${achievementId}`));
+    const achievement = achievementSnapshot.val();
+    if (achievement) {
+      gameModeSelect.value = achievement.gameMode || 'Any';
+      mapSelect.value = achievement.map || 'Any';
     }
   }
 }

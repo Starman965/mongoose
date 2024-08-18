@@ -1995,7 +1995,7 @@ case 'editMap':
     }
 };
 
-async function async function updateGameModeAndMapOptions() {
+async function updateGameModeAndMapOptions() {
   const gameType = document.getElementById('gameType').value;
   const gameModeSelect = document.getElementById('gameMode');
   const mapSelect = document.getElementById('map');

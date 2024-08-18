@@ -125,6 +125,9 @@ function checkAchievementCriteria(achievement, matchData) {
 function showAdminSection() {
   mainContent.innerHTML = `
     <h2>Admin</h2>
+    <div class="admin-actions">
+      <button class="button" onclick="initializeSampleAchievements()">Initialize Sample Achievements</button>
+    </div>
     <div class="admin-tabs">
       <button id="achievementsAdminBtn" class="admin-tab">Achievements</button>
       <button id="gameTypesAdminBtn" class="admin-tab">Game Types & Modes</button>
@@ -132,9 +135,7 @@ function showAdminSection() {
       <button id="teamMembersAdminBtn" class="admin-tab">Team Members</button>
     </div>
     <div id="adminContent"></div>
-    <div class="admin-actions">
-      <button class="button" onclick="initializeSampleAchievements()">Initialize Sample Achievements</button>
-    </div>
+    
   `;
   
   document.getElementById('achievementsAdminBtn').addEventListener('click', showAchievementManagement);

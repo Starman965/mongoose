@@ -1655,91 +1655,90 @@ window.showModal = async function(action, id = null, subId = null) {
             break;
 
         case 'addMatch':
-        case 'editMatch':
-            if (action === 'editMatch') {
-                const matchSnapshot = await get(ref(database, `gameSessions/${id}/matches/${subId}`));
-                match = matchSnapshot.val();
-            }
-            modalContent.innerHTML = `
-                <h3>${action === 'addMatch' ? 'Add' : 'Edit'} Match</h3>
-                <form id="matchForm" data-session-id="${id}" ${action === 'editMatch' ? `data-match-id="${subId}"` : ''} class="vertical-form">
-                    <div class="form-group horizontal">
-                        <div class="form-field">
-                            <label for="gameMode">Game Mode</label>
-                            <select id="gameMode" required>
-                                <option value="">Select Game Mode</option>
-                            </select>
-                        </div>
-                        <div class="form-field">
-                            <label for="map">Map</label>
-                            <select id="map" required>
-                                <option value="">Select Map</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div id="placementContainer" class="form-group">
-                        <!-- Placement input will be dynamically added here -->
-                    </div>
-                    <div class="form-group">
-                        <label for="totalKills">Total Kills <span id="totalKillsValue" class="slider-value">N/A</span></label>
-                        <input type="range" id="totalKills" class="slider" min="-1" max="30" step="1" value="-1">
-                    </div>
-                    <div class="form-group">
-                        <label for="killsSTARMAN">Kills (STARMAN) <span id="killsSTARMANValue" class="slider-value">N/A</span></label>
-                        <input type="range" id="killsSTARMAN" class="slider" min="-1" max="30" step="1" value="-1">
-                    </div>
-                    <div class="form-group">
-                        <label for="killsRSKILLA">Kills (RSKILLA) <span id="killsRSKILLAValue" class="slider-value">N/A</span></label>
-                        <input type="range" id="killsRSKILLA" class="slider" min="-1" max="30" step="1" value="-1">
-                    </div>
-                    <div class="form-group">
-                        <label for="killsSWFTSWORD">Kills (SWFTSWORD) <span id="killsSWFTSWORDValue" class="slider-value">N/A</span></label>
-                        <input type="range" id="killsSWFTSWORD" class="slider" min="-1" max="30" step="1" value="-1">
-                    </div>
-                    <div class="form-group">
-                        <label for="killsVAIDED">Kills (VAIDED) <span id="killsVAIDEDValue" class="slider-value">N/A</span></label>
-                        <input type="range" id="killsVAIDED" class="slider" min="-1" max="30" step="1" value="-1">
-                    </div>
-                    <div class="form-group">
-                        <label for="killsMOWGLI">Kills (MOWGLI) <span id="killsMOWGLIValue" class="slider-value">N/A</span></label>
-                        <input type="range" id="killsMOWGLI" class="slider" min="-1" max="30" step="1" value="-1">
-                    </div>
-                    <div class="form-group">
-                        <label for="highlightVideo">Highlight Video</label>
-                        <input type="file" id="highlightVideo" accept="video/*">
-                    </div>
-                    ${match && match.highlightURL ? '<p>A highlight video is already uploaded. Uploading a new one will replace it.</p>' : ''}
-                    <button type="submit" class="button">${action === 'addMatch' ? 'Add' : 'Update'} Match</button>
-                </form>
-            `;
-            await loadGameModesAndMaps();
-            document.getElementById('matchForm').addEventListener('submit', addMatch);
-            document.getElementById('gameMode').addEventListener('change', updatePlacementInput);
+case 'editMatch':
+    if (action === 'editMatch') {
+        const matchSnapshot = await get(ref(database, `gameSessions/${id}/matches/${subId}`));
+        match = matchSnapshot.val();
+    }
+    modalContent.innerHTML = `
+        <h3>${action === 'addMatch' ? 'Add' : 'Edit'} Match</h3>
+        <form id="matchForm" data-session-id="${id}" ${action === 'editMatch' ? `data-match-id="${subId}"` : ''} class="vertical-form">
+            <div class="form-group horizontal">
+                <div class="form-field">
+                    <label for="gameMode">Game Mode</label>
+                    <select id="gameMode" required>
+                        <option value="">Select Game Mode</option>
+                    </select>
+                </div>
+                <div class="form-field">
+                    <label for="map">Map</label>
+                    <select id="map" required>
+                        <option value="">Select Map</option>
+                    </select>
+                </div>
+            </div>
+            <div id="placementContainer" class="form-group">
+                <!-- Placement input will be dynamically added here -->
+            </div>
+            <div class="form-group">
+                <label for="totalKills">Total Kills <span id="totalKillsValue" class="slider-value">N/A</span></label>
+                <input type="range" id="totalKills" class="slider" min="-1" max="30" step="1" value="-1">
+            </div>
+            <div class="form-group">
+                <label for="killsSTARMAN">Kills (STARMAN) <span id="killsSTARMANValue" class="slider-value">N/A</span></label>
+                <input type="range" id="killsSTARMAN" class="slider" min="-1" max="30" step="1" value="-1">
+            </div>
+            <div class="form-group">
+                <label for="killsRSKILLA">Kills (RSKILLA) <span id="killsRSKILLAValue" class="slider-value">N/A</span></label>
+                <input type="range" id="killsRSKILLA" class="slider" min="-1" max="30" step="1" value="-1">
+            </div>
+            <div class="form-group">
+                <label for="killsSWFTSWORD">Kills (SWFTSWORD) <span id="killsSWFTSWORDValue" class="slider-value">N/A</span></label>
+                <input type="range" id="killsSWFTSWORD" class="slider" min="-1" max="30" step="1" value="-1">
+            </div>
+            <div class="form-group">
+                <label for="killsVAIDED">Kills (VAIDED) <span id="killsVAIDEDValue" class="slider-value">N/A</span></label>
+                <input type="range" id="killsVAIDED" class="slider" min="-1" max="30" step="1" value="-1">
+            </div>
+            <div class="form-group">
+                <label for="killsMOWGLI">Kills (MOWGLI) <span id="killsMOWGLIValue" class="slider-value">N/A</span></label>
+                <input type="range" id="killsMOWGLI" class="slider" min="-1" max="30" step="1" value="-1">
+            </div>
+            <div class="form-group">
+                <label for="highlightVideo">Highlight Video</label>
+                <input type="file" id="highlightVideo" accept="video/*">
+            </div>
+            ${match && match.highlightURL ? '<p>A highlight video is already uploaded. Uploading a new one will replace it.</p>' : ''}
+            <button type="submit" class="button">${action === 'addMatch' ? 'Add' : 'Update'} Match</button>
+        </form>
+    `;
+    await loadGameModesAndMaps();
+    document.getElementById('matchForm').addEventListener('submit', addMatch);
+    document.getElementById('gameMode').addEventListener('change', updatePlacementInput);
 
-            ['totalKills', 'killsSTARMAN', 'killsRSKILLA', 'killsSWFTSWORD', 'killsVAIDED', 'killsMOWGLI'].forEach(slider => {
-                document.getElementById(slider).addEventListener('input', updateSliderValue);
-            });
+    ['totalKills', 'killsSTARMAN', 'killsRSKILLA', 'killsSWFTSWORD', 'killsVAIDED', 'killsMOWGLI'].forEach(slider => {
+        document.getElementById(slider).addEventListener('input', updateSliderValue);
+    });
 
-            if (action === 'editMatch' && match) {
-                document.getElementById('gameMode').value = match.gameMode;
-                document.getElementById('map').value = match.map;
-                await updatePlacementInput();
-                if (match.gameMode === 'Battle Royale') {
-                    document.getElementById('placement').value = match.placement;
-                    updatePlacementValue();
-                } else {
-                    document.getElementById('placement').checked = match.placement === 'Won';
-                }
-                document.getElementById('totalKills').value = match.totalKills ?? -1;
-                updateSliderValue({ target: document.getElementById('totalKills') });
-                ['STARMAN', 'RSKILLA', 'SWFTSWORD', 'VAIDED', 'MOWGLI'].forEach(player => {
-                    const kills = match.kills?.[player] ?? -1;
-                    document.getElementById(`kills${player}`).value = kills;
-                    updateSliderValue({ target: document.getElementById(`kills${player}`) });
-                });
-            }
-            break;
-
+    if (action === 'editMatch' && match) {
+        document.getElementById('gameMode').value = `${match.gameType}|${match.gameMode}`;
+        document.getElementById('map').value = `${match.gameType === 'Warzone' ? 'battleRoyale' : 'multiplayer'}|${match.map}`;
+        await updatePlacementInput();
+        if (match.gameType === 'Warzone') {
+            document.getElementById('placement').value = match.placement;
+            updatePlacementValue();
+        } else {
+            document.getElementById('placement').checked = match.placement === 'Won';
+        }
+        document.getElementById('totalKills').value = match.totalKills ?? -1;
+        updateSliderValue({ target: document.getElementById('totalKills') });
+        ['STARMAN', 'RSKILLA', 'SWFTSWORD', 'VAIDED', 'MOWGLI'].forEach(player => {
+            const kills = match.kills?.[player] ?? -1;
+            document.getElementById(`kills${player}`).value = kills;
+            updateSliderValue({ target: document.getElementById(`kills${player}`) });
+        });
+    }
+    break;
         case 'addAchievement':
         case 'editAchievement':
             if (action === 'editAchievement') {

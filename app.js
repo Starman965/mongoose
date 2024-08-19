@@ -1,4 +1,4 @@
-import { ref, onValue, push, update, remove, get } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-database.js";
+import { ref, onValue, push, update, remove, get, set } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-database.js";
 import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-storage.js";
 import { database } from './firebaseConfig.js';
 import { processMatchResult } from './awardsmanager.js';
@@ -428,30 +428,32 @@ async function addOrUpdateAchievement(e) {
   try {
     console.log("Starting achievement save/update process");
     
-    const achievementData = {};
-    const formFields = [
-      'title', 'description', 'gameMode', 'map', 'placement', 'totalKillsOperator', 'totalKills',
-      'timesToComplete', 'achievementPoints', 'difficulty', 'occursByDate', 'canCompleteMultipleTimes',
-      'award', 'awardSponsor', 'useHistoricalData', 'isActive'
-    ];
+    const achievementData = {
+      title: form.title.value,
+      description: form.description.value,
+      achievementPoints: parseInt(form.achievementPoints.value) || 0,
+      award: form.award.value,
+      awardSponsor: form.awardSponsor.value,
+      awardedTo: form.querySelector('input[name="awardedTo"]:checked')?.value || 'Team',
+      canCompleteMultipleTimes: form.canCompleteMultipleTimes.checked,
+      difficulty: form.difficulty.value,
+      isActive: form.isActive.checked,
+      map: form.map.value,
+      occursByDate: form.occursByDate.value,
+      placement: form.placement.value,
+      timesToComplete: parseInt(form.timesToComplete.value) || 1,
+      totalKills: parseInt(form.totalKills.value) || 0,
+      totalKillsOperator: form.totalKillsOperator.value,
+      useHistoricalData: form.useHistoricalData.checked,
+      updatedAt: new Date().toISOString()
+    };
 
-    formFields.forEach(field => {
-      const element = form[field];
-      if (!element) {
-        console.warn(`Form element '${field}' not found`);
-        return;
-      }
-      achievementData[field] = element.type === 'checkbox' ? element.checked : element.value;
-    });
-
-    const [gameType, gameMode] = (achievementData.gameMode || 'Any|Any').split('|');
+    const [gameType, gameMode] = (form.gameMode.value || 'Any|Any').split('|');
     achievementData.gameType = gameType;
     achievementData.gameMode = gameMode;
 
     achievementData.occursOnDOW = Array.from(form.querySelectorAll('#occursOnDOW input:checked'))
       .map(input => parseInt(input.value));
-
-    achievementData.awardedTo = form.querySelector('input[name="awardedTo"]:checked')?.value || 'Team';
 
     achievementData.teamMemberKills = {};
     ['STARMAN', 'RSKILLA', 'SWFTSWORD', 'VAIDED', 'MOWGLI'].forEach(member => {
@@ -467,8 +469,6 @@ async function addOrUpdateAchievement(e) {
         }
       }
     });
-
-    console.log("Achievement data prepared:", achievementData);
 
     // Handle image upload
     const useDefaultImage = document.getElementById('useDefaultImage')?.checked;
@@ -486,9 +486,7 @@ async function addOrUpdateAchievement(e) {
       console.log("Using default image");
     }
 
-    achievementData.updatedAt = new Date().toISOString();
-
-    // Set default values for new achievements
+    // Add missing fields for new achievements
     if (!achievementId) {
       achievementData.createdAt = new Date().toISOString();
       achievementData.status = 'Not Started';
@@ -497,10 +495,18 @@ async function addOrUpdateAchievement(e) {
       achievementData.completionHistory = [];
     }
 
+    console.log("Prepared achievement data:", achievementData);
+
     // Determine whether to update or add new achievement
-    const operation = achievementId
-      ? update(ref(database, `achievements/${achievementId}`), achievementData)
-      : push(ref(database, 'achievements'), achievementData);
+    let operation;
+    if (achievementId) {
+      console.log(`Updating existing achievement with ID: ${achievementId}`);
+      operation = update(ref(database, `achievements/${achievementId}`), achievementData);
+    } else {
+      console.log("Adding new achievement");
+      const newAchievementRef = push(ref(database, 'achievements'));
+      operation = set(newAchievementRef, achievementData);
+    }
 
     console.log("Starting database operation");
     await operation;

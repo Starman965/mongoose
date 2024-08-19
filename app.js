@@ -99,27 +99,49 @@ function showSection(section) {
   }
 }
 function checkAchievementCriteria(achievement, matchData) {
-  // Parse the JSON logic criteria
-  const criteria = JSON.parse(achievement.logicCriteria);
+  if (!achievement.isActive) return false;
 
-  // Check if the match data meets all the criteria
-  return criteria.every(criterion => {
-    switch (criterion.type) {
-      case 'gameMode':
-        return matchData.gameMode === criterion.value;
-      case 'map':
-        return matchData.map === criterion.value;
-      case 'placement':
-        return matchData.placement <= criterion.value;
-      case 'totalKills':
-        return matchData.totalKills >= criterion.value;
-      case 'playerKills':
-        return Object.values(matchData.kills).some(kills => kills >= criterion.value);
-      // Add more criteria types as needed
-      default:
-        return false;
+  if (achievement.occursByDate && new Date(achievement.occursByDate) < new Date(matchData.timestamp)) return false;
+
+  if (achievement.occursOnDOW && achievement.occursOnDOW.length > 0) {
+    const matchDay = new Date(matchData.timestamp).getDay();
+    if (!achievement.occursOnDOW.includes(matchDay)) return false;
+  }
+
+  if (achievement.gameType !== 'Any' && achievement.gameType !== matchData.gameType) return false;
+  if (achievement.gameMode !== 'Any' && achievement.gameMode !== matchData.gameMode) return false;
+  if (achievement.map !== 'Any' && achievement.map !== matchData.map) return false;
+
+  if (achievement.placement !== 'Any') {
+    if (matchData.gameType === 'multiplayer') {
+      if (achievement.placement === 'Won' && matchData.placement !== 'Won') return false;
+    } else {
+      if (parseInt(achievement.placement) < matchData.placement) return false;
     }
-  });
+  }
+
+  if (!checkOperatorCondition(achievement.totalKillsOperator, achievement.totalKills, matchData.totalKills)) return false;
+
+  // Check team member kills
+  for (const [member, killData] of Object.entries(achievement.teamMemberKills || {})) {
+    if (!checkOperatorCondition(killData.operator, killData.value, matchData.kills[member])) return false;
+  }
+
+  return true;
+}
+
+function checkOperatorCondition(operator, achievementValue, matchValue) {
+  switch (operator) {
+    case '=': return achievementValue === matchValue;
+    case '!=': return achievementValue !== matchValue;
+    case '>=': return matchValue >= achievementValue;
+    case '>': return matchValue > achievementValue;
+    case '<': return matchValue < achievementValue;
+    case '<=': return matchValue <= achievementValue;
+    case 'is Odd': return matchValue % 2 !== 0;
+    case 'is Even': return matchValue % 2 === 0;
+    default: return false;
+  }
 }
 // first filter
 function filterAchievements(achievements, filterValue, gameTypeFilter) {
@@ -436,6 +458,9 @@ async function addOrUpdateAchievement(e) {
     const achievementData = {
       title: form.title.value,
       description: form.description.value,
+      gameType: form.gameType.value,
+      gameMode: form.gameMode.value,
+      map: form.map.value,
       achievementPoints: parseInt(form.achievementPoints.value) || 0,
       award: form.award.value,
       awardSponsor: form.awardSponsor.value,
@@ -443,8 +468,6 @@ async function addOrUpdateAchievement(e) {
       canCompleteMultipleTimes: form.canCompleteMultipleTimes.checked,
       difficulty: form.difficulty.value,
       isActive: form.isActive.checked,
-      map: form.map.value,
-      occursByDate: form.occursByDate.value,
       placement: form.placement.value,
       timesToComplete: parseInt(form.timesToComplete.value) || 1,
       totalKills: parseInt(form.totalKills.value) || 0,
@@ -452,10 +475,6 @@ async function addOrUpdateAchievement(e) {
       useHistoricalData: form.useHistoricalData.checked,
       updatedAt: new Date().toISOString()
     };
-
-    const [gameType, gameMode] = (form.gameMode.value || 'Any|Any').split('|');
-    achievementData.gameType = gameType;
-    achievementData.gameMode = gameMode;
 
     achievementData.occursOnDOW = Array.from(form.querySelectorAll('#occursOnDOW input:checked'))
       .map(input => parseInt(input.value));
@@ -781,44 +800,18 @@ function showHelp() {
   `;
 }
 
-// Update 8/18
+// New Update 8.19
 async function updatePlacementInput() {
-    const gameModeSelect = document.getElementById('gameMode');
+    const gameType = document.getElementById('gameType').value;
     const placementContainer = document.getElementById('placementContainer');
     
-    if (!placementContainer) {
-        console.error('Placement container not found');
-        return;
-    }
-
-    const isAchievement = document.getElementById('achievementForm') !== null;
-    const [gameType, gameMode] = (gameModeSelect.value || '').split('|');
-  
-    if (isAchievement) {
-        placementContainer.innerHTML = `
-            <label for="placement">Placement</label>
-            <select id="placement">
-                <option value="Any">Any</option>
-                <option value="Won">Won (MP Only)</option>
-                <option value="1">1st</option>
-                <option value="2">2nd</option>
-                <option value="3">3rd</option>
-                <option value="4">4th</option>
-                <option value="5">5th</option>
-                <option value="6">6th</option>
-                <option value="7">7th</option>
-                <option value="8">8th</option>
-                <option value="9">9th</option>
-                <option value="10th+">10th+</option>
-            </select>
-        `;
-    } else if (gameType === 'Warzone') {
+    if (gameType === 'warzone') {
         placementContainer.innerHTML = `
             <label for="placement">Placement <span id="placementValue" class="slider-value">1st</span></label>
             <input type="range" id="placement" class="slider" min="1" max="10" step="1" value="1" required>
         `;
         document.getElementById('placement').addEventListener('input', updatePlacementValue);
-    } else if (gameType === 'Multiplayer') {
+    } else if (gameType === 'multiplayer') {
         placementContainer.innerHTML = `
             <label for="placement">Result</label>
             <div class="toggle-switch">
@@ -1535,7 +1528,8 @@ async function addMatch(e) {
     const form = e.target;
     const sessionId = form.dataset.sessionId;
     const matchId = form.dataset.matchId;
-    const [gameType, gameMode] = form.gameMode.value.split('|');
+    const gameType = form.gameType.value;
+    const gameMode = form.gameMode.value;
     console.log('Form data:', {
         sessionId,
         matchId,
@@ -1544,16 +1538,16 @@ async function addMatch(e) {
     });
     try {
         let placement;
-        if (gameType === 'Warzone') {
+        if (gameType === 'warzone') {
             placement = parseInt(form.placement.value);
-        } else if (gameType === 'Multiplayer') {
+        } else if (gameType === 'multiplayer') {
             placement = form.placement.checked ? 'Won' : 'Lost';
         }
         console.log('Placement:', placement);
         const matchData = {
             gameType: gameType,
             gameMode: gameMode,
-            map: form.map.value.split('|')[1],
+            map: form.map.value,
             placement: placement,
             totalKills: parseInt(form.totalKills.value) === -1 ? null : parseInt(form.totalKills.value),
             kills: {},
@@ -1619,6 +1613,8 @@ async function addMatch(e) {
         alert('Error adding/updating match. Please try again.');
     }
 }
+
+
 function showNotification(matchData) {
     const achievementsUpdates = getAchievementsUpdates();
 
@@ -2132,6 +2128,40 @@ async function updateGameModeAndMapOptions() {
   }
 }
 
+// new function for game modes 8.19
+async function updateGameModeOptions() {
+    const gameType = document.getElementById('gameType').value;
+    const gameModeSelect = document.getElementById('gameMode');
+    gameModeSelect.innerHTML = '<option value="">Select Game Mode</option>';
+
+    if (gameType) {
+        const gameModes = await get(ref(database, `gameTypes/${gameType}/gameModes`));
+        gameModes.forEach((modeSnapshot) => {
+            const mode = modeSnapshot.val();
+            const option = document.createElement('option');
+            option.value = modeSnapshot.key;
+            option.textContent = mode.name;
+            gameModeSelect.appendChild(option);
+        });
+    }
+}
+// New Function for Map Options
+async function updateMapOptions() {
+    const gameType = document.getElementById('gameType').value;
+    const mapSelect = document.getElementById('map');
+    mapSelect.innerHTML = '<option value="">Select Map</option>';
+
+    if (gameType) {
+        const maps = await get(ref(database, `maps/${gameType}`));
+        maps.forEach((mapSnapshot) => {
+            const map = mapSnapshot.val();
+            const option = document.createElement('option');
+            option.value = mapSnapshot.key;
+            option.textContent = map.name;
+            mapSelect.appendChild(option);
+        });
+    }
+}
 // Functions to update slider value labels
 function updatePlacementValue() {
     const placement = document.getElementById('placement').value;

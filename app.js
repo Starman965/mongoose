@@ -2089,74 +2089,7 @@ case 'editMap':
         populateMaps();
     }
 };
-// This version of the function came from claude and not sure its effecient
-/* async function updateGameModeAndMapOptions() {
-  const gameType = document.getElementById('gameType').value;
-  const gameModeSelect = document.getElementById('gameMode');
-  const mapSelect = document.getElementById('map');
 
-  gameModeSelect.innerHTML = '<option value="Any">Any</option>';
-  mapSelect.innerHTML = '<option value="Any">Any</option>';
-
-  if (gameType && gameType !== 'Any') {
-    const gameModesSnapshot = await get(ref(database, `gameTypes/${gameType}/gameModes`));
-    if (gameModesSnapshot.exists()) {
-      gameModesSnapshot.forEach((modeSnapshot) => {
-        const mode = modeSnapshot.val();
-        const option = document.createElement('option');
-        option.value = mode.name;
-        option.textContent = mode.name;
-        gameModeSelect.appendChild(option);
-      });
-    }
-
-    const mapsSnapshot = await get(ref(database, `maps/${gameType === 'Warzone' ? 'battleRoyale' : 'multiplayer'}`));
-    if (mapsSnapshot.exists()) {
-      mapsSnapshot.forEach((mapSnapshot) => {
-        const map = mapSnapshot.val();
-        const option = document.createElement('option');
-        option.value = map.name;
-        option.textContent = map.name;
-        mapSelect.appendChild(option);
-      });
-    }
-  }
-
-  // Set the selected values if editing an achievement
-  const achievementId = document.getElementById('achievementForm').dataset.id;
-  if (achievementId) {
-    const achievementSnapshot = await get(ref(database, `achievements/${achievementId}`));
-    const achievement = achievementSnapshot.val();
-    if (achievement) {
-      gameModeSelect.value = achievement.gameMode || 'Any';
-      mapSelect.value = achievement.map || 'Any';
-    }
-  }
-}
-
-  // Set the selected values if editing an achievement
-  const achievementId = document.getElementById('achievementForm').dataset.id;
-  if (achievementId) {
-    const achievementSnapshot = await get(ref(database, `achievements/${achievementId}`));
-    const achievement = achievementSnapshot.val();
-    if (achievement) {
-      gameModeSelect.value = achievement.gameMode || 'Any';
-      mapSelect.value = achievement.map || 'Any';
-    }
-  }
-}
-    // Add 'Any' option for both game mode and map
-    const anyOptionMode = document.createElement('option');
-    anyOptionMode.value = 'Any';
-    anyOptionMode.textContent = 'Any';
-    gameModeSelect.appendChild(anyOptionMode);
-
-    const anyOptionMap = document.createElement('option');
-    anyOptionMap.value = 'Any';
-    anyOptionMap.textContent = 'Any';
-    mapSelect.appendChild(anyOptionMap);
-}
-*/
 // this alternative function came from ChatGPT
 async function updateGameModeAndMapOptions() {
   const gameType = document.getElementById('gameType').value;
@@ -2358,7 +2291,8 @@ function initializeSampleAchievements() {
       completionCount: 0,
       completionHistory: [],
       createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
+      updatedAt: new Date().toISOString(),
+      customImageUrl: null // Use default image
     },
     {
       title: "Battle Royale Master",
@@ -2389,7 +2323,8 @@ function initializeSampleAchievements() {
       completionCount: 0,
       completionHistory: [],
       createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
+      updatedAt: new Date().toISOString(),
+      customImageUrl: null // Use default image
     },
     {
       title: "Team Kill Streak",
@@ -2420,7 +2355,8 @@ function initializeSampleAchievements() {
       completionCount: 0,
       completionHistory: [],
       createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
+      updatedAt: new Date().toISOString(),
+      customImageUrl: null // Use default image
     },
     {
       title: "STARMAN's Rampage",
@@ -2453,9 +2389,12 @@ function initializeSampleAchievements() {
       completionCount: 0,
       completionHistory: [],
       createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
+      updatedAt: new Date().toISOString(),
+      customImageUrl: null // Use default image
     }
   ];
+
+  console.log("Starting to initialize sample achievements");
 
   sampleAchievements.forEach(achievement => {
     push(ref(database, 'achievements'), achievement)

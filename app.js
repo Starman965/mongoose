@@ -2090,50 +2090,73 @@ case 'editMap':
     }
 };
 
-// this alternative function came from ChatGPT
+// this new function came from claud replacing the one from ChatGPT
 async function updateGameModeAndMapOptions() {
+  console.log("Updating game mode and map options...");
   const gameType = document.getElementById('gameType').value;
   const gameModeSelect = document.getElementById('gameMode');
   const mapSelect = document.getElementById('map');
+
+  if (!gameModeSelect || !mapSelect) {
+    console.error("Game mode or map select element not found");
+    return;
+  }
 
   // Clear existing options and add 'Any' option for both game mode and map
   gameModeSelect.innerHTML = '<option value="Any">Any</option>';
   mapSelect.innerHTML = '<option value="Any">Any</option>';
 
   if (gameType && gameType !== 'Any') {
-    // Fetch game modes based on selected game type
-    const gameModesSnapshot = await get(ref(database, `gameTypes/${gameType}/gameModes`));
-    if (gameModesSnapshot.exists()) {
-      gameModesSnapshot.forEach((modeSnapshot) => {
-        const mode = modeSnapshot.val();
-        const option = document.createElement('option');
-        option.value = mode.name;
-        option.textContent = mode.name;
-        gameModeSelect.appendChild(option);
-      });
-    }
+    try {
+      // Fetch game modes based on selected game type
+      const gameModesSnapshot = await get(ref(database, `gameTypes/${gameType}/gameModes`));
+      console.log("Game modes data retrieved:", gameModesSnapshot.val());
+      if (gameModesSnapshot.exists()) {
+        gameModesSnapshot.forEach((modeSnapshot) => {
+          const mode = modeSnapshot.val();
+          const option = document.createElement('option');
+          option.value = mode.name;
+          option.textContent = mode.name;
+          gameModeSelect.appendChild(option);
+        });
+      } else {
+        console.warn(`No game modes found for game type: ${gameType}`);
+      }
 
-    // Fetch maps based on selected game type
-    const mapsSnapshot = await get(ref(database, `maps/${gameType === 'Warzone' ? 'battleRoyale' : 'multiplayer'}`));
-    if (mapsSnapshot.exists()) {
-      mapsSnapshot.forEach((mapSnapshot) => {
-        const map = mapSnapshot.val();
-        const option = document.createElement('option');
-        option.value = map.name;
-        option.textContent = map.name;
-        mapSelect.appendChild(option);
-      });
+      // Fetch maps based on selected game type
+      const mapsSnapshot = await get(ref(database, `maps/${gameType === 'Warzone' ? 'battleRoyale' : 'multiplayer'}`));
+      console.log("Maps data retrieved:", mapsSnapshot.val());
+      if (mapsSnapshot.exists()) {
+        mapsSnapshot.forEach((mapSnapshot) => {
+          const map = mapSnapshot.val();
+          const option = document.createElement('option');
+          option.value = map.name;
+          option.textContent = map.name;
+          mapSelect.appendChild(option);
+        });
+      } else {
+        console.warn(`No maps found for game type: ${gameType}`);
+      }
+    } catch (error) {
+      console.error("Error fetching game modes or maps:", error);
     }
   }
 
   // Set selected values if editing an achievement
-  const achievementId = document.getElementById('achievementForm').dataset.id;
-  if (achievementId) {
-    const achievementSnapshot = await get(ref(database, `achievements/${achievementId}`));
-    const achievement = achievementSnapshot.val();
-    if (achievement) {
-      gameModeSelect.value = achievement.gameMode || 'Any';
-      mapSelect.value = achievement.map || 'Any';
+  const achievementForm = document.getElementById('achievementForm');
+  if (achievementForm) {
+    const achievementId = achievementForm.dataset.id;
+    if (achievementId) {
+      try {
+        const achievementSnapshot = await get(ref(database, `achievements/${achievementId}`));
+        const achievement = achievementSnapshot.val();
+        if (achievement) {
+          gameModeSelect.value = achievement.gameMode || 'Any';
+          mapSelect.value = achievement.map || 'Any';
+        }
+      } catch (error) {
+        console.error("Error fetching achievement data:", error);
+      }
     }
   }
 }

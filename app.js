@@ -2324,8 +2324,8 @@ function populateTeamMembers() {
   });
 }
 // initialize the sample set of achievements database updated 8.17
-function initializeSampleAchievements() {
-  const sampleAchievements = [
+window.initializeSampleAchievements = function() {
+  const sampleAchievements = {
     {
       title: "Hump Day Win",
       description: "Get a Win on a Wednesday",
@@ -2458,7 +2458,7 @@ function initializeSampleAchievements() {
   alert("Sample achievements have been added successfully!");
 }
 
-function initTypeModesMap() {
+window.initTypeModesMap = function() {
   const initialData = {
     gameTypes: {
       warzone: {
@@ -2479,9 +2479,11 @@ function initTypeModesMap() {
     maps: {
       warzone: {
         rebirthIsland: { name: "Rebirth Island" },
+    
       },
       multiplayer: {
         rust: { name: "Rust" },
+      
       }
     }
   };
@@ -2494,4 +2496,4 @@ function initTypeModesMap() {
     .catch((error) => {
       console.error("Error initializing database:", error);
     });
-}
+};

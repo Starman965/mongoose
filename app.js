@@ -323,16 +323,33 @@ function loadAchievements() {
   const sortValue = document.getElementById('achievementSort').value;
   const gameTypeFilter = document.getElementById('achievementGameTypeFilter').value;
   
+  console.log("Starting to load achievements");
+  console.log("Filter:", filterValue, "Sort:", sortValue, "Game Type:", gameTypeFilter);
+
   get(ref(database, 'achievements')).then((snapshot) => {
+    console.log("Achievements data retrieved from database");
     let achievements = [];
     snapshot.forEach((childSnapshot) => {
-      achievements.push({id: childSnapshot.key, ...childSnapshot.val()});
+      const achievement = childSnapshot.val();
+      if (achievement) {
+        achievements.push({id: childSnapshot.key, ...achievement});
+      } else {
+        console.warn("Null achievement found with key:", childSnapshot.key);
+      }
     });
     
+    console.log("Achievements array created:", achievements);
+
     achievements = filterAchievements(achievements, filterValue, gameTypeFilter);
+    console.log("Achievements filtered:", achievements);
+
     achievements = sortAchievements(achievements, sortValue);
+    console.log("Achievements sorted:", achievements);
     
     displayAchievements(achievements);
+  }).catch((error) => {
+    console.error("Error loading achievements:", error);
+    achievementsContainer.innerHTML = "Error loading achievements. Please try again.";
   });
 }
 function sortAchievements(achievements, sortValue) {
@@ -357,26 +374,37 @@ function sortAchievements(achievements, sortValue) {
 const difficultyOrder = ['Easy', 'Moderate', 'Hard', 'Extra Hard'];
 
 function displayAchievements(achievements) {
+  console.log("Displaying achievements:", achievements);
   const container = document.getElementById('achievementsContainer');
   container.innerHTML = '';
 
+  if (achievements.length === 0) {
+    container.innerHTML = 'No achievements found.';
+    return;
+  }
+
   achievements.forEach(achievement => {
-    const card = createAchievementCard(achievement);
-    container.appendChild(card);
+    if (achievement) {
+      const card = createAchievementCard(achievement);
+      container.appendChild(card);
+    } else {
+      console.warn("Null achievement encountered in displayAchievements");
+    }
   });
 }
 
 function createAchievementCard(achievement) {
+  console.log("Creating card for achievement:", achievement);
+  if (!achievement) {
+    console.warn("Attempt to create card for null achievement");
+    return document.createElement('div'); // Return empty div to avoid errors
+  }
+
   const card = document.createElement('div');
   card.className = 'card achievement-card';
   
-  let imageUrl = achievement.imageUrl || 'https://mongoose.mycodsquad.com/achievementbadgedefault.png';
-  console.log('Attempting to access URL:', imageUrl);
-  if (!imageUrl.startsWith('https://') && !imageUrl.startsWith('gs://')) {
-    console.warn(`Invalid image URL for achievement ${achievement.id}:`, imageUrl);
-    imageUrl = 'https://mongoose.mycodsquad.com/achievementbadgedefault.png';
-  }
-
+  let imageUrl = achievement.customImageUrl || 'https://mongoose.mycodsquad.com/achievementbadgedefault.png';
+  
   card.innerHTML = `
     <img src="${imageUrl}" alt="${achievement.title}" onerror="this.src='https://mongoose.mycodsquad.com/achievementbadgedefault.png';">
     <h3>${achievement.title}</h3>
@@ -391,7 +419,6 @@ function createAchievementCard(achievement) {
 
   return card;
 }
-
 async function addOrUpdateAchievement(e) {
   e.preventDefault();
   const form = e.target;

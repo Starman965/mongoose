@@ -2457,3 +2457,41 @@ function initializeSampleAchievements() {
   console.log("Sample achievements have been added for testing.");
   alert("Sample achievements have been added successfully!");
 }
+
+function initTypeModesMap() {
+  const initialData = {
+    gameTypes: {
+      warzone: {
+        name: "Warzone",
+        gameModes: {
+          battleRoyale: { name: "Battle Royale" },
+          resurgence: { name: "Resurgence" }
+        }
+      },
+      multiplayer: {
+        name: "Multiplayer",
+        gameModes: {
+          teamDeathmatch: { name: "Team Deathmatch" },
+          domination: { name: "Domination" }
+        }
+      }
+    },
+    maps: {
+      warzone: {
+        rebirthIsland: { name: "Rebirth Island" },
+      },
+      multiplayer: {
+        rust: { name: "Rust" },
+      }
+    }
+  };
+
+  // Set the data in the database
+  set(ref(database), initialData)
+    .then(() => {
+      console.log("Database initialized successfully");
+    })
+    .catch((error) => {
+      console.error("Error initializing database:", error);
+    });
+}

@@ -419,6 +419,7 @@ function createAchievementCard(achievement) {
 
   return card;
 }
+// updated 8.19 via Claude to handle null errors and such
 async function addOrUpdateAchievement(e) {
   e.preventDefault();
   const form = e.target;
@@ -427,48 +428,51 @@ async function addOrUpdateAchievement(e) {
   try {
     console.log("Starting achievement save/update process");
     
-    const [gameType, gameMode] = form.gameMode.value.split('|');
-    
-    const achievementData = {
-      title: form.title.value,
-      description: form.description.value,
-      gameType: gameType,
-      gameMode: gameMode,
-      map: form.map.value,
-      placement: form.placement.value,
-      totalKillsOperator: form.totalKillsOperator.value,
-      totalKills: parseInt(form.totalKills.value),
-      teamMemberKills: {},
-      timesToComplete: parseInt(form.timesToComplete.value),
-      achievementPoints: parseInt(form.achievementPoints.value),
-      difficulty: form.difficulty.value,
-      occursByDate: form.occursByDate.value,
-      occursOnDOW: Array.from(form.querySelectorAll('#occursOnDOW input:checked')).map(input => parseInt(input.value)),
-      canCompleteMultipleTimes: form.canCompleteMultipleTimes.checked,
-      award: form.award.value,
-      awardSponsor: form.awardSponsor.value,
-      awardedTo: form.querySelector('input[name="awardedTo"]:checked').value,
-      useHistoricalData: form.useHistoricalData.checked,
-      isActive: form.isActive.checked,
-      updatedAt: new Date().toISOString()
-    };
+    const achievementData = {};
+    const formFields = [
+      'title', 'description', 'gameMode', 'map', 'placement', 'totalKillsOperator', 'totalKills',
+      'timesToComplete', 'achievementPoints', 'difficulty', 'occursByDate', 'canCompleteMultipleTimes',
+      'award', 'awardSponsor', 'useHistoricalData', 'isActive'
+    ];
 
-    console.log("Achievement data prepared:", achievementData);
+    formFields.forEach(field => {
+      const element = form[field];
+      if (!element) {
+        console.warn(`Form element '${field}' not found`);
+        return;
+      }
+      achievementData[field] = element.type === 'checkbox' ? element.checked : element.value;
+    });
 
-    // Process team member kills
+    const [gameType, gameMode] = (achievementData.gameMode || 'Any|Any').split('|');
+    achievementData.gameType = gameType;
+    achievementData.gameMode = gameMode;
+
+    achievementData.occursOnDOW = Array.from(form.querySelectorAll('#occursOnDOW input:checked'))
+      .map(input => parseInt(input.value));
+
+    achievementData.awardedTo = form.querySelector('input[name="awardedTo"]:checked')?.value || 'Team';
+
+    achievementData.teamMemberKills = {};
     ['STARMAN', 'RSKILLA', 'SWFTSWORD', 'VAIDED', 'MOWGLI'].forEach(member => {
-      const operator = document.getElementById(`${member}KillsOperator`).value;
-      const kills = parseInt(document.getElementById(`${member}Kills`).value);
-      if (!isNaN(kills) && kills > 0) {
-        achievementData.teamMemberKills[member] = { operator, value: kills };
+      const operatorElement = document.getElementById(`${member}KillsOperator`);
+      const killsElement = document.getElementById(`${member}Kills`);
+      if (operatorElement && killsElement) {
+        const kills = parseInt(killsElement.value);
+        if (!isNaN(kills) && kills > 0) {
+          achievementData.teamMemberKills[member] = { 
+            operator: operatorElement.value, 
+            value: kills 
+          };
+        }
       }
     });
 
-    console.log("Team member kills processed:", achievementData.teamMemberKills);
+    console.log("Achievement data prepared:", achievementData);
 
     // Handle image upload
-    const useDefaultImage = document.getElementById('useDefaultImage').checked;
-    const customImageFile = document.getElementById('customImage').files[0];
+    const useDefaultImage = document.getElementById('useDefaultImage')?.checked;
+    const customImageFile = document.getElementById('customImage')?.files[0];
 
     if (!useDefaultImage && customImageFile) {
       console.log("Uploading custom image");
@@ -482,6 +486,8 @@ async function addOrUpdateAchievement(e) {
       console.log("Using default image");
     }
 
+    achievementData.updatedAt = new Date().toISOString();
+
     // Set default values for new achievements
     if (!achievementId) {
       achievementData.createdAt = new Date().toISOString();
@@ -489,7 +495,6 @@ async function addOrUpdateAchievement(e) {
       achievementData.currentProgress = 0;
       achievementData.completionCount = 0;
       achievementData.completionHistory = [];
-      console.log("Set default values for new achievement");
     }
 
     // Determine whether to update or add new achievement

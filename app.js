@@ -318,12 +318,12 @@ function showAchievements() {
 
 // Load Function
 function loadAchievements() {
+  console.log("Starting to load achievements");
   const achievementsContainer = document.getElementById('achievementsContainer');
   const filterValue = document.getElementById('achievementFilter').value;
   const sortValue = document.getElementById('achievementSort').value;
   const gameTypeFilter = document.getElementById('achievementGameTypeFilter').value;
   
-  console.log("Starting to load achievements");
   console.log("Filter:", filterValue, "Sort:", sortValue, "Game Type:", gameTypeFilter);
 
   get(ref(database, 'achievements')).then((snapshot) => {
@@ -331,22 +331,27 @@ function loadAchievements() {
     let achievements = [];
     snapshot.forEach((childSnapshot) => {
       const achievement = childSnapshot.val();
-      if (achievement) {
+      if (achievement && achievement.title) {  // Add a check for a required property
         achievements.push({id: childSnapshot.key, ...achievement});
       } else {
-        console.warn("Null achievement found with key:", childSnapshot.key);
+        console.warn("Invalid achievement found with key:", childSnapshot.key);
       }
     });
     
     console.log("Achievements array created:", achievements);
 
-    achievements = filterAchievements(achievements, filterValue, gameTypeFilter);
-    console.log("Achievements filtered:", achievements);
+    if (achievements.length > 0) {
+      achievements = filterAchievements(achievements, filterValue, gameTypeFilter);
+      console.log("Achievements filtered:", achievements);
 
-    achievements = sortAchievements(achievements, sortValue);
-    console.log("Achievements sorted:", achievements);
+      achievements = sortAchievements(achievements, sortValue);
+      console.log("Achievements sorted:", achievements);
     
-    displayAchievements(achievements);
+      displayAchievements(achievements);
+    } else {
+      console.log("No valid achievements found");
+      achievementsContainer.innerHTML = "No achievements found.";
+    }
   }).catch((error) => {
     console.error("Error loading achievements:", error);
     achievementsContainer.innerHTML = "Error loading achievements. Please try again.";
@@ -384,19 +389,19 @@ function displayAchievements(achievements) {
   }
 
   achievements.forEach(achievement => {
-    if (achievement) {
+    if (achievement && achievement.title) {
       const card = createAchievementCard(achievement);
       container.appendChild(card);
     } else {
-      console.warn("Null achievement encountered in displayAchievements");
+      console.warn("Invalid achievement encountered in displayAchievements");
     }
   });
 }
 
 function createAchievementCard(achievement) {
   console.log("Creating card for achievement:", achievement);
-  if (!achievement) {
-    console.warn("Attempt to create card for null achievement");
+  if (!achievement || !achievement.title) {
+    console.warn("Attempt to create card for invalid achievement");
     return document.createElement('div'); // Return empty div to avoid errors
   }
 
@@ -408,12 +413,12 @@ function createAchievementCard(achievement) {
   card.innerHTML = `
     <img src="${imageUrl}" alt="${achievement.title}" onerror="this.src='https://mongoose.mycodsquad.com/achievementbadgedefault.png';">
     <h3>${achievement.title}</h3>
-    <p>${achievement.description}</p>
-    <p>Points: ${achievement.achievementPoints}</p>
-    <p>Difficulty: ${achievement.difficulty}</p>
-    <p>Status: ${achievement.status}</p>
+    <p>${achievement.description || 'No description available'}</p>
+    <p>Points: ${achievement.achievementPoints || 0}</p>
+    <p>Difficulty: ${achievement.difficulty || 'Not specified'}</p>
+    <p>Status: ${achievement.status || 'Not started'}</p>
     <p>Times Completed: ${achievement.completionCount || 0}</p>
-    ${achievement.canCompleteMultipleTimes ? `<p>Progress: ${achievement.currentProgress}/${achievement.timesToComplete}</p>` : ''}
+    ${achievement.canCompleteMultipleTimes ? `<p>Progress: ${achievement.currentProgress || 0}/${achievement.timesToComplete || 1}</p>` : ''}
     ${achievement.lastCompletedAt ? `<p>Last Completed: ${new Date(achievement.lastCompletedAt).toLocaleDateString()}</p>` : ''}
   `;
 

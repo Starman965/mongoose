@@ -1721,6 +1721,7 @@ window.showModal = async function(action, id = null, subId = null) {
             break;
 
        case 'addMatch':
+case 'addMatch':
 case 'editMatch':
     if (action === 'editMatch') {
         const matchSnapshot = await get(ref(database, `gameSessions/${id}/matches/${subId}`));
@@ -1729,19 +1730,25 @@ case 'editMatch':
     modalContent.innerHTML = `
         <h3>${action === 'addMatch' ? 'Add' : 'Edit'} Match</h3>
         <form id="matchForm" data-session-id="${id}" ${action === 'editMatch' ? `data-match-id="${subId}"` : ''} class="vertical-form">
-            <div class="form-group horizontal">
-                <div class="form-field">
-                    <label for="gameMode">Game Mode</label>
-                    <select id="gameMode" required>
-                        <option value="">Select Game Mode</option>
-                    </select>
-                </div>
-                <div class="form-field">
-                    <label for="map">Map</label>
-                    <select id="map" required>
-                        <option value="">Select Map</option>
-                    </select>
-                </div>
+            <div class="form-group">
+                <label for="gameType">Game Type</label>
+                <select id="gameType" required>
+                    <option value="">Select Game Type</option>
+                    <option value="warzone">Warzone</option>
+                    <option value="multiplayer">Multiplayer</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="gameMode">Game Mode</label>
+                <select id="gameMode" required>
+                    <option value="">Select Game Mode</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="map">Map</label>
+                <select id="map" required>
+                    <option value="">Select Map</option>
+                </select>
             </div>
             <div id="placementContainer" class="form-group">
                 <!-- Placement input will be dynamically added here -->
@@ -1778,19 +1785,23 @@ case 'editMatch':
             <button type="submit" class="button">${action === 'addMatch' ? 'Add' : 'Update'} Match</button>
         </form>
     `;
-    await loadGameModesAndMaps();
     document.getElementById('matchForm').addEventListener('submit', addMatch);
-    document.getElementById('gameMode').addEventListener('change', updatePlacementInput);
+    document.getElementById('gameType').addEventListener('change', updateGameModeOptions);
+    document.getElementById('gameType').addEventListener('change', updateMapOptions);
+    document.getElementById('gameType').addEventListener('change', updatePlacementInput);
 
     ['totalKills', 'killsSTARMAN', 'killsRSKILLA', 'killsSWFTSWORD', 'killsVAIDED', 'killsMOWGLI'].forEach(slider => {
         document.getElementById(slider).addEventListener('input', updateSliderValue);
     });
 
     if (action === 'editMatch' && match) {
-        document.getElementById('gameMode').value = `${match.gameType}|${match.gameMode}`;
-        document.getElementById('map').value = `${match.gameType === 'Warzone' ? 'battleRoyale' : 'multiplayer'}|${match.map}`;
+        document.getElementById('gameType').value = match.gameType;
+        await updateGameModeOptions();
+        document.getElementById('gameMode').value = match.gameMode;
+        await updateMapOptions();
+        document.getElementById('map').value = match.map;
         await updatePlacementInput();
-        if (match.gameType === 'Warzone') {
+        if (match.gameType === 'warzone') {
             document.getElementById('placement').value = match.placement;
             updatePlacementValue();
         } else {
@@ -1803,9 +1814,6 @@ case 'editMatch':
             document.getElementById(`kills${player}`).value = kills;
             updateSliderValue({ target: document.getElementById(`kills${player}`) });
         });
-    } else {
-        // For new matches, we still need to call updatePlacementInput
-        await updatePlacementInput();
     }
     break;
        case 'addAchievement':

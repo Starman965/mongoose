@@ -427,14 +427,13 @@ async function addOrUpdateAchievement(e) {
   try {
     console.log("Starting achievement save/update process");
     
+    const [gameType, gameMode] = form.gameMode.value.split('|');
+    
     const achievementData = {
       title: form.title.value,
       description: form.description.value,
-      gameTypeOperator: form.gameTypeOperator.value,
-      gameType: form.gameType.value,
-      gameModeOperator: form.gameModeOperator.value,
-      gameMode: form.gameMode.value,
-      mapOperator: form.mapOperator.value,
+      gameType: gameType,
+      gameMode: gameMode,
       map: form.map.value,
       placement: form.placement.value,
       totalKillsOperator: form.totalKillsOperator.value,
@@ -1806,11 +1805,12 @@ case 'editMatch':
     }
     break;
        case 'addAchievement':
+case 'addAchievement':
 case 'editAchievement':
   const achievementSnapshot = await get(ref(database, `achievements/${id}`));
   achievement = achievementSnapshot.val() || {};
   modalContent.innerHTML = `
-    <h3>Edit Achievement</h3>
+    <h3>${action === 'addAchievement' ? 'Add' : 'Edit'} Achievement</h3>
     <form id="achievementForm" data-id="${id}" class="achievement-form">
       <div class="form-group">
         <label for="title">Achievement Title (Required)</label>
@@ -1821,50 +1821,18 @@ case 'editAchievement':
         <textarea id="description" required>${achievement.description || ''}</textarea>
       </div>
       <div class="form-group">
-        <label for="gameTypeOperator">Game Type</label>
-        <div class="input-group">
-          <select id="gameTypeOperator">
-            <option value="=" ${achievement.gameTypeOperator === '=' ? 'selected' : ''}>=</option>
-            <option value="!=" ${achievement.gameTypeOperator === '!=' ? 'selected' : ''}>!=</option>
-            <option value="IN" ${achievement.gameTypeOperator === 'IN' ? 'selected' : ''}>IN</option>
-            <option value="NOT IN" ${achievement.gameTypeOperator === 'NOT IN' ? 'selected' : ''}>NOT IN</option>
-          </select>
-          <select id="gameType">
-            <option value="Any" ${achievement.gameType === 'Any' ? 'selected' : ''}>Any</option>
-            <option value="Warzone" ${achievement.gameType === 'Warzone' ? 'selected' : ''}>Warzone</option>
-            <option value="Multiplayer" ${achievement.gameType === 'Multiplayer' ? 'selected' : ''}>Multiplayer</option>
-          </select>
-        </div>
+        <label for="gameMode">Game Type / Mode</label>
+        <select id="gameMode" name="gameMode">
+          <option value="Any|Any">Any</option>
+          <!-- Other options will be populated dynamically -->
+        </select>
       </div>
       <div class="form-group">
-        <label for="gameModeOperator">Game Mode</label>
-        <div class="input-group">
-          <select id="gameModeOperator">
-            <option value="=" ${achievement.gameModeOperator === '=' ? 'selected' : ''}>=</option>
-            <option value="!=" ${achievement.gameModeOperator === '!=' ? 'selected' : ''}>!=</option>
-            <option value="IN" ${achievement.gameModeOperator === 'IN' ? 'selected' : ''}>IN</option>
-            <option value="NOT IN" ${achievement.gameModeOperator === 'NOT IN' ? 'selected' : ''}>NOT IN</option>
-          </select>
-          <select id="gameMode">
-            <option value="Any">Any</option>
-            <!-- Other game modes will be populated dynamically -->
-          </select>
-        </div>
-      </div>
-      <div class="form-group">
-        <label for="mapOperator">Map</label>
-        <div class="input-group">
-          <select id="mapOperator">
-            <option value="=" ${achievement.mapOperator === '=' ? 'selected' : ''}>=</option>
-            <option value="!=" ${achievement.mapOperator === '!=' ? 'selected' : ''}>!=</option>
-            <option value="IN" ${achievement.mapOperator === 'IN' ? 'selected' : ''}>IN</option>
-            <option value="NOT IN" ${achievement.mapOperator === 'NOT IN' ? 'selected' : ''}>NOT IN</option>
-          </select>
-          <select id="map">
-            <option value="Any">Any</option>
-            <!-- Other maps will be populated dynamically -->
-          </select>
-        </div>
+        <label for="map">Map</label>
+        <select id="map" name="map">
+          <option value="Any">Any</option>
+          <!-- Other options will be populated dynamically -->
+        </select>
       </div>
       <div class="form-group">
         <label for="placement">Placement</label>
@@ -1884,7 +1852,7 @@ case 'editAchievement':
         </select>
       </div>
       <div class="form-group">
-        <label for="totalKillsOperator">Total Kills</label>
+        <label for="totalKills">Total Kills</label>
         <div class="input-group">
           <select id="totalKillsOperator">
             <option value="=" ${achievement.totalKillsOperator === '=' ? 'selected' : ''}>=</option>
@@ -1995,8 +1963,7 @@ case 'editAchievement':
   `;
   
   document.getElementById('achievementForm').addEventListener('submit', addOrUpdateAchievement);
-  document.getElementById('gameType').addEventListener('change', updateGameModeAndMapOptions);
-  updateGameModeAndMapOptions();
+  document.getElementById('gameMode').addEventListener('change', updateGameModeAndMapOptions);
   
   // Handle image preview and upload logic
   const useDefaultImageCheckbox = document.getElementById('useDefaultImage');
@@ -2019,7 +1986,9 @@ case 'editAchievement':
       reader.readAsDataURL(file);
     }
   });
-   setTimeout(() => {
+
+  // Populate game modes and maps
+  setTimeout(() => {
     console.log("Calling populateGameModes and populateMaps");
     populateGameModes();
     populateMaps();
@@ -2095,10 +2064,9 @@ case 'editMap':
     }
 };
 
-// this new function came from claud replacing the one from ChatGPT
+// this new function came from claud 8.19
 async function updateGameModeAndMapOptions() {
   console.log("Updating game mode and map options...");
-  const gameType = document.getElementById('gameType').value;
   const gameModeSelect = document.getElementById('gameMode');
   const mapSelect = document.getElementById('map');
 
@@ -2107,29 +2075,16 @@ async function updateGameModeAndMapOptions() {
     return;
   }
 
-  // Clear existing options and add 'Any' option for both game mode and map
-  gameModeSelect.innerHTML = '<option value="Any">Any</option>';
+  const [selectedGameType, selectedGameMode] = gameModeSelect.value.split('|');
+  console.log(`Selected: Game Type - ${selectedGameType}, Game Mode - ${selectedGameMode}`);
+
+  // Clear existing map options and add 'Any' option
   mapSelect.innerHTML = '<option value="Any">Any</option>';
 
-  if (gameType && gameType !== 'Any') {
+  if (selectedGameType !== 'Any') {
     try {
-      // Fetch game modes based on selected game type
-      const gameModesSnapshot = await get(ref(database, `gameTypes/${gameType}/gameModes`));
-      console.log("Game modes data retrieved:", gameModesSnapshot.val());
-      if (gameModesSnapshot.exists()) {
-        gameModesSnapshot.forEach((modeSnapshot) => {
-          const mode = modeSnapshot.val();
-          const option = document.createElement('option');
-          option.value = mode.name;
-          option.textContent = mode.name;
-          gameModeSelect.appendChild(option);
-        });
-      } else {
-        console.warn(`No game modes found for game type: ${gameType}`);
-      }
-
       // Fetch maps based on selected game type
-      const mapsSnapshot = await get(ref(database, `maps/${gameType === 'Warzone' ? 'battleRoyale' : 'multiplayer'}`));
+      const mapsSnapshot = await get(ref(database, `maps/${selectedGameType === 'Warzone' ? 'battleRoyale' : 'multiplayer'}`));
       console.log("Maps data retrieved:", mapsSnapshot.val());
       if (mapsSnapshot.exists()) {
         mapsSnapshot.forEach((mapSnapshot) => {
@@ -2140,10 +2095,10 @@ async function updateGameModeAndMapOptions() {
           mapSelect.appendChild(option);
         });
       } else {
-        console.warn(`No maps found for game type: ${gameType}`);
+        console.warn(`No maps found for game type: ${selectedGameType}`);
       }
     } catch (error) {
-      console.error("Error fetching game modes or maps:", error);
+      console.error("Error fetching maps:", error);
     }
   }
 
@@ -2156,7 +2111,6 @@ async function updateGameModeAndMapOptions() {
         const achievementSnapshot = await get(ref(database, `achievements/${achievementId}`));
         const achievement = achievementSnapshot.val();
         if (achievement) {
-          gameModeSelect.value = achievement.gameMode || 'Any';
           mapSelect.value = achievement.map || 'Any';
         }
       } catch (error) {
@@ -2240,13 +2194,11 @@ function updateTeamStats() {
         statsContainer.insertAdjacentHTML('afterend', leaderboardHTML);
     });
 }
-// Add these helper functions to populate select options
+// New Function 8.18 based on way achievement form game types, modes and maps 
 function populateGameModes() {
   console.log("Populating game modes...");
   
-  // Check if the necessary elements exist
   const gameModeSelect = document.getElementById('gameMode');
-  const specificModeSelect = document.getElementById('specificMode');
   
   if (!gameModeSelect) {
     console.error("Game mode select element not found");
@@ -2255,11 +2207,6 @@ function populateGameModes() {
   
   // Clear existing options
   gameModeSelect.innerHTML = '<option value="Any">Any</option>';
-  if (specificModeSelect) {
-    specificModeSelect.innerHTML = '<option value="">Select Specific Mode</option>';
-  } else {
-    console.warn("Specific mode select element not found");
-  }
   
   get(ref(database, 'gameTypes')).then((snapshot) => {
     console.log("Game types data retrieved:", snapshot.val());
@@ -2273,6 +2220,12 @@ function populateGameModes() {
     for (const [typeId, typeData] of Object.entries(gameTypes)) {
       console.log(`Processing game type: ${typeId}`);
       
+      // Add game type as an option
+      const typeOption = document.createElement('option');
+      typeOption.value = `${typeData.name}|Any`;
+      typeOption.textContent = `${typeData.name} - Any`;
+      gameModeSelect.appendChild(typeOption);
+      
       if (typeData.gameModes) {
         for (const [modeId, mode] of Object.entries(typeData.gameModes)) {
           console.log(`Adding game mode: ${mode.name}`);
@@ -2281,13 +2234,6 @@ function populateGameModes() {
           option.value = `${typeData.name}|${mode.name}`;
           option.textContent = `${typeData.name} - ${mode.name}`;
           gameModeSelect.appendChild(option);
-          
-          if (specificModeSelect) {
-            const specificOption = document.createElement('option');
-            specificOption.value = mode.name;
-            specificOption.textContent = mode.name;
-            specificModeSelect.appendChild(specificOption);
-          }
         }
       } else {
         console.warn(`No game modes found for game type: ${typeId}`);

@@ -1326,7 +1326,7 @@ function loadGameTypes() {
       `;
     }
 
-    gameTypesList.innerHTML = html;
+    gameTypesList.innerHTML = html || 'No game types found. Add some!';
   });
 }
 function showMaps() {
@@ -2092,7 +2092,7 @@ async function updateGameModeAndMapOptions() {
   if (selectedGameType !== 'Any') {
     try {
       // Fetch maps based on selected game type
-      const mapsSnapshot = await get(ref(database, `maps/${selectedGameType === 'Warzone' ? 'battleRoyale' : 'multiplayer'}`));
+      const mapsSnapshot = await get(ref(database, `maps/${selectedGameType.toLowerCase()}`));
       console.log("Maps data retrieved:", mapsSnapshot.val());
       if (mapsSnapshot.exists()) {
         mapsSnapshot.forEach((mapSnapshot) => {
@@ -2236,7 +2236,7 @@ function updateTeamStats() {
         statsContainer.insertAdjacentHTML('afterend', leaderboardHTML);
     });
 }
-// New Function 8.18 based on way achievement form game types, modes and maps 
+// New Function 8.19 based on way achievement form game types, modes and maps 
 function populateGameModes() {
   console.log("Populating game modes...");
   
@@ -2248,7 +2248,7 @@ function populateGameModes() {
   }
   
   // Clear existing options
-  gameModeSelect.innerHTML = '<option value="Any">Any</option>';
+  gameModeSelect.innerHTML = '<option value="Any|Any">Any</option>';
   
   get(ref(database, 'gameTypes')).then((snapshot) => {
     console.log("Game types data retrieved:", snapshot.val());
@@ -2286,19 +2286,30 @@ function populateGameModes() {
   });
 }
 function populateMaps() {
+  const mapSelect = document.getElementById('map');
+  mapSelect.innerHTML = '<option value="Any">Any</option>';
+
   get(ref(database, 'maps')).then((snapshot) => {
     const maps = snapshot.val();
-    const mapSelect = document.getElementById('map');
+    console.log("Maps data retrieved:", maps);
 
-    for (const [id, map] of Object.entries(maps)) {
-      const option = document.createElement('option');
-      option.value = map.name;
-      option.textContent = map.name;
-      mapSelect.appendChild(option);
+    for (const [gameType, gameMaps] of Object.entries(maps)) {
+      const optgroup = document.createElement('optgroup');
+      optgroup.label = gameType.charAt(0).toUpperCase() + gameType.slice(1);
+      
+      for (const [mapId, map] of Object.entries(gameMaps)) {
+        const option = document.createElement('option');
+        option.value = `${gameType}|${map.name}`;
+        option.textContent = map.name;
+        optgroup.appendChild(option);
+      }
+
+      mapSelect.appendChild(optgroup);
     }
+  }).catch(error => {
+    console.error("Error fetching maps:", error);
   });
 }
-
 function populateTeamMembers() {
   get(ref(database, 'teamMembers')).then((snapshot) => {
     const teamMembers = snapshot.val();
@@ -2347,7 +2358,7 @@ function initializeSampleAchievements() {
     {
       title: "Battle Royale Master",
       description: "Win a Battle Royale match",
-      gameType: "Warzone",
+      gameType: "warzone",
       gameMode: "Battle Royale",
       map: "Any",
       placement: "1",
@@ -2446,6 +2457,3 @@ function initializeSampleAchievements() {
   console.log("Sample achievements have been added for testing.");
   alert("Sample achievements have been added successfully!");
 }
-
-// Make sure this function is exposed to the global scope if it's called from an onclick attribute
-window.initializeSampleAchievements = initializeSampleAchievements;

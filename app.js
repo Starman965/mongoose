@@ -316,7 +316,7 @@ function showAchievements() {
   document.getElementById('achievementGameTypeFilter').addEventListener('change', loadAchievements);
 }
 
-// Load Function
+// Load Function updated 8.17
 function loadAchievements() {
   const achievementsContainer = document.getElementById('achievementsContainer');
   const filterValue = document.getElementById('achievementFilter').value;
@@ -382,6 +382,17 @@ function displayAchievements(achievements) {
     container.innerHTML = 'No achievements found.';
     return;
   }
+
+  achievements.forEach(achievement => {
+    if (achievement) {
+      const card = createAchievementCard(achievement);
+      container.appendChild(card);
+    } else {
+      console.warn("Null achievement encountered in displayAchievements");
+    }
+  });
+}
+
 
   achievements.forEach(achievement => {
     if (achievement) {

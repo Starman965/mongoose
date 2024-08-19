@@ -125,23 +125,26 @@ function checkAchievementCriteria(achievement, matchData) {
 function filterAchievements(achievements, filterValue, gameTypeFilter) {
     const now = new Date();
     return achievements.filter(a => {
-        if (gameTypeFilter !== 'Any' && a.criteria.gameType !== gameTypeFilter) return false;
+        if (gameTypeFilter !== 'Any' && a.gameType !== gameTypeFilter) return false;
         
         switch(filterValue) {
-            case 'completedWeek':
-                return a.status === 'Completed' && new Date(a.completionDate) > new Date(now - 7 * 24 * 60 * 60 * 1000);
-            case 'completedMonth':
-                return a.status === 'Completed' && new Date(a.completionDate) > new Date(now.getFullYear(), now.getMonth() - 1, now.getDate());
-            case 'completedYear':
-                return a.status === 'Completed' && new Date(a.completionDate) > new Date(now.getFullYear() - 1, now.getMonth(), now.getDate());
+            case 'completed':
+                return a.status === 'Completed';
             case 'inProgress':
                 return a.status === 'In Progress';
+            case 'notStarted':
+                return a.status === 'Not Started';
+            case 'completedWeek':
+                return a.status === 'Completed' && a.lastCompletedAt && new Date(a.lastCompletedAt) > new Date(now - 7 * 24 * 60 * 60 * 1000);
+            case 'completedMonth':
+                return a.status === 'Completed' && a.lastCompletedAt && new Date(a.lastCompletedAt) > new Date(now.getFullYear(), now.getMonth() - 1, now.getDate());
+            case 'completedYear':
+                return a.status === 'Completed' && a.lastCompletedAt && new Date(a.lastCompletedAt) > new Date(now.getFullYear() - 1, now.getMonth(), now.getDate());
             default:
                 return true;
         }
     });
 }
-
 function showAdminSection() {
   mainContent.innerHTML = `
     <h2>Admin</h2>
@@ -287,6 +290,9 @@ function showAchievements() {
         <option value="completed">Completed</option>
         <option value="inProgress">In Progress</option>
         <option value="notStarted">Not Started</option>
+        <option value="completedWeek">Completed This Week</option>
+        <option value="completedMonth">Completed This Month</option>
+        <option value="completedYear">Completed This Year</option>
       </select>
       <select id="achievementSort">
         <option value="difficulty">Sort by Difficulty</option>
@@ -329,7 +335,6 @@ function loadAchievements() {
     displayAchievements(achievements);
   });
 }
-
 function sortAchievements(achievements, sortValue) {
   switch(sortValue) {
     case 'difficulty':

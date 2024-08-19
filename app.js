@@ -2019,7 +2019,12 @@ case 'editAchievement':
       reader.readAsDataURL(file);
     }
   });
-  
+   setTimeout(() => {
+    console.log("Calling populateGameModes and populateMaps");
+    populateGameModes();
+    populateMaps();
+    updateGameModeAndMapOptions();
+  }, 0);
   break;
         case 'addGameType':
         case 'editGameType':
@@ -2237,22 +2242,59 @@ function updateTeamStats() {
 }
 // Add these helper functions to populate select options
 function populateGameModes() {
-  get(ref(database, 'gameModes')).then((snapshot) => {
-    const gameModes = snapshot.val();
-    const gameModeSelect = document.getElementById('gameMode');
-    const specificModeSelect = document.getElementById('specificMode');
-
-    for (const [id, mode] of Object.entries(gameModes)) {
-      const option = document.createElement('option');
-      option.value = mode.name;
-      option.textContent = mode.name;
-      gameModeSelect.appendChild(option);
-
-      const specificOption = document.createElement('option');
-      specificOption.value = mode.name;
-      specificOption.textContent = mode.name;
-      specificModeSelect.appendChild(specificOption);
+  console.log("Populating game modes...");
+  
+  // Check if the necessary elements exist
+  const gameModeSelect = document.getElementById('gameMode');
+  const specificModeSelect = document.getElementById('specificMode');
+  
+  if (!gameModeSelect) {
+    console.error("Game mode select element not found");
+    return;
+  }
+  
+  // Clear existing options
+  gameModeSelect.innerHTML = '<option value="Any">Any</option>';
+  if (specificModeSelect) {
+    specificModeSelect.innerHTML = '<option value="">Select Specific Mode</option>';
+  } else {
+    console.warn("Specific mode select element not found");
+  }
+  
+  get(ref(database, 'gameTypes')).then((snapshot) => {
+    console.log("Game types data retrieved:", snapshot.val());
+    const gameTypes = snapshot.val();
+    
+    if (!gameTypes) {
+      console.warn("No game types found in the database");
+      return;
     }
+    
+    for (const [typeId, typeData] of Object.entries(gameTypes)) {
+      console.log(`Processing game type: ${typeId}`);
+      
+      if (typeData.gameModes) {
+        for (const [modeId, mode] of Object.entries(typeData.gameModes)) {
+          console.log(`Adding game mode: ${mode.name}`);
+          
+          const option = document.createElement('option');
+          option.value = `${typeData.name}|${mode.name}`;
+          option.textContent = `${typeData.name} - ${mode.name}`;
+          gameModeSelect.appendChild(option);
+          
+          if (specificModeSelect) {
+            const specificOption = document.createElement('option');
+            specificOption.value = mode.name;
+            specificOption.textContent = mode.name;
+            specificModeSelect.appendChild(specificOption);
+          }
+        }
+      } else {
+        console.warn(`No game modes found for game type: ${typeId}`);
+      }
+    }
+  }).catch(error => {
+    console.error("Error fetching game types:", error);
   });
 }
 function populateMaps() {

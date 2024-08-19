@@ -460,7 +460,7 @@ async function addOrUpdateAchievement(e) {
     ['STARMAN', 'RSKILLA', 'SWFTSWORD', 'VAIDED', 'MOWGLI'].forEach(member => {
       const operator = document.getElementById(`${member}KillsOperator`).value;
       const kills = parseInt(document.getElementById(`${member}Kills`).value);
-      if (kills > 0) {
+      if (!isNaN(kills) && kills > 0) {
         achievementData.teamMemberKills[member] = { operator, value: kills };
       }
     });

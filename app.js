@@ -1754,13 +1754,11 @@ case 'editMatch':
     break;
        case 'addAchievement':
 case 'editAchievement':
-  if (action === 'editAchievement') {
-    const achievementSnapshot = await get(ref(database, `achievements/${id}`));
-    achievement = achievementSnapshot.val() || {};
-  }
+  const achievementSnapshot = await get(ref(database, `achievements/${id}`));
+  achievement = achievementSnapshot.val() || {};
   modalContent.innerHTML = `
-    <h3>${action === 'addAchievement' ? 'Add' : 'Edit'} Achievement</h3>
-    <form id="achievementForm" data-id="${id || ''}" class="achievement-form">
+    <h3>Edit Achievement</h3>
+    <form id="achievementForm" data-id="${id}" class="achievement-form">
       <div class="form-group">
         <label for="title">Achievement Title (Required)</label>
         <input type="text" id="title" value="${achievement.title || ''}" required>
@@ -1796,6 +1794,7 @@ case 'editAchievement':
           </select>
           <select id="gameMode">
             <option value="Any">Any</option>
+            <!-- Other game modes will be populated dynamically -->
           </select>
         </div>
       </div>
@@ -1810,6 +1809,7 @@ case 'editAchievement':
           </select>
           <select id="map">
             <option value="Any">Any</option>
+            <!-- Other maps will be populated dynamically -->
           </select>
         </div>
       </div>
@@ -1845,24 +1845,24 @@ case 'editAchievement':
         </div>
       </div>
       <div class="form-group">
-  <label>Team Member Kills</label>
-  <div id="teamMemberKills">
-    ${['STARMAN', 'RSKILLA', 'SWFTSWORD', 'VAIDED', 'MOWGLI'].map(member => `
-      <div class="input-group">
-        <select id="${member}KillsOperator">
-          <option value="=">=</option>
-          <option value=">=">>=</option>
-          <option value="<"><</option>
-          <option value=">">></option>
-          <option value="is Odd">is Odd</option>
-          <option value="is Even">is Even</option>
-        </select>
-        <input type="number" id="${member}Kills" value="0" min="0">
-        <label>${member}</label>
+        <label>Team Member Kills</label>
+        <div id="teamMemberKills">
+          ${['STARMAN', 'RSKILLA', 'SWFTSWORD', 'VAIDED', 'MOWGLI'].map(member => `
+            <div class="input-group">
+              <select id="${member}KillsOperator">
+                <option value="=" ${achievement.teamMemberKills?.[member]?.operator === '=' ? 'selected' : ''}>=</option>
+                <option value=">=" ${achievement.teamMemberKills?.[member]?.operator === '>=' ? 'selected' : ''}>>=</option>
+                <option value="<" ${achievement.teamMemberKills?.[member]?.operator === '<' ? 'selected' : ''}><</option>
+                <option value=">" ${achievement.teamMemberKills?.[member]?.operator === '>' ? 'selected' : ''}>></option>
+                <option value="is Odd" ${achievement.teamMemberKills?.[member]?.operator === 'is Odd' ? 'selected' : ''}>is Odd</option>
+                <option value="is Even" ${achievement.teamMemberKills?.[member]?.operator === 'is Even' ? 'selected' : ''}>is Even</option>
+              </select>
+              <input type="number" id="${member}Kills" value="${achievement.teamMemberKills?.[member]?.value || 0}" min="0">
+              <label>${member}</label>
+            </div>
+          `).join('')}
+        </div>
       </div>
-    `).join('')}
-  </div>
-</div>
       <div class="form-group">
         <label for="timesToComplete">Times to Complete</label>
         <input type="number" id="timesToComplete" value="${achievement.timesToComplete || 1}" min="1" required>
@@ -1887,13 +1887,9 @@ case 'editAchievement':
       <div class="form-group">
         <label>Occurs on Day of Week</label>
         <div id="occursOnDOW" class="checkbox-group">
-          <label><input type="checkbox" value="0" ${achievement.occursOnDOW && achievement.occursOnDOW.includes(0) ? 'checked' : ''}> Sunday</label>
-          <label><input type="checkbox" value="1" ${achievement.occursOnDOW && achievement.occursOnDOW.includes(1) ? 'checked' : ''}> Monday</label>
-          <label><input type="checkbox" value="2" ${achievement.occursOnDOW && achievement.occursOnDOW.includes(2) ? 'checked' : ''}> Tuesday</label>
-          <label><input type="checkbox" value="3" ${achievement.occursOnDOW && achievement.occursOnDOW.includes(3) ? 'checked' : ''}> Wednesday</label>
-          <label><input type="checkbox" value="4" ${achievement.occursOnDOW && achievement.occursOnDOW.includes(4) ? 'checked' : ''}> Thursday</label>
-          <label><input type="checkbox" value="5" ${achievement.occursOnDOW && achievement.occursOnDOW.includes(5) ? 'checked' : ''}> Friday</label>
-          <label><input type="checkbox" value="6" ${achievement.occursOnDOW && achievement.occursOnDOW.includes(6) ? 'checked' : ''}> Saturday</label>
+          ${['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'].map((day, index) => `
+            <label><input type="checkbox" value="${index}" ${achievement.occursOnDOW && achievement.occursOnDOW.includes(index) ? 'checked' : ''}> ${day}</label>
+          `).join('')}
         </div>
       </div>
       <div class="form-group">
@@ -1923,14 +1919,55 @@ case 'editAchievement':
         <label for="isActive">Activate Achievement</label>
         <input type="checkbox" id="isActive" ${achievement.isActive !== false ? 'checked' : ''}>
       </div>
-      <button type="submit" class="submit-btn">${action === 'addAchievement' ? 'Add' : 'Update'} Achievement</button>
+      
+      <!-- New fields for image handling -->
+      <div class="form-group">
+        <label for="useDefaultImage">Use Default Badge</label>
+        <input type="checkbox" id="useDefaultImage" ${!achievement.customImageUrl ? 'checked' : ''}>
+      </div>
+      <div class="form-group" id="customImageUpload" style="${achievement.customImageUrl ? '' : 'display: none;'}">
+        <label for="customImage">Upload Custom Badge</label>
+        <input type="file" id="customImage" accept="image/*">
+      </div>
+      <div class="form-group">
+        <label>Achievement Badge</label>
+        <img id="achievementBadgePreview" src="${achievement.customImageUrl || 'https://mongoose.mycodsquad.com/achievementbadgedefault.png'}" alt="Achievement Badge" style="width: 200px; height: 200px;">
+      </div>
+      <div class="form-group">
+        <a href="https://chatgpt.com/g/g-2MhMzdTAe-mycodsquad-com-achievement-badge-maker" target="_blank">Achievement Image Creator</a>
+      </div>
+      
+      <button type="submit" class="submit-btn">Update Achievement</button>
     </form>
   `;
-    document.getElementById('achievementForm').addEventListener('submit', addOrUpdateAchievement);
-    document.getElementById('gameType').addEventListener('change', updateGameModeAndMapOptions);
-    updateGameModeAndMapOptions();
-    break;
-
+  
+  document.getElementById('achievementForm').addEventListener('submit', addOrUpdateAchievement);
+  document.getElementById('gameType').addEventListener('change', updateGameModeAndMapOptions);
+  updateGameModeAndMapOptions();
+  
+  // Handle image preview and upload logic
+  const useDefaultImageCheckbox = document.getElementById('useDefaultImage');
+  const customImageUpload = document.getElementById('customImageUpload');
+  const customImageInput = document.getElementById('customImage');
+  const badgePreview = document.getElementById('achievementBadgePreview');
+  
+  useDefaultImageCheckbox.addEventListener('change', (e) => {
+    customImageUpload.style.display = e.target.checked ? 'none' : 'block';
+    badgePreview.src = e.target.checked ? 'https://mongoose.mycodsquad.com/achievementbadgedefault.png' : (achievement.customImageUrl || 'https://mongoose.mycodsquad.com/achievementbadgedefault.png');
+  });
+  
+  customImageInput.addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        badgePreview.src = e.target.result;
+      };
+      reader.readAsDataURL(file);
+    }
+  });
+  
+  break;
         case 'addGameType':
         case 'editGameType':
             let gameType = {};

@@ -172,6 +172,7 @@ function showAdminSection() {
     <h2>Admin</h2>
     <div class="admin-actions">
       <button class="button" onclick="initializeSampleAchievements()">Initialize Sample Achievements</button>
+      <button class="button" onclick="initTypeModesMap()">Initialize Game Modes and Maps</button>
     </div>
     <div class="admin-tabs">
       <button id="achievementsAdminBtn" class="admin-tab">Achievements</button>

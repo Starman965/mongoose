@@ -172,7 +172,7 @@ function showAdminSection() {
     <h2>Admin</h2>
     <div class="admin-actions">
       <button class="button" onclick="initializeSampleAchievements()">Initialize Sample Achievements</button>
-      <button class="button" onclick="initTypeModesMap()">Initialize Game Modes and Maps</button>
+      <button class="button" onclick="mergeAndUpdateDatabase()">Initialize Game Modes and Maps</button>
     </div>
     <div class="admin-tabs">
       <button id="achievementsAdminBtn" class="admin-tab">Achievements</button>
@@ -2459,42 +2459,75 @@ window.initializeSampleAchievements = function() {
   alert("Sample achievements have been added successfully!");
 }
 
-window.initTypeModesMap = function() {
-  const initialData = {
-    gameTypes: {
-      warzone: {
-        name: "Warzone",
-        gameModes: {
-          battleRoyale: { name: "Battle Royale" },
-          resurgence: { name: "Resurgence" }
+window.mergeAndUpdateDatabase = async function() {
+  try {
+    // Fetch existing data
+    const snapshot = await get(ref(database));
+    const existingData = snapshot.val();
+
+    // New structure to merge
+    const newStructure = {
+      gameTypes: {
+        warzone: {
+          name: "Warzone",
+          gameModes: {
+            battleRoyale: { name: "Battle Royale" },
+            resurgence: { name: "Resurgence" }
+          }
+        },
+        multiplayer: {
+          name: "Multiplayer",
+          gameModes: {
+            teamDeathmatch: { name: "Team Deathmatch" },
+            domination: { name: "Domination" }
+          }
         }
       },
-      multiplayer: {
-        name: "Multiplayer",
-        gameModes: {
-          teamDeathmatch: { name: "Team Deathmatch" },
-          domination: { name: "Domination" }
+      maps: {
+        warzone: {
+          rebirthIsland: { name: "Rebirth Island" },
+          urzikstan: { name: "Urzikstan" },
+          superstore: { name: "Superstore" }
+        },
+        multiplayer: {
+          rust: { name: "Rust" }
         }
       }
-    },
-    maps: {
-      warzone: {
-        rebirthIsland: { name: "Rebirth Island" },
-    
-      },
-      multiplayer: {
-        rust: { name: "Rust" },
-      
+    };
+
+    // Merge gameTypes
+    if (!existingData.gameTypes) existingData.gameTypes = {};
+    for (const [typeKey, typeValue] of Object.entries(newStructure.gameTypes)) {
+      if (!existingData.gameTypes[typeKey]) {
+        existingData.gameTypes[typeKey] = typeValue;
+      } else {
+        // Merge gameModes
+        if (!existingData.gameTypes[typeKey].gameModes) existingData.gameTypes[typeKey].gameModes = {};
+        for (const [modeKey, modeValue] of Object.entries(typeValue.gameModes)) {
+          if (!existingData.gameTypes[typeKey].gameModes[modeKey]) {
+            existingData.gameTypes[typeKey].gameModes[modeKey] = modeValue;
+          }
+        }
       }
     }
-  };
 
-  // Set the data in the database
-  set(ref(database), initialData)
-    .then(() => {
-      console.log("Database initialized successfully");
-    })
-    .catch((error) => {
-      console.error("Error initializing database:", error);
-    });
+    // Merge maps
+    if (!existingData.maps) existingData.maps = {};
+    for (const [typeKey, typeValue] of Object.entries(newStructure.maps)) {
+      if (!existingData.maps[typeKey]) existingData.maps[typeKey] = {};
+      for (const [mapKey, mapValue] of Object.entries(typeValue)) {
+        if (!existingData.maps[typeKey][mapKey]) {
+          existingData.maps[typeKey][mapKey] = mapValue;
+        }
+      }
+    }
+
+    // Update the database with merged data
+    await set(ref(database), existingData);
+    console.log("Database updated successfully with merged data");
+    alert("Database structure updated while preserving existing data");
+  } catch (error) {
+    console.error("Error updating database:", error);
+    alert("Error updating database. Check console for details.");
+  }
 };

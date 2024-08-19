@@ -432,6 +432,25 @@ async function addOrUpdateAchievement(e) {
     }
   });
 
+  // Handle image upload
+  const useDefaultImage = document.getElementById('useDefaultImage').checked;
+  const customImageFile = document.getElementById('customImage').files[0];
+
+  if (!useDefaultImage && customImageFile) {
+    try {
+      const imageRef = storageRef(storage, `achievementBadges/${Date.now()}_${customImageFile.name}`);
+      const snapshot = await uploadBytes(imageRef, customImageFile);
+      const url = await getDownloadURL(snapshot.ref);
+      achievementData.customImageUrl = url;
+    } catch (error) {
+      console.error("Error uploading image: ", error);
+      alert('Error uploading image. Please try again.');
+      return;
+    }
+  } else if (useDefaultImage) {
+    achievementData.customImageUrl = null; // Use default image
+  }
+
   // Set default values for new achievements
   if (!achievementId) {
     achievementData.createdAt = new Date().toISOString();
@@ -460,7 +479,7 @@ async function addOrUpdateAchievement(e) {
     alert('Error adding/updating achievement. Please try again.');
   }
 }
-// Now this function is outside of addOrUpdateAchievement
+// Gets the placement
 function getPlacementCriteria(form) {
     const gameType = form.gameType.value;
     if (gameType === 'Multiplayer') {

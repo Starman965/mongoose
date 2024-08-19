@@ -487,7 +487,7 @@ async function addOrUpdateAchievement(e) {
     }
 
     // Add missing fields for new achievements
-    if (!achievementId) {
+    if (!achievementId || achievementId === 'null') {
       achievementData.createdAt = new Date().toISOString();
       achievementData.status = 'Not Started';
       achievementData.currentProgress = 0;
@@ -499,13 +499,12 @@ async function addOrUpdateAchievement(e) {
 
     // Determine whether to update or add new achievement
     let operation;
-    if (achievementId) {
+    if (achievementId && achievementId !== 'null') {
       console.log(`Updating existing achievement with ID: ${achievementId}`);
       operation = update(ref(database, `achievements/${achievementId}`), achievementData);
     } else {
       console.log("Adding new achievement");
-      const newAchievementRef = push(ref(database, 'achievements'));
-      operation = set(newAchievementRef, achievementData);
+      operation = push(ref(database, 'achievements'), achievementData);
     }
 
     console.log("Starting database operation");
@@ -517,23 +516,12 @@ async function addOrUpdateAchievement(e) {
     modal.style.display = "none";
 
     // Show success message
-    alert(`Achievement successfully ${achievementId ? 'updated' : 'added'}!`);
+    alert(`Achievement successfully ${achievementId && achievementId !== 'null' ? 'updated' : 'added'}!`);
   } catch (error) {
     console.error("Detailed error in adding/updating achievement:", error);
     alert(`Error adding/updating achievement: ${error.message}. Please check the console for more details.`);
   }
 }
-// Gets the placement
-function getPlacementCriteria(form) {
-    const gameType = form.gameType.value;
-    if (gameType === 'Multiplayer') {
-        return form.placement.checked ? 'Won' : 'Lost';
-    } else {
-        const placement = parseInt(form.placement.value);
-        return { max: placement };
-    }
-}
-
 function getPlayerKillsCriteria(form) {
     const playerKills = [];
     for (let i = 1; i <= 4; i++) {

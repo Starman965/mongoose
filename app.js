@@ -2325,7 +2325,7 @@ function populateTeamMembers() {
 }
 // initialize the sample set of achievements database updated 8.17
 window.initializeSampleAchievements = function() {
-  const sampleAchievements = {
+  const sampleAchievements = [
     {
       title: "Hump Day Win",
       description: "Get a Win on a Wednesday",

@@ -396,77 +396,84 @@ async function addOrUpdateAchievement(e) {
   e.preventDefault();
   const form = e.target;
   const achievementId = form.dataset.id;
-  const achievementData = {
-    title: form.title.value,
-    description: form.description.value,
-    gameTypeOperator: form.gameTypeOperator.value,
-    gameType: form.gameType.value,
-    gameModeOperator: form.gameModeOperator.value,
-    gameMode: form.gameMode.value,
-    mapOperator: form.mapOperator.value,
-    map: form.map.value,
-    placement: form.placement.value,
-    totalKillsOperator: form.totalKillsOperator.value,
-    totalKills: parseInt(form.totalKills.value),
-    teamMemberKills: {},
-    timesToComplete: parseInt(form.timesToComplete.value),
-    achievementPoints: parseInt(form.achievementPoints.value),
-    difficulty: form.difficulty.value,
-    occursByDate: form.occursByDate.value,
-    occursOnDOW: Array.from(form.querySelectorAll('#occursOnDOW input:checked')).map(input => parseInt(input.value)),
-    canCompleteMultipleTimes: form.canCompleteMultipleTimes.checked,
-    award: form.award.value,
-    awardSponsor: form.awardSponsor.value,
-    awardedTo: form.querySelector('input[name="awardedTo"]:checked').value,
-    useHistoricalData: form.useHistoricalData.checked,
-    isActive: form.isActive.checked,
-    updatedAt: new Date().toISOString()
-  };
+  
+  try {
+    console.log("Starting achievement save/update process");
+    
+    const achievementData = {
+      title: form.title.value,
+      description: form.description.value,
+      gameTypeOperator: form.gameTypeOperator.value,
+      gameType: form.gameType.value,
+      gameModeOperator: form.gameModeOperator.value,
+      gameMode: form.gameMode.value,
+      mapOperator: form.mapOperator.value,
+      map: form.map.value,
+      placement: form.placement.value,
+      totalKillsOperator: form.totalKillsOperator.value,
+      totalKills: parseInt(form.totalKills.value),
+      teamMemberKills: {},
+      timesToComplete: parseInt(form.timesToComplete.value),
+      achievementPoints: parseInt(form.achievementPoints.value),
+      difficulty: form.difficulty.value,
+      occursByDate: form.occursByDate.value,
+      occursOnDOW: Array.from(form.querySelectorAll('#occursOnDOW input:checked')).map(input => parseInt(input.value)),
+      canCompleteMultipleTimes: form.canCompleteMultipleTimes.checked,
+      award: form.award.value,
+      awardSponsor: form.awardSponsor.value,
+      awardedTo: form.querySelector('input[name="awardedTo"]:checked').value,
+      useHistoricalData: form.useHistoricalData.checked,
+      isActive: form.isActive.checked,
+      updatedAt: new Date().toISOString()
+    };
 
-  // Process team member kills
-  ['STARMAN', 'RSKILLA', 'SWFTSWORD', 'VAIDED', 'MOWGLI'].forEach(member => {
-    const operator = document.getElementById(`${member}KillsOperator`).value;
-    const kills = parseInt(document.getElementById(`${member}Kills`).value);
-    if (kills > 0) {
-      achievementData.teamMemberKills[member] = { operator, value: kills };
-    }
-  });
+    console.log("Achievement data prepared:", achievementData);
 
-  // Handle image upload
-  const useDefaultImage = document.getElementById('useDefaultImage').checked;
-  const customImageFile = document.getElementById('customImage').files[0];
+    // Process team member kills
+    ['STARMAN', 'RSKILLA', 'SWFTSWORD', 'VAIDED', 'MOWGLI'].forEach(member => {
+      const operator = document.getElementById(`${member}KillsOperator`).value;
+      const kills = parseInt(document.getElementById(`${member}Kills`).value);
+      if (kills > 0) {
+        achievementData.teamMemberKills[member] = { operator, value: kills };
+      }
+    });
 
-  if (!useDefaultImage && customImageFile) {
-    try {
+    console.log("Team member kills processed:", achievementData.teamMemberKills);
+
+    // Handle image upload
+    const useDefaultImage = document.getElementById('useDefaultImage').checked;
+    const customImageFile = document.getElementById('customImage').files[0];
+
+    if (!useDefaultImage && customImageFile) {
+      console.log("Uploading custom image");
       const imageRef = storageRef(storage, `achievementBadges/${Date.now()}_${customImageFile.name}`);
       const snapshot = await uploadBytes(imageRef, customImageFile);
       const url = await getDownloadURL(snapshot.ref);
       achievementData.customImageUrl = url;
-    } catch (error) {
-      console.error("Error uploading image: ", error);
-      alert('Error uploading image. Please try again.');
-      return;
+      console.log("Custom image uploaded successfully:", url);
+    } else if (useDefaultImage) {
+      achievementData.customImageUrl = null;
+      console.log("Using default image");
     }
-  } else if (useDefaultImage) {
-    achievementData.customImageUrl = null; // Use default image
-  }
 
-  // Set default values for new achievements
-  if (!achievementId) {
-    achievementData.createdAt = new Date().toISOString();
-    achievementData.status = 'Not Started';
-    achievementData.currentProgress = 0;
-    achievementData.completionCount = 0;
-    achievementData.completionHistory = [];
-  }
+    // Set default values for new achievements
+    if (!achievementId) {
+      achievementData.createdAt = new Date().toISOString();
+      achievementData.status = 'Not Started';
+      achievementData.currentProgress = 0;
+      achievementData.completionCount = 0;
+      achievementData.completionHistory = [];
+      console.log("Set default values for new achievement");
+    }
 
-  try {
     // Determine whether to update or add new achievement
     const operation = achievementId
       ? update(ref(database, `achievements/${achievementId}`), achievementData)
       : push(ref(database, 'achievements'), achievementData);
 
+    console.log("Starting database operation");
     await operation;
+    console.log("Database operation completed successfully");
 
     // Reload achievements and close modal
     loadAchievements();
@@ -475,8 +482,8 @@ async function addOrUpdateAchievement(e) {
     // Show success message
     alert(`Achievement successfully ${achievementId ? 'updated' : 'added'}!`);
   } catch (error) {
-    console.error("Error adding/updating achievement: ", error);
-    alert('Error adding/updating achievement. Please try again.');
+    console.error("Detailed error in adding/updating achievement:", error);
+    alert(`Error adding/updating achievement: ${error.message}. Please check the console for more details.`);
   }
 }
 // Gets the placement

@@ -710,6 +710,31 @@ window.showModal = async function(action, id = null, subId = null) {
 };
 
 // Helper functions for populating select options
+async function addOrUpdateGameSession(e) {
+  e.preventDefault();
+  const form = e.target;
+  const sessionId = form.dataset.id || push(ref(database, 'gameSessions')).key;
+  
+  const inputDate = new Date(form.date.value);
+  const userTimezoneOffset = inputDate.getTimezoneOffset() * 60000;
+  const adjustedDate = new Date(inputDate.getTime() - userTimezoneOffset);
+  
+  const sessionData = {
+    date: adjustedDate.toISOString(),
+    userTimezoneOffset: userTimezoneOffset,
+    id: sessionId
+  };
+  
+  try {
+    await set(ref(database, `gameSessions/${sessionId}`), sessionData);
+    loadGameSessions();
+    modal.style.display = "none";
+  } catch (error) {
+    console.error("Error adding/updating game session: ", error);
+    alert('Error adding/updating game session. Please try again.');
+  }
+}
+
 // Populate Game Modes
 async function populateGameModes() {
   console.log("Populating game modes...");

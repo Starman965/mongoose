@@ -1,193 +1,479 @@
-/* 
-// awards.js
-// import { database } from './firebaseConfig.js';
-// import { ref, onValue, update, get } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-database.js";
+// awardsmanager.js
 
-// Load and display achievements
-export function showAchievements() {
-  const mainContent = document.getElementById('mainContent');
-  mainContent.innerHTML = `
-    <h2>Achievements</h2>
-    <div id="achievementsContainer" class="awards-grid"></div>
-  `;
-  loadAchievements();
+import { database } from './firebaseConfig.js';
+import { ref, onValue, update, get, push } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-database.js";
+let achievementsUpdates = [];
+let challengesUpdates = [];
+export function initAwards() {
+  // Initialize any necessary data or listeners for awards
 }
+export { initializeSampleAwardsForTesting };
 
-// Load and display challenges
-export function showChallenges() {
-  const mainContent = document.getElementById('mainContent');
-  mainContent.innerHTML = `
-    <h2>Challenges</h2>
-    <div id="challengesContainer" class="awards-grid"></div>
-  `;
-  loadChallenges();
-}
-
-// Load achievements from Firebase
-function loadAchievements() {
-  try {
-    const achievementsRef = ref(database, 'achievements');
-    onValue(achievementsRef, (snapshot) => {
-      const achievements = snapshot.val();
-      displayAchievements(achievements);
-    }, (error) => {
-      console.error("Error loading achievements:", error);
+export function loadAchievements() {
+  const achievementsContainer = document.getElementById('achievementsContainer');
+  const filterValue = document.getElementById('achievementFilter').value;
+  const sortValue = document.getElementById('achievementSort').value;
+  
+  get(ref(database, 'achievements')).then((snapshot) => {
+    let achievements = [];
+    snapshot.forEach((childSnapshot) => {
+      achievements.push({id: childSnapshot.key, ...childSnapshot.val()});
     });
-  } catch (error) {
-    console.error("Error setting up achievements listener:", error);
+    
+    achievements = filterAchievements(achievements, filterValue);
+    achievements = sortAchievements(achievements, sortValue);
+    
+    displayAchievements(achievements);
+  });
+}
+function filterAchievements(achievements, filterValue) {
+  const now = new Date();
+  switch(filterValue) {
+    case 'completedWeek':
+      return achievements.filter(a => a.status === 'Completed' && new Date(a.completionDate) > new Date(now - 7 * 24 * 60 * 60 * 1000));
+    case 'completedMonth':
+      return achievements.filter(a => a.status === 'Completed' && new Date(a.completionDate) > new Date(now.getFullYear(), now.getMonth() - 1, now.getDate()));
+    case 'completedYear':
+      return achievements.filter(a => a.status === 'Completed' && new Date(a.completionDate) > new Date(now.getFullYear() - 1, now.getMonth(), now.getDate()));
+    case 'inProgress':
+      return achievements.filter(a => a.status === 'In Progress');
+    default:
+      return achievements;
+  }
+}
+function sortAchievements(achievements, sortValue) {
+  switch(sortValue) {
+    case 'difficulty':
+      return achievements.sort((a, b) => difficultyOrder.indexOf(a.difficultyLevel) - difficultyOrder.indexOf(b.difficultyLevel));
+    case 'ap':
+      return achievements.sort((a, b) => b.ap - a.ap);
+    case 'progress':
+      return achievements.sort((a, b) => (b.currentCompletionCount / b.requiredCompletionCount) - (a.currentCompletionCount / a.requiredCompletionCount));
+    case 'completionDate':
+      return achievements.sort((a, b) => new Date(b.completionDate) - new Date(a.completionDate));
+    default:
+      return achievements;
   }
 }
 
-// Display achievements on the page
+function filterChallenges(challenges, filterValue) {
+  const now = new Date();
+  switch(filterValue) {
+    case 'completedWeek':
+      return challenges.filter(c => c.status === 'Completed' && new Date(c.completionDate) > new Date(now - 7 * 24 * 60 * 60 * 1000));
+    case 'completedMonth':
+      return challenges.filter(c => c.status === 'Completed' && new Date(c.completionDate) > new Date(now.getFullYear(), now.getMonth() - 1, now.getDate()));
+    case 'completedYear':
+      return challenges.filter(c => c.status === 'Completed' && new Date(c.completionDate) > new Date(now.getFullYear() - 1, now.getMonth(), now.getDate()));
+    case 'inProgress':
+      return challenges.filter(c => c.status === 'In Progress');
+    default:
+      return challenges;
+  }
+}
+
+function sortChallenges(challenges, sortValue) {
+  switch(sortValue) {
+    case 'difficulty':
+      return challenges.sort((a, b) => difficultyOrder.indexOf(a.difficultyLevel) - difficultyOrder.indexOf(b.difficultyLevel));
+    case 'cp':
+      return challenges.sort((a, b) => b.cp - a.cp);
+    case 'completionDate':
+      return challenges.sort((a, b) => new Date(b.completionDate) - new Date(a.completionDate));
+    case 'prize':
+      return challenges.sort((a, b) => (b.prizeDescription || '').localeCompare(a.prizeDescription || ''));
+    default:
+      return challenges;
+  }
+}
+const difficultyOrder = ['Easy', 'Moderate', 'Hard', 'Extra Hard'];
+
 function displayAchievements(achievements) {
-  try {
-    const achievementsContainer = document.getElementById('achievementsContainer');
-    if (!achievementsContainer) {
-      console.error("Achievements container not found");
-      return;
-    }
-    achievementsContainer.innerHTML = '';
-    for (const [id, achievement] of Object.entries(achievements)) {
-      const card = createAchievementCard(id, achievement);
-      achievementsContainer.appendChild(card);
-    }
-  } catch (error) {
-    console.error("Error displaying achievements:", error);
+  const container = document.getElementById('achievementsContainer');
+  container.innerHTML = '';
+
+  for (const [id, achievement] of Object.entries(achievements)) {
+    const card = createAchievementCard(id, achievement);
+    container.appendChild(card);
   }
 }
 
-// Create an achievement card
 function createAchievementCard(id, achievement) {
   const card = document.createElement('div');
   card.className = 'card achievement-card';
   
-  let imageUrl = achievement.imageUrl || achievement.defaultImageUrl;
-  if (!imageUrl || (!imageUrl.startsWith('https://') && !imageUrl.startsWith('gs://'))) {
-    console.warn(`Invalid image URL for achievement ${id}:`, imageUrl);
-    imageUrl = 'path/to/default/image.png'; // Provide a default image path
-  }
+  let imageUrl = achievement.customImageUrl || achievement.defaultImageUrl;
 
   card.innerHTML = `
-    <img src="${imageUrl}" alt="${achievement.title}" onerror="this.src='path/to/fallback/image.png';">
+    <img src="${imageUrl}" alt="${achievement.title}" onerror="this.src='http://mongoose.mycodsquad.com/achievementbadgedefault.png';">
     <h3>${achievement.title}</h3>
     <p>${achievement.description}</p>
-    <p>Completed: ${achievement.currentCount}/${achievement.completionCount}</p>
+    <p>Difficulty: ${achievement.difficultyLevel}</p>
+    <p>Achievement Points: ${achievement.ap}</p>
+    <p>Status: ${achievement.status}</p>
+    <p>Progress: ${achievement.currentCompletionCount}/${achievement.requiredCompletionCount}</p>
   `;
+
   return card;
 }
 
-function loadChallenges() {
-  try {
-    const challengesRef = ref(database, 'challenges');
-    onValue(challengesRef, (snapshot) => {
-      const challenges = snapshot.val();
-      displayChallenges(challenges);
-    }, (error) => {
-      console.error("Error loading challenges:", error);
+export function getAchievementsUpdates() {
+    const updates = achievementsUpdates;
+    achievementsUpdates = [];  // Clear the updates
+    return updates;
+}
+
+export function getChallengesUpdates() {
+    const updates = challengesUpdates;
+    challengesUpdates = [];  // Clear the updates
+    return updates;
+}
+export function loadChallenges() {
+  const challengesContainer = document.getElementById('challengesContainer');
+  const filterValue = document.getElementById('challengeFilter').value;
+  const sortValue = document.getElementById('challengeSort').value;
+  
+  get(ref(database, 'challenges')).then((snapshot) => {
+    let challenges = [];
+    snapshot.forEach((childSnapshot) => {
+      challenges.push({id: childSnapshot.key, ...childSnapshot.val()});
     });
-  } catch (error) {
-    console.error("Error setting up challenges listener:", error);
+    
+    challenges = filterChallenges(challenges, filterValue);
+    challenges = sortChallenges(challenges, sortValue);
+    
+    displayChallenges(challenges);
+  }).catch((error) => {
+    console.error("Error loading challenges:", error);
+    challengesContainer.innerHTML = '<p>Error loading challenges. Please try again later.</p>';
+  });
+}
+
+export async function processMatchResult(matchData) {
+  // Process achievements
+  await processAchievements(matchData);
+
+  // Process challenges
+  await processChallenges(matchData);
+}
+
+async function processAchievements(matchData) {
+    const achievementsRef = ref(database, 'achievements');
+    const achievementsSnapshot = await get(achievementsRef);
+    const achievements = achievementsSnapshot.val();
+
+    for (const [id, achievement] of Object.entries(achievements)) {
+        if (checkAchievementCriteria(achievement, matchData)) {
+            const update = await updateAchievement(id, achievement, matchData);
+            if (update) {
+                achievementsUpdates.push(update);
+            }
+        }
+    }
+}
+
+function checkAchievementCriteria(achievement, matchData) {
+  if (achievement.locked) return false;
+  
+  if (!isWithinTimeFrame(achievement, matchData.timestamp)) return false;
+
+  const criteria = JSON.parse(achievement.logicCriteria);
+  return criteria.every(criterion => evaluateCriterion(criterion, matchData));
+}
+
+function checkChallengeCriteria(challenge, matchData) {
+  if (challenge.locked) return false;
+  
+  if (!isWithinTimeFrame(challenge, matchData.timestamp)) return false;
+
+  const criteria = JSON.parse(challenge.logicCriteria);
+  return criteria.every(criterion => evaluateCriterion(criterion, matchData));
+}
+
+function isWithinTimeFrame(item, timestamp) {
+  const now = new Date(timestamp);
+  const startDate = item.startDate ? new Date(item.startDate) : null;
+  const endDate = item.endDate ? new Date(item.endDate) : null;
+
+  if (startDate && now < startDate) return false;
+  if (endDate && now > endDate) return false;
+
+  return true;
+}
+function evaluateCriterion(criterion, matchData) {
+  switch (criterion.type) {
+    case 'gameMode':
+      return matchData.gameMode === criterion.value;
+    case 'map':
+      return matchData.map === criterion.value;
+    case 'placement':
+      return matchData.placement <= criterion.value;
+    case 'totalKills':
+      return matchData.totalKills >= criterion.value;
+    case 'playerKills':
+      return Object.values(matchData.kills).some(kills => kills >= criterion.value);
+    case 'specificPlayerKills':
+      return matchData.kills[criterion.player] >= criterion.value;
+    case 'winStreak':
+      // This would require checking previous matches, which we'll implement later
+      return true;
+    case 'dayOfWeek':
+      const dayOfWeek = new Date(matchData.timestamp).getDay();
+      return criterion.days.includes(dayOfWeek);
+    default:
+      console.warn(`Unknown criterion type: ${criterion.type}`);
+      return false;
   }
 }
 
+async function updateAchievement(id, achievement, matchData) {
+  if (!achievement.useHistoricalData && achievement.creationDate > matchData.timestamp) {
+    return null;
+  }
 
-// Display challenges on the page
-function displayChallenges(challenges) {
-  try {
-    const challengesContainer = document.getElementById('challengesContainer');
-    if (!challengesContainer) {
-      console.error("Challenges container not found");
-      return;
+  let update = null;
+  if (checkAchievementCriteria(achievement, matchData)) {
+    achievement.currentCompletionCount++;
+    if (achievement.currentCompletionCount >= achievement.requiredCompletionCount) {
+      achievement.status = 'Completed';
+      if (!achievement.firstCompletionDate) {
+        achievement.firstCompletionDate = matchData.timestamp;
+      }
+      update = `Achievement "${achievement.title}" completed!`;
+    } else {
+      achievement.status = 'In Progress';
+      update = `Progress made on achievement "${achievement.title}"`;
     }
-    challengesContainer.innerHTML = '';
+
+    if (!achievement.repeatable && achievement.status === 'Completed') {
+      achievement.locked = true;
+    }
+
+    await update(ref(database, `achievements/${id}`), achievement);
+  }
+
+  return update;
+}
+async function updateChallenge(id, challenge, matchData) {
+  if (!challenge.useHistoricalData && challenge.creationDate > matchData.timestamp) {
+    return null;
+  }
+  let update = null;
+  if (checkChallengeCriteria(challenge, matchData)) {
+    // For challenges, we need to track completion for each player
+    const playerName = getPlayerNameFromMatchData(matchData);
+    if (!challenge.playersCompleted) challenge.playersCompleted = {};
+    if (!challenge.playersCompleted[playerName]) {
+      challenge.playersCompleted[playerName] = 0;
+    }
+    challenge.playersCompleted[playerName]++;
+
+   if (challenge.playersCompleted[playerName] >= challenge.requiredCompletionCount) {
+    update = `Player ${playerName} completed the challenge "${challenge.title}"!`;
+    if (!challenge.repeatable) {
+      // Mark as completed for this player
+      challenge.playersCompleted[playerName] = {
+        status: 'Completed',
+        completionDate: new Date().toISOString(),
+        completionMatchId: matchData.matchId  // Assuming matchData has a matchId field
+      };
+    }
+  } else {
+    update = `Player ${playerName} made progress on challenge "${challenge.title}"`;
+  }
+
+    await update(ref(database, `challenges/${id}`), challenge);
+  }
+
+  return update;
+}
+
+async function processChallenges(matchData) {
+    const challengesRef = ref(database, 'challenges');
+    const challengesSnapshot = await get(challengesRef);
+    const challenges = challengesSnapshot.val();
+
     for (const [id, challenge] of Object.entries(challenges)) {
-      const card = createChallengeCard(id, challenge);
-      challengesContainer.appendChild(card);
+        if (checkChallengeCriteria(challenge, matchData)) {
+            const update = await updateChallenge(id, challenge, matchData);
+            if (update) {
+                challengesUpdates.push(update);
+            }
+        }
     }
-  } catch (error) {
-    console.error("Error displaying challenges:", error);
+}
+function displayChallenges(challenges) {
+  const container = document.getElementById('challengesContainer');
+  container.innerHTML = '';
+
+  // Check if challenges is null or undefined
+  if (!challenges) {
+    container.innerHTML = '<p>No challenges available.</p>';
+    return;
+  }
+
+  // If challenges is an object, convert it to an array
+  const challengesArray = Array.isArray(challenges) ? challenges : Object.values(challenges);
+
+  // Now use challengesArray instead of challenges in your loop
+  for (const challenge of challengesArray) {
+    const card = createChallengeCard(challenge);
+    container.appendChild(card);
   }
 }
 
-// Create a challenge card
-function createChallengeCard(id, challenge) {
+function createChallengeCard(challenge) {
   const card = document.createElement('div');
   card.className = 'card challenge-card';
   
-  let imageUrl = challenge.imageUrl || challenge.defaultImageUrl;
-  if (!imageUrl || (!imageUrl.startsWith('https://') && !imageUrl.startsWith('gs://'))) {
-    console.warn(`Invalid image URL for challenge ${id}:`, imageUrl);
-    imageUrl = 'path/to/default/image.png'; // Provide a default image path
+  let imageUrl = challenge.customImageUrl || challenge.defaultImageUrl || 'http://mongoose.mycodsquad.com/challengebadgedefault.png';
+
+  let progressHtml = '';
+  if (challenge.playersCompleted) {
+    progressHtml = Object.entries(challenge.playersCompleted)
+      .map(([player, status]) => `<p>${player}: ${typeof status === 'object' ? status.status : status}</p>`)
+      .join('');
   }
 
   card.innerHTML = `
     <img src="${imageUrl}" alt="${challenge.title}" onerror="this.src='path/to/fallback/image.png';">
     <h3>${challenge.title}</h3>
     <p>${challenge.description}</p>
-    <p>Players Completed: ${Object.keys(challenge.playersCompleted || {}).length}</p>
+    <p>Difficulty: ${challenge.difficultyLevel}</p>
+    <p>Challenge Points: ${challenge.cp}</p>
+    <p>Required Completions: ${challenge.requiredCompletionCount}</p>
+    <p>Game Mode: ${challenge.gameMode}</p>
+    <p>Map: ${challenge.map}</p>
+    <p>Prize: ${challenge.prizeDescription || 'N/A'}</p>
+    <p>Sponsor: ${challenge.prizeSponsor || 'N/A'}</p>
+    <div class="challenge-progress">
+      <h4>Progress:</h4>
+      ${progressHtml}
+    </div>
+    ${challenge.startDate ? `<p>Start Date: ${new Date(challenge.startDate).toLocaleDateString()}</p>` : ''}
+    ${challenge.endDate ? `<p>End Date: ${new Date(challenge.endDate).toLocaleDateString()}</p>` : ''}
   `;
+
   return card;
 }
 
-// Process match results to update achievements and challenges
-export async function processMatchResult(matchData) {
-  console.log("Processing match result:", matchData);
-  try {
-    // Update achievements
-    const achievementsRef = ref(database, 'achievements');
-    const achievementsSnapshot = await get(achievementsRef);
-    const achievements = achievementsSnapshot.val();
+// Add more helper functions as needed
+function getPlayerNameFromMatchData(matchData) {
+  // This function should return the name of the player who performed the action
+  // You might need to adjust this based on how player information is stored in matchData
+  return Object.keys(matchData.kills)[0] || 'Unknown Player';
+}
 
-    for (const [id, achievement] of Object.entries(achievements)) {
-      if (checkAchievementCriteria(achievement, matchData)) {
-        achievement.currentCount++;
-        await update(ref(database, `achievements/${id}`), { currentCount: achievement.currentCount });
-      }
+// code for sample achievements
+function initializeSampleAwardsForTesting() {
+  const sampleAchievements = [
+    {
+      title: "Hump Day",
+      description: "Getting a Win on a Wednesday",
+      ap: 50,
+      difficultyLevel: "Easy",
+      requiredCompletionCount: 1,
+      repeatable: true,
+      gameMode: "Any",
+      map: "Any",
+      logicCriteria: JSON.stringify([
+        { type: "dayOfWeek", days: [3] }, // Wednesday is day 3 (0-indexed)
+        { type: "placement", value: 1 }
+      ]),
+      locked: false,
+      useHistoricalData: true
+    },
+    {
+      title: "Honeymoon Fund",
+      description: "Get 35 wins in a Battle Royale mode game",
+      ap: 500,
+      difficultyLevel: "Hard",
+      requiredCompletionCount: 35,
+      repeatable: false,
+      gameMode: "Battle Royale",
+      map: "Any",
+      logicCriteria: JSON.stringify([
+        { type: "gameMode", value: "Battle Royale" },
+        { type: "placement", value: 1 }
+      ]),
+      locked: false,
+      startDate: new Date().toISOString(),
+      endDate: new Date("2025-04-01").toISOString(),
+      useHistoricalData: false
+    },
+    {
+      title: "Another Win in Paradise",
+      description: "Get a win on Resurgence Quads mode on Rebirth Island map",
+      ap: 100,
+      difficultyLevel: "Moderate",
+      requiredCompletionCount: 1,
+      repeatable: true,
+      gameMode: "Resurgence Quads",
+      map: "Rebirth Island",
+      logicCriteria: JSON.stringify([
+        { type: "gameMode", value: "Resurgence Quads" },
+        { type: "map", value: "Rebirth Island" },
+        { type: "placement", value: 1 }
+      ]),
+      locked: false,
+      useHistoricalData: true
+    },
+    {
+      title: "Odd Man Out",
+      description: "Win a Battle Royale Resurgence game on Rebirth Island with total team kills over 10 and each team member having more than 2 kills",
+      ap: 1000,
+      difficultyLevel: "Extra Hard",
+      requiredCompletionCount: 1,
+      repeatable: false,
+      gameMode: "Battle Royale Resurgence",
+      map: "Rebirth Island",
+      logicCriteria: JSON.stringify([
+        { type: "gameMode", value: "Battle Royale Resurgence" },
+        { type: "map", value: "Rebirth Island" },
+        { type: "placement", value: 1 },
+        { type: "totalKills", value: 10 },
+        { type: "playerKills", value: 2 }
+      ]),
+      locked: false,
+      useHistoricalData: true
     }
+  ];
 
-    // Update challenges
-    const challengesRef = ref(database, 'challenges');
-    const challengesSnapshot = await get(challengesRef);
-    const challenges = challengesSnapshot.val();
-
-    for (const [id, challenge] of Object.entries(challenges)) {
-      if (checkChallengeCriteria(challenge, matchData)) {
-        if (!challenge.playersCompleted) challenge.playersCompleted = {};
-        challenge.playersCompleted[matchData.playerId] = true;
-        await update(ref(database, `challenges/${id}/playersCompleted`), challenge.playersCompleted);
-      }
+  const sampleChallenges = [
+    {
+      title: "Slayer",
+      description: "Get 10 or more kills on a Battle Royale Resurgence Solos game on Rebirth Island",
+      cp: 100,
+      difficultyLevel: "Moderate",
+      requiredCompletionCount: 1,
+      repeatable: false,
+      gameMode: "Battle Royale Resurgence Solos",
+      map: "Rebirth Island",
+      logicCriteria: JSON.stringify([
+        { type: "gameMode", value: "Battle Royale Resurgence Solos" },
+        { type: "map", value: "Rebirth Island" },
+        { type: "playerKills", value: 10 }
+      ]),
+      locked: false,
+      startDate: new Date().toISOString(),
+      endDate: new Date("2024-12-31").toISOString(),
+      useHistoricalData: false,
+      prizeDescription: "Coffee Mug",
+      prizeSponsor: "STARMAN",
+      soloChallenge: true
     }
+  ];
 
-    console.log("Achievements and challenges updated successfully");
-  } catch (error) {
-    console.error("Error processing match result:", error);
-  }
-}
-// Helper function to check if an achievement's criteria is met
-function checkAchievementCriteria(achievement, matchData) {
-  // Implement the logic to check if the match data meets the achievement criteria
-  // This is a placeholder and should be replaced with actual logic
-  return false;
-}
+  // Add sample achievements to the database
+  sampleAchievements.forEach(achievement => {
+    push(ref(database, 'achievements'), achievement);
+  });
 
-// Helper function to check if a challenge's criteria is met
-function checkChallengeCriteria(challenge, matchData) {
-  // Implement the logic to check if the match data meets the challenge criteria
-  // This is a placeholder and should be replaced with actual logic
-  return false;
-}
+  // Add sample challenges to the database
+  sampleChallenges.forEach(challenge => {
+    push(ref(database, 'challenges'), challenge);
+  });
 
-// Initialize awards functionality
-/* function initAwards() {
-  try {
-    loadAchievements();
-    loadChallenges();
-  } catch (error) {
-    console.error("Error initializing awards:", error);
-  }
+  console.log("Sample achievements and challenges have been added for testing.");
 }
-*/
-*/
-// Export functions to be used in other modules
-export { initAwards, loadAchievements, loadChallenges };
-
+export { displayChallenges };

@@ -1088,3 +1088,32 @@ async function updateGameModeAndMapOptions() {
     }
   }
 }
+// Added after major update
+async function handleMatchUpdate(matchData) {
+  try {
+    // Process the match result (this function should be imported from awardsmanager.js)
+    await processMatchResult(matchData);
+    
+    // Get updates about achievements (this function should be imported from awardsmanager.js)
+    const updates = getAchievementsUpdates();
+    
+    // Show notifications for each update
+    updates.forEach(update => showAchievementNotification(update));
+  } catch (error) {
+    console.error("Error handling match update:", error);
+    alert("An error occurred while processing the match. Please try again.");
+  }
+}
+
+function showAchievementNotification(message) {
+  const notification = document.createElement('div');
+  notification.className = 'achievement-notification';
+  notification.textContent = message;
+  document.body.appendChild(notification);
+
+  setTimeout(() => notification.classList.add('show'), 10);
+  setTimeout(() => {
+    notification.classList.remove('show');
+    setTimeout(() => notification.remove(), 300);
+  }, 3000);
+}

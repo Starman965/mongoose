@@ -66,20 +66,16 @@ export function getAchievementsUpdates() {
 }
 
 export async function processMatchResult(matchData) {
-  const achievementsRef = ref(database, 'achievements');
-  const achievementsSnapshot = await get(achievementsRef);
-
+   const achievementsSnapshot = await get(ref(database, 'achievements'));
   const achievements = achievementsSnapshot.val();
 
   for (const [id, achievement] of Object.entries(achievements)) {
     if (checkAchievementCriteria(achievement, matchData)) {
-      const update = await updateAchievement(id, achievement, matchData);
-      if (update) {
-        notifyAchievementUpdate(update);
-      }
+      await updateAchievementProgress(id, achievement, matchData);
     }
   }
 }
+
 
 // Added 8.18
 async function updateAchievement(id, achievement, matchData) {

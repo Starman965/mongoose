@@ -43,7 +43,27 @@ async function loadGameModesAndMaps() {
     
     gameModeSelect.appendChild(optgroup);
   });
+function addOrUpdateGameType(e) {
+  e.preventDefault();
+  const form = e.target;
+  const typeId = form.dataset.id || generateId(form.name.value);
+  const name = form.name.value;
 
+  const typeData = { 
+    name,
+    gameModes: {}  // Initialize empty gameModes object
+  };
+
+  set(ref(database, `gameTypes/${typeId}`), typeData)
+    .then(() => {
+      loadGameTypes();
+      modal.style.display = "none";
+    })
+    .catch(error => {
+      console.error("Error adding/updating game type: ", error);
+      alert('Error adding/updating game type. Please try again.');
+    });
+}
   // Load maps
   const mapsSnapshot = await get(ref(database, 'maps'));
   mapSelect.innerHTML = '<option value="">Select Map</option>';
@@ -108,12 +128,12 @@ function checkAchievementCriteria(achievement, matchData) {
     if (!achievement.occursOnDOW.includes(matchDay)) return false;
   }
 
-  if (achievement.gameType !== 'Any' && achievement.gameType !== matchData.gameType) return false;
-  if (achievement.gameMode !== 'Any' && achievement.gameMode !== matchData.gameMode) return false;
-  if (achievement.map !== 'Any' && achievement.map !== matchData.map) return false;
+  if (achievement.gameTypeId !== 'Any' && achievement.gameTypeId !== matchData.gameTypeId) return false;
+  if (achievement.gameModeId !== 'Any' && achievement.gameModeId !== matchData.gameModeId) return false;
+  if (achievement.mapId !== 'Any' && achievement.mapId !== matchData.mapId) return false;
 
   if (achievement.placement !== 'Any') {
-    if (matchData.gameType === 'multiplayer') {
+    if (matchData.gameType.toLowerCase() === 'multiplayer') {
       if (achievement.placement === 'Won' && matchData.placement !== 'Won') return false;
     } else {
       if (parseInt(achievement.placement) < matchData.placement) return false;
@@ -122,14 +142,12 @@ function checkAchievementCriteria(achievement, matchData) {
 
   if (!checkOperatorCondition(achievement.totalKillsOperator, achievement.totalKills, matchData.totalKills)) return false;
 
-  // Check team member kills
-  for (const [member, killData] of Object.entries(achievement.teamMemberKills || {})) {
-    if (!checkOperatorCondition(killData.operator, killData.value, matchData.kills[member])) return false;
+  for (const [member, killData] of Object.entries(achievement.teamMemberKills)) {
+    if (!checkOperatorCondition(killData.operator, killData.value, matchData.kills[member] || 0)) return false;
   }
 
   return true;
 }
-
 function checkOperatorCondition(operator, achievementValue, matchValue) {
   switch (operator) {
     case '=': return achievementValue === matchValue;
@@ -447,105 +465,54 @@ function createAchievementCard(achievement) {
 
   return card;
 }
-// updated 8.19 via Claude to handle null errors and such
-async function addOrUpdateAchievement(e) {
+// updated 8.19 with complete new function after restructure
+function addOrUpdateAchievement(e) {
   e.preventDefault();
   const form = e.target;
-  const achievementId = form.dataset.id;
-  
-  try {
-    console.log("Starting achievement save/update process");
-    
-    const achievementData = {
-      title: form.title.value,
-      description: form.description.value,
-      gameType: form.gameType.value,
-      gameMode: form.gameMode.value,
-      map: form.map.value,
-      achievementPoints: parseInt(form.achievementPoints.value) || 0,
-      award: form.award.value,
-      awardSponsor: form.awardSponsor.value,
-      awardedTo: form.querySelector('input[name="awardedTo"]:checked')?.value || 'Team',
-      canCompleteMultipleTimes: form.canCompleteMultipleTimes.checked,
-      difficulty: form.difficulty.value,
-      isActive: form.isActive.checked,
-      placement: form.placement.value,
-      timesToComplete: parseInt(form.timesToComplete.value) || 1,
-      totalKills: parseInt(form.totalKills.value) || 0,
-      totalKillsOperator: form.totalKillsOperator.value,
-      useHistoricalData: form.useHistoricalData.checked,
-      updatedAt: new Date().toISOString()
-    };
+  const achievementId = form.dataset.id || push(ref(database, 'achievements')).key;
 
-    achievementData.occursOnDOW = Array.from(form.querySelectorAll('#occursOnDOW input:checked'))
-      .map(input => parseInt(input.value));
+  const achievementData = {
+    id: achievementId,
+    title: form.title.value,
+    description: form.description.value,
+    gameTypeId: form.gameType.value,
+    gameModeId: form.gameMode.value,
+    mapId: form.map.value,
+    achievementPoints: parseInt(form.achievementPoints.value) || 0,
+    placement: form.placement.value,
+    totalKills: parseInt(form.totalKills.value) || 0,
+    totalKillsOperator: form.totalKillsOperator.value,
+    teamMemberKills: {},
+    timesToComplete: parseInt(form.timesToComplete.value) || 1,
+    difficulty: form.difficulty.value,
+    isActive: form.isActive.checked,
+    canCompleteMultipleTimes: form.canCompleteMultipleTimes.checked,
+    occursOnDOW: Array.from(form.querySelectorAll('#occursOnDOW input:checked')).map(input => parseInt(input.value)),
+    useHistoricalData: form.useHistoricalData.checked,
+    status: form.dataset.id ? form.status.value : 'Not Started',
+    currentProgress: form.dataset.id ? parseInt(form.currentProgress.value) || 0 : 0,
+    completionCount: form.dataset.id ? parseInt(form.completionCount.value) || 0 : 0,
+    createdAt: form.dataset.id ? form.createdAt.value : new Date().toISOString(),
+    updatedAt: new Date().toISOString()
+  };
 
-    achievementData.teamMemberKills = {};
-    ['STARMAN', 'RSKILLA', 'SWFTSWORD', 'VAIDED', 'MOWGLI'].forEach(member => {
-      const operatorElement = document.getElementById(`${member}KillsOperator`);
-      const killsElement = document.getElementById(`${member}Kills`);
-      if (operatorElement && killsElement) {
-        const kills = parseInt(killsElement.value);
-        if (!isNaN(kills) && kills > 0) {
-          achievementData.teamMemberKills[member] = { 
-            operator: operatorElement.value, 
-            value: kills 
-          };
-        }
-      }
+  ['STARMAN', 'RSKILLA', 'SWFTSWORD', 'VAIDED', 'MOWGLI'].forEach(player => {
+    const kills = parseInt(form[`${player}Kills`].value);
+    const operator = form[`${player}KillsOperator`].value;
+    if (!isNaN(kills) && kills > 0) {
+      achievementData.teamMemberKills[player] = { operator, value: kills };
+    }
+  });
+
+  set(ref(database, `achievements/${achievementId}`), achievementData)
+    .then(() => {
+      loadAchievements();
+      modal.style.display = "none";
+    })
+    .catch(error => {
+      console.error("Error adding/updating achievement: ", error);
+      alert('Error adding/updating achievement. Please try again.');
     });
-
-    // Handle image upload
-    const useDefaultImage = document.getElementById('useDefaultImage')?.checked;
-    const customImageFile = document.getElementById('customImage')?.files[0];
-
-    if (!useDefaultImage && customImageFile) {
-      console.log("Uploading custom image");
-      const imageRef = storageRef(storage, `achievementBadges/${Date.now()}_${customImageFile.name}`);
-      const snapshot = await uploadBytes(imageRef, customImageFile);
-      const url = await getDownloadURL(snapshot.ref);
-      achievementData.customImageUrl = url;
-      console.log("Custom image uploaded successfully:", url);
-    } else if (useDefaultImage) {
-      achievementData.customImageUrl = null;
-      console.log("Using default image");
-    }
-
-    // Add missing fields for new achievements
-    if (!achievementId || achievementId === 'null') {
-      achievementData.createdAt = new Date().toISOString();
-      achievementData.status = 'Not Started';
-      achievementData.currentProgress = 0;
-      achievementData.completionCount = 0;
-      achievementData.completionHistory = [];
-    }
-
-    console.log("Prepared achievement data:", achievementData);
-
-    // Determine whether to update or add new achievement
-    let operation;
-    if (achievementId && achievementId !== 'null') {
-      console.log(`Updating existing achievement with ID: ${achievementId}`);
-      operation = update(ref(database, `achievements/${achievementId}`), achievementData);
-    } else {
-      console.log("Adding new achievement");
-      operation = push(ref(database, 'achievements'), achievementData);
-    }
-
-    console.log("Starting database operation");
-    await operation;
-    console.log("Database operation completed successfully");
-
-    // Reload achievements and close modal
-    loadAchievements();
-    modal.style.display = "none";
-
-    // Show success message
-    alert(`Achievement successfully ${achievementId && achievementId !== 'null' ? 'updated' : 'added'}!`);
-  } catch (error) {
-    console.error("Detailed error in adding/updating achievement:", error);
-    alert(`Error adding/updating achievement: ${error.message}. Please check the console for more details.`);
-  }
 }
 function getPlayerKillsCriteria(form) {
     const playerKills = [];
@@ -1120,25 +1087,19 @@ function loadMatches(sessionId) {
 function addOrUpdateGameSession(e) {
   e.preventDefault();
   const form = e.target;
-  const sessionId = form.dataset.id;
+  const sessionId = form.dataset.id || push(ref(database, 'gameSessions')).key;
   
-  // Create a date object from the input value
   const inputDate = new Date(form.date.value);
-  
-  // Adjust for the local time zone
   const userTimezoneOffset = inputDate.getTimezoneOffset() * 60000;
-  const adjustedDate = new Date(inputDate.getTime() + userTimezoneOffset);
+  const adjustedDate = new Date(inputDate.getTime() - userTimezoneOffset);
   
   const sessionData = {
     date: adjustedDate.toISOString(),
-    userTimezoneOffset: userTimezoneOffset
+    userTimezoneOffset: userTimezoneOffset,
+    id: sessionId
   };
   
-  const operation = sessionId
-    ? update(ref(database, `gameSessions/${sessionId}`), sessionData)
-    : push(ref(database, 'gameSessions'), sessionData);
-
-  operation
+  set(ref(database, `gameSessions/${sessionId}`), sessionData)
     .then(() => {
       loadGameSessions();
       modal.style.display = "none";
@@ -1148,7 +1109,6 @@ function addOrUpdateGameSession(e) {
       alert('Error adding/updating game session. Please try again.');
     });
 }
-
 window.deleteGameSession = function(id) {
   if (confirm('Are you sure you want to delete this game session?')) {
     remove(ref(database, `gameSessions/${id}`))
@@ -1157,6 +1117,73 @@ window.deleteGameSession = function(id) {
         console.error("Error deleting game session: ", error);
         alert('Error deleting game session. Please try again.');
       });
+  }
+}
+// new function added 8.19 may replace other not sure
+async function addOrUpdateMatch(e) {
+  e.preventDefault();
+  const form = e.target;
+  const sessionId = form.dataset.sessionId;
+  const matchId = form.dataset.matchId || push(ref(database, `gameSessions/${sessionId}/matches`)).key;
+  
+  const gameTypeId = form.gameType.value;
+  const gameModeId = form.gameMode.value;
+  const mapId = form.map.value;
+  
+  try {
+    const [gameTypeSnapshot, gameModeSnapshot, mapSnapshot] = await Promise.all([
+      get(ref(database, `gameTypes/${gameTypeId}`)),
+      get(ref(database, `gameModes/${gameModeId}`)),
+      get(ref(database, `maps/${mapId}`))
+    ]);
+
+    let placement;
+    if (gameTypeSnapshot.val().name.toLowerCase() === 'warzone') {
+      placement = parseInt(form.placement.value);
+    } else {
+      placement = form.placement.checked ? 'Won' : 'Lost';
+    }
+
+    const matchData = {
+      id: matchId,
+      gameTypeId: gameTypeId,
+      gameType: gameTypeSnapshot.val().name,
+      gameModeId: gameModeId,
+      gameMode: gameModeSnapshot.val().name,
+      mapId: mapId,
+      map: mapSnapshot.val().name,
+      placement: placement,
+      totalKills: parseInt(form.totalKills.value) === -1 ? null : parseInt(form.totalKills.value),
+      kills: {},
+      timestamp: Date.now()
+    };
+
+    ['STARMAN', 'RSKILLA', 'SWFTSWORD', 'VAIDED', 'MOWGLI'].forEach(player => {
+      const kills = parseInt(form[`kills${player}`].value);
+      if (kills !== -1) {
+        matchData.kills[player] = kills;
+      }
+    });
+
+    const highlightVideo = form.highlightVideo.files[0];
+    if (highlightVideo) {
+      const videoRef = storageRef(storage, `highlights/${sessionId}/${Date.now()}_${highlightVideo.name}`);
+      const snapshot = await uploadBytes(videoRef, highlightVideo);
+      const url = await getDownloadURL(snapshot.ref);
+      matchData.highlightURL = url;
+    }
+
+    await set(ref(database, `gameSessions/${sessionId}/matches/${matchId}`), matchData);
+    
+    // Process achievements
+    await processMatchResult(matchData);
+
+    loadMatches(sessionId);
+    modal.style.display = "none";
+
+  } catch (error) {
+    console.error("Error adding/updating match:", error);
+    alert('Error adding/updating match. Please try again.');
   }
 }
 
@@ -1267,15 +1294,13 @@ function loadGameModes() {
 function addOrUpdateGameMode(e) {
   e.preventDefault();
   const form = e.target;
-  const typeId = form.dataset.typeId;
-  const modeId = form.dataset.modeId;
-  const name = document.getElementById('name').value;
+  const typeId = form.gameTypeId.value;
+  const modeId = form.dataset.modeId || generateId(form.name.value);
+  const name = form.name.value;
 
-  const operation = modeId
-    ? update(ref(database, `gameTypes/${typeId}/gameModes/${modeId}`), { name })
-    : push(ref(database, `gameTypes/${typeId}/gameModes`), { name });
+  const modeData = { name };
 
-  operation
+  set(ref(database, `gameTypes/${typeId}/gameModes/${modeId}`), modeData)
     .then(() => {
       loadGameTypes();
       modal.style.display = "none";
@@ -1284,16 +1309,6 @@ function addOrUpdateGameMode(e) {
       console.error("Error adding/updating game mode: ", error);
       alert('Error adding/updating game mode. Please try again.');
     });
-}
-window.deleteGameMode = function(typeId, modeId) {
-  if (confirm('Are you sure you want to delete this game mode?')) {
-    remove(ref(database, `gameTypes/${typeId}/gameModes/${modeId}`))
-      .then(() => loadGameTypes())
-      .catch(error => {
-        console.error("Error deleting game mode: ", error);
-        alert('Error deleting game mode. Please try again.');
-      });
-  }
 }
 function loadGameTypes() {
   const gameTypesList = document.getElementById('gameTypesList');
@@ -1380,20 +1395,13 @@ function loadMaps() {
 function addOrUpdateMap(e) {
   e.preventDefault();
   const form = e.target;
-  const mapCategory = document.getElementById('mapCategory').value;
-  const mapId = form.dataset.mapId;
-  const name = document.getElementById('name').value;
+  const typeId = form.gameTypeId.value;
+  const mapId = form.dataset.mapId || generateId(form.name.value);
+  const name = form.name.value;
 
   const mapData = { name };
 
-  let operation;
-  if (mapId) {
-    operation = update(ref(database, `maps/${mapCategory}/${mapId}`), mapData);
-  } else {
-    operation = push(ref(database, `maps/${mapCategory}`), mapData);
-  }
-
-  operation
+  set(ref(database, `maps/${typeId}/${mapId}`), mapData)
     .then(() => {
       loadMaps();
       modal.style.display = "none";
@@ -1403,7 +1411,10 @@ function addOrUpdateMap(e) {
       alert('Error adding/updating map. Please try again.');
     });
 }
-
+// Helper function to generate an ID from a name
+function generateId(name) {
+  return name.toLowerCase().replace(/\s+/g, '');
+}
 window.deleteMap = function(typeId, mapId) {
   // Check if IDs are provided
   if (!typeId || !mapId) {

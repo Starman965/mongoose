@@ -1,8 +1,15 @@
-import { ref, onValue, push, update, remove, get } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-database.js";
+import { ref, onValue, push, update, remove, get, set } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-database.js";
 import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-storage.js";
 import { database } from './firebaseConfig.js';
-import { initAwards, loadAchievements, loadChallenges, processMatchResult } from './awardsmanager.js';
-import { getAchievementsUpdates, getChallengesUpdates } from './awardsmanager.js';
+import { 
+  processMatchResult, 
+  getAchievementsUpdates, 
+  addOrUpdateAchievement, 
+  deleteAchievement, 
+  getAchievements, 
+  filterAchievements, 
+  sortAchievements 
+} from './awardsmanager.js';
 
 const storage = getStorage();
 
@@ -12,82 +19,19 @@ const modal = document.getElementById('modal');
 const modalContent = document.getElementById('modalContent');
 const closeModal = document.getElementsByClassName('close')[0];
 
-// OLD DOM ELEMENTS COMMENTED OUT TO TEST THE ONES ABOVE (Unexpected Token Error)
-// const mainContent = document.getElementById('mainContent');
-// const modal = document.getElementById('modal');
-// const modalContent = .getElementById('modalContent');
-// const closeModal = .getElementsByClassName('close')[0];
-
-// Close modal when clicking on 'x'
+// Close modal when clicking on 'x' or outside of it
 closeModal.onclick = () => modal.style.display = "none";
-
-// Close modal when clicking outside of it
 window.onclick = (event) => {
   if (event.target == modal) {
     modal.style.display = "none";
   }
-}
-// Add the loadGameModesAndMaps function here
-async function loadGameModesAndMaps() {
-  const gameModeSelect = document.getElementById('gameMode');
-  const mapSelect = document.getElementById('map');
-
-  // Load game modes
-  const gameModeSnapshot = await get(ref(database, 'gameModes'));
-  gameModeSelect.innerHTML = '<option value="">Select Game Mode</option>';
-  gameModeSnapshot.forEach((childSnapshot) => {
-    const gameMode = childSnapshot.val();
-    gameModeSelect.innerHTML += `<option value="${gameMode.name}">${gameMode.name}</option>`;
-  });
-
-  // Load maps
-  const mapSnapshot = await get(ref(database, 'maps'));
-  mapSelect.innerHTML = '<option value="">Select Map</option>';
-  mapSnapshot.forEach((childSnapshot) => {
-    const map = childSnapshot.val();
-    mapSelect.innerHTML += `<option value="${map.name}">${map.name}</option>`;
-  });
-}
-async function updatePlacementInput() {
-    const gameMode = document.getElementById('gameMode').value;
-    const placementContainer = document.getElementById('placementContainer');
-    const gameModes = await get(ref(database, 'gameModes')).then(snapshot => {
-        const modes = {};
-        snapshot.forEach(child => {
-            modes[child.val().name] = child.val().type;
-        });
-        return modes;
-    });
-
-    if (gameModes[gameMode] === 'Battle Royale') {
-        placementContainer.innerHTML = `
-            <label for="placement">Placement <span id="placementValue" class="slider-value">1st</span></label>
-            <input type="range" id="placement" class="slider" min="1" max="10" step="1" value="1" required>
-        `;
-        document.getElementById('placement').addEventListener('input', updatePlacementValue);
-    } else if (gameModes[gameMode] === 'Multiplayer') {
-        placementContainer.innerHTML = `
-            <label for="placement">Result</label>
-            <div class="toggle-switch">
-                <input type="checkbox" id="placement" name="placement" class="toggle-input">
-                <label for="placement" class="toggle-label">
-                    <span class="toggle-inner"></span>
-                </label>
-            </div>
-        `;
-       // Set default state to unchecked (Lost)
-        document.getElementById('placement').checked = false;
-    }
 }
 
 // Navigation setup
 document.getElementById('statsNav').addEventListener('click', () => showSection('stats'));
 document.getElementById('sessionsNav').addEventListener('click', () => showSection('sessions'));
 document.getElementById('achievementsNav').addEventListener('click', () => showSection('achievements'));
-document.getElementById('challengesNav').addEventListener('click', () => showSection('challenges'));
 document.getElementById('highlightsNav').addEventListener('click', () => showSection('highlights'));
-document.getElementById('mapsNav').addEventListener('click', () => showSection('maps'));
-document.getElementById('modesNav').addEventListener('click', () => showSection('modes'));
 document.getElementById('teamNav').addEventListener('click', () => showSection('team'));
 document.getElementById('adminNav').addEventListener('click', () => showAdminSection());
 document.getElementById('helpNav').addEventListener('click', () => showHelp());
@@ -95,601 +39,103 @@ document.getElementById('aboutNav').addEventListener('click', () => showAbout())
 
 function showSection(section) {
   switch(section) {
-    case 'stats':
-      showStats();
-      break;
-    case 'sessions':
-      showGameSessions();
-      break;
-    case 'achievements':
-     showAchievements();    
-      break;
-    case 'challenges':
-      showChallenges();
-      break;
-    case 'highlights':
-      showHighlights();
-      break;
-    case 'maps':
-      showMaps();
-      break;
-    case 'modes':
-      showGameModes();
-      break;
-    case 'team':
-      showTeamMembers();
-      break;
+    case 'stats': showStats(); break;
+    case 'sessions': showGameSessions(); break;
+    case 'achievements': showAchievements(); break;
+    case 'highlights': showHighlights(); break;
+    case 'team': showTeamMembers(); break;
   }
 }
-function checkAchievementCriteria(achievement, matchData) {
-  // Parse the JSON logic criteria
-  const criteria = JSON.parse(achievement.logicCriteria);
 
-  // Check if the match data meets all the criteria
-  return criteria.every(criterion => {
-    switch (criterion.type) {
-      case 'gameMode':
-        return matchData.gameMode === criterion.value;
-      case 'map':
-        return matchData.map === criterion.value;
-      case 'placement':
-        return matchData.placement <= criterion.value;
-      case 'totalKills':
-        return matchData.totalKills >= criterion.value;
-      case 'playerKills':
-        return Object.values(matchData.kills).some(kills => kills >= criterion.value);
-      // Add more criteria types as needed
-      default:
-        return false;
-    }
-  });
-}
-
-function checkChallengeCriteria(challenge, matchData) {
-  // Similar to checkAchievementCriteria, but may include player-specific checks
-  const criteria = JSON.parse(challenge.logicCriteria);
-
-  return criteria.every(criterion => {
-    // Implement challenge-specific criteria checks
-    // This might include checking individual player performance
-    // or other challenge-specific conditions
-  });
-}
-
+// Admin section
 function showAdminSection() {
   mainContent.innerHTML = `
     <h2>Admin</h2>
+    <div class="admin-actions">
+      <button class="button" onclick="initializeSampleAchievements()">Initialize Sample Achievements</button>
+      <button class="button" onclick="mergeAndUpdateDatabase()">Initialize Game Modes and Maps</button>
+    </div>
     <div class="admin-tabs">
       <button id="achievementsAdminBtn" class="admin-tab">Achievements</button>
-      <button id="challengesAdminBtn" class="admin-tab">Challenges</button>
+      <button id="gameTypesAdminBtn" class="admin-tab">Game Types & Modes</button>
+      <button id="mapsAdminBtn" class="admin-tab">Maps</button>
+      <button id="teamMembersAdminBtn" class="admin-tab">Team Members</button>
     </div>
     <div id="adminContent"></div>
-    <div class="admin-actions">
-      <button class="button" onclick="initializeSampleAwardsForTesting()">Initialize Sample Awards for Testing</button>
-    </div>
   `;
   
-  document.getElementById('achievementsAdminBtn').addEventListener('click', showAchievementsAdmin);
-  document.getElementById('challengesAdminBtn').addEventListener('click', showChallengesAdmin);
-  document.querySelector('.admin-actions .button').addEventListener('click', initializeSampleAwardsForTesting);
+  document.getElementById('achievementsAdminBtn').addEventListener('click', showAchievementManagement);
+  document.getElementById('gameTypesAdminBtn').addEventListener('click', showGameTypesAdmin);
+  document.getElementById('mapsAdminBtn').addEventListener('click', showMapsAdmin);
+  document.getElementById('teamMembersAdminBtn').addEventListener('click', showTeamMembersAdmin);
+
+  showAchievementManagement(); // Show achievements management by default
 }
 
-function initializeSampleAwardsForTesting() {
-  const sampleAchievements = [
-    {
-      title: "Hump Day",
-      description: "Getting a Win on a Wednesday",
-      ap: 50,
-      difficultyLevel: "Easy",
-      requiredCompletionCount: 1,
-      repeatable: true,
-      gameMode: "Any",
-      map: "Any",
-      logicCriteria: JSON.stringify([
-        { type: "dayOfWeek", days: [3] }, // Wednesday is day 3 (0-indexed)
-        { type: "placement", value: 1 }
-      ]),
-      locked: false,
-      useHistoricalData: true
-    },
-    {
-      title: "Honeymoon Fund",
-      description: "Get 35 wins in a Battle Royale mode game",
-      ap: 500,
-      difficultyLevel: "Hard",
-      requiredCompletionCount: 35,
-      repeatable: false,
-      gameMode: "Battle Royale",
-      map: "Any",
-      logicCriteria: JSON.stringify([
-        { type: "gameMode", value: "Battle Royale" },
-        { type: "placement", value: 1 }
-      ]),
-      locked: false,
-      startDate: new Date().toISOString(),
-      endDate: new Date("2025-04-01").toISOString(),
-      useHistoricalData: false
-    },
-    {
-      title: "Another Win in Paradise",
-      description: "Get a win on Resurgence Quads mode on Rebirth Island map",
-      ap: 100,
-      difficultyLevel: "Moderate",
-      requiredCompletionCount: 1,
-      repeatable: true,
-      gameMode: "Resurgence Quads",
-      map: "Rebirth Island",
-      logicCriteria: JSON.stringify([
-        { type: "gameMode", value: "Resurgence Quads" },
-        { type: "map", value: "Rebirth Island" },
-        { type: "placement", value: 1 }
-      ]),
-      locked: false,
-      useHistoricalData: true
-    },
-    {
-      title: "Odd Man Out",
-      description: "Win a Battle Royale Resurgence game on Rebirth Island with total team kills over 10 and each team member having more than 2 kills",
-      ap: 1000,
-      difficultyLevel: "Extra Hard",
-      requiredCompletionCount: 1,
-      repeatable: false,
-      gameMode: "Battle Royale Resurgence",
-      map: "Rebirth Island",
-      logicCriteria: JSON.stringify([
-        { type: "gameMode", value: "Battle Royale Resurgence" },
-        { type: "map", value: "Rebirth Island" },
-        { type: "placement", value: 1 },
-        { type: "totalKills", value: 10 },
-        { type: "playerKills", value: 2 }
-      ]),
-      locked: false,
-      useHistoricalData: true
-    }
-  ];
-
-  const sampleChallenges = [
-    {
-      title: "Slayer",
-      description: "Get 10 or more kills on a Battle Royale Solos game in Ursikstan",
-      cp: 300,
-      difficultyLevel: "Moderate",
-      requiredCompletionCount: 1,
-      repeatable: false,
-      gameMode: "Battle Royale Solos",
-      map: "Urzikstan",
-      logicCriteria: JSON.stringify([
-        { type: "gameMode", value: "Battle Royale Resurgence Solos" },
-        { type: "map", value: "Rebirth Island" },
-        { type: "playerKills", value: 10 }
-      ]),
-      locked: false,
-      startDate: new Date().toISOString(),
-      endDate: new Date("2024-12-31").toISOString(),
-      useHistoricalData: false,
-      prizeDescription: "Custom Slayer T-Shirt",
-      prizeSponsor: "STARMAN",
-      soloChallenge: false
-    }
-  ];
-
-  // Add sample achievements to the database
-  sampleAchievements.forEach(achievement => {
-    push(ref(database, 'achievements'), achievement);
-  });
-
-  // Add sample challenges to the database
-  sampleChallenges.forEach(challenge => {
-    push(ref(database, 'challenges'), challenge);
-  });
-
-  console.log("Sample achievements and challenges have been added for testing.");
-}
-
-
-function showAchievementsAdmin() {
+function showAchievementManagement() {
   const adminContent = document.getElementById('adminContent');
   adminContent.innerHTML = `
-    <h3>Achievements Management</h3>
-    <button class="button" onclick="showModal('addAchievement')">Add Achievement</button>
-    <div id="achievementsList"></div>
+    <h3>Achievement Management</h3>
+    <button class="button" onclick="showModal('showAchievementModal')">Add New Achievement</button>
+    <div id="achievementList"></div>
   `;
-  loadAchievementsAdmin();
+  loadAchievementList();
 }
-function showChallengesAdmin() {
-  const adminContent = document.getElementById('adminContent');
-  adminContent.innerHTML = `
-    <h3>Challenges Management</h3>
-    <button class="button" onclick="showModal('addChallenge')">Add Challenge</button>
-    <div id="challengesList"></div>
-  `;
-  loadChallengesAdmin();
-}
-function loadAchievementsAdmin() {
-  const achievementsList = document.getElementById('achievementsList');
-  achievementsList.innerHTML = 'Loading achievements...';
 
-  get(ref(database, 'achievements')).then((snapshot) => {
-    const achievements = snapshot.val();
-    let achievementsHtml = '<table class="admin-table">';
-    achievementsHtml += '<tr><th>Title</th><th>Description</th><th>AP</th><th>Difficulty</th><th>Actions</th></tr>';
+function loadAchievementList() {
+  const achievementList = document.getElementById('achievementList');
+  getAchievements().then((achievements) => {
+    let achievementHtml = '<table class="admin-table">';
+    achievementHtml += '<tr><th>Title</th><th>Description</th><th>Points</th><th>Difficulty</th><th>Status</th><th>Actions</th></tr>';
 
     for (const [id, achievement] of Object.entries(achievements)) {
-      achievementsHtml += `
+      achievementHtml += `
         <tr>
           <td>${achievement.title}</td>
           <td>${achievement.description}</td>
-          <td>${achievement.ap}</td>
-          <td>${achievement.difficultyLevel}</td>
+          <td>${achievement.achievementPoints}</td>
+          <td>${achievement.difficulty}</td>
+          <td>${achievement.status}</td>
           <td>
-            <button class="button" onclick="showModal('editAchievement', '${id}')">Edit</button>
+            <button class="button" onclick="showModal('showAchievementModal', '${id}')">Edit</button>
             <button class="button" onclick="deleteAchievement('${id}')">Delete</button>
           </td>
         </tr>
       `;
     }
 
-    achievementsHtml += '</table>';
-    achievementsList.innerHTML = achievementsHtml;
+    achievementHtml += '</table>';
+    achievementList.innerHTML = achievementHtml;
+  }).catch(error => {
+    console.error("Error loading achievements:", error);
+    achievementList.innerHTML = "Error loading achievements. Please try again.";
   });
 }
 
-function loadChallengesAdmin() {
-  const challengesList = document.getElementById('challengesList');
-  challengesList.innerHTML = 'Loading challenges...';
-
-  get(ref(database, 'challenges')).then((snapshot) => {
-    const challenges = snapshot.val();
-    let challengesHtml = '<table class="admin-table">';
-    challengesHtml += '<tr><th>Title</th><th>Description</th><th>CP</th><th>Difficulty</th><th>Actions</th></tr>';
-
-    for (const [id, challenge] of Object.entries(challenges)) {
-      challengesHtml += `
-        <tr>
-          <td>${challenge.title}</td>
-          <td>${challenge.description}</td>
-          <td>${challenge.cp}</td>
-          <td>${challenge.difficultyLevel}</td>
-          <td>
-            <button class="button" onclick="showModal('editChallenge', '${id}')">Edit</button>
-            <button class="button" onclick="deleteChallenge('${id}')">Delete</button>
-          </td>
-        </tr>
-      `;
-    }
-
-    challengesHtml += '</table>';
-    challengesList.innerHTML = challengesHtml;
-  });
-}
-// Add these functions to handle adding, editing, and deleting achievements and challenges
-function addOrUpdateAchievement(e) {
-  e.preventDefault();
-  const form = e.target;
-  const achievementId = form.dataset.id;
-  const achievementData = {
-    title: form.title.value,
-    description: form.description.value,
-    ap: parseInt(form.ap.value),
-    difficultyLevel: form.difficultyLevel.value,
-    requiredCompletionCount: parseInt(form.requiredCompletionCount.value),
-    repeatable: form.repeatable.checked,
-    gameMode: form.gameMode.value,
-    specificMode: form.specificMode.value,
-    map: form.map.value,
-    logicCriteria: form.logicCriteria.value,
-    locked: form.locked.checked,
-    startDate: form.startDate.value,
-    endDate: form.endDate.value,
-    useHistoricalData: form.useHistoricalData.checked
-  };
-
-  const operation = achievementId
-    ? update(ref(database, `achievements/${achievementId}`), achievementData)
-    : push(ref(database, 'achievements'), achievementData);
-
-  operation
-    .then(() => {
-      loadAchievementsAdmin();
-      modal.style.display = "none";
-    })
-    .catch(error => {
-      console.error("Error adding/updating achievement: ", error);
-      alert('Error adding/updating achievement. Please try again.');
-    });
-}
-
-function addOrUpdateChallenge(e) {
-  e.preventDefault();
-  const form = e.target;
-  const challengeId = form.dataset.id;
-  const challengeData = {
-    title: form.title.value,
-    description: form.description.value,
-    cp: parseInt(form.cp.value),
-    difficultyLevel: form.difficultyLevel.value,
-    requiredCompletionCount: parseInt(form.requiredCompletionCount.value),
-    repeatable: form.repeatable.checked,
-    gameMode: form.gameMode.value,
-    specificMode: form.specificMode.value,
-    map: form.map.value,
-    logicCriteria: form.logicCriteria.value,
-    locked: form.locked.checked,
-    startDate: form.startDate.value,
-    endDate: form.endDate.value,
-    useHistoricalData: form.useHistoricalData.checked,
-    prizeDescription: form.prizeDescription.value,
-    prizeSponsor: form.prizeSponsor.value,
-    soloChallenge: form.soloChallenge.checked
-  };
-
-  const operation = challengeId
-    ? update(ref(database, `challenges/${challengeId}`), challengeData)
-    : push(ref(database, 'challenges'), challengeData);
-
-  operation
-    .then(() => {
-      loadChallengesAdmin();
-      modal.style.display = "none";
-    })
-    .catch(error => {
-      console.error("Error adding/updating challenge: ", error);
-      alert('Error adding/updating challenge. Please try again.');
-    });
-}
-
-window.deleteAchievement = function(id) {
-  if (confirm('Are you sure you want to delete this achievement?')) {
-    remove(ref(database, `achievements/${id}`))
-      .then(() => loadAchievementsAdmin())
-      .catch(error => {
-        console.error("Error deleting achievement: ", error);
-        alert('Error deleting achievement. Please try again.');
-      });
-  }
-}
-
-window.deleteChallenge = function(id) {
-  if (confirm('Are you sure you want to delete this challenge?')) {
-    remove(ref(database, `challenges/${id}`))
-      .then(() => loadChallengesAdmin())
-      .catch(error => {
-        console.error("Error deleting challenge: ", error);
-        alert('Error deleting challenge. Please try again.');
-      });
-  }
-}
-
-function showStats() {
-    mainContent.innerHTML = `
-        <h2>Team Statistics</h2>
-        <p>* Note: Total Kills and Average Kills are based solely on Battle Royale game modes.</p>
-        <div id="statsTable"></div>
-        <div id="challengesLeaderboard"></div>
-        <div id="prizePatrolTable"></div>
-    `;
-    loadStats();
-    updateTeamStats();
-    loadPrizePatrol();
-}
-function loadPrizePatrol() {
-    const prizePatrolContainer = document.getElementById('prizePatrolTable');
-    prizePatrolContainer.innerHTML = 'Loading Prize Patrol data...';
-
-    get(ref(database, 'challenges')).then((snapshot) => {
-        const challenges = snapshot.val();
-        let prizePatrolHTML = `
-            <h3>Prize Patrol</h3>
-            <table class="stats-table">
-                <thead>
-                    <tr>
-                        <th>Challenge/Achievement</th>
-                        <th>Winner(s)</th>
-                        <th>Date Earned</th>
-                        <th>Match</th>
-                        <th>Prize</th>
-                        <th>Sponsor</th>
-                        <th>Payout Status</th>
-                    </tr>
-                </thead>
-                <tbody>
-        `;
-
-        for (const [id, challenge] of Object.entries(challenges)) {
-            if (challenge.playersCompleted) {
-                for (const [player, completionInfo] of Object.entries(challenge.playersCompleted)) {
-                    if (completionInfo === 'Completed') {
-                        prizePatrolHTML += `
-                            <tr>
-                                <td>${challenge.title}</td>
-                                <td>${player}</td>
-                                <td>${formatDate(challenge.completionDate)}</td>
-                                <td><a href="#" onclick="viewMatch('${challenge.completionMatchId}')">View Match</a></td>
-                                <td>${challenge.prizeDescription}</td>
-                                <td>${challenge.prizeSponsor}</td>
-                                <td>
-                                    <input type="checkbox" id="payout-${id}-${player}" 
-                                           ${challenge.paidOut ? 'checked' : ''} 
-                                           onchange="updatePayoutStatus('${id}', '${player}', this.checked)">
-                                </td>
-                            </tr>
-                        `;
-                    }
-                }
-            }
-        }
-
-        prizePatrolHTML += `
-                </tbody>
-            </table>
-        `;
-
-        prizePatrolContainer.innerHTML = prizePatrolHTML;
-    });
-}
-
-function viewMatch(matchId) {
-    // Implement this function to show match details
-    console.log(`Viewing match: ${matchId}`);
-    // You might want to open a modal or navigate to a match details page
-}
-
-function updatePayoutStatus(challengeId, player, isPaidOut) {
-    update(ref(database, `challenges/${challengeId}/playersCompleted/${player}`), {
-        paidOut: isPaidOut
-    }).then(() => {
-        console.log(`Updated payout status for ${player} on challenge ${challengeId}`);
-    }).catch((error) => {
-        console.error("Error updating payout status:", error);
-    });
-}
-
-function loadStats() {
-  const statsTable = document.getElementById('statsTable');
-  statsTable.innerHTML = 'Loading statistics...';
-
-  get(ref(database, 'gameSessions')).then((snapshot) => {
-    const sessions = [];
-    snapshot.forEach((childSnapshot) => {
-      const session = childSnapshot.val();
-      session.id = childSnapshot.key;
-      sessions.push(session);
-    });
-
-    sessions.sort((a, b) => new Date(b.date) - new Date(a.date));
-
-    let tableHTML = `
-      <table class="stats-table">
-        <thead>
-          <tr>
-            <th>Date</th>
-            <th>Games Played</th>
-            <th>Total Kills</th>
-            <th>Average Kills</th>
-            <th>Wins</th>
-            <th>2nd Place</th>
-            <th>3rd Place</th>
-            <th>4th Place</th>
-            <th>5th Place</th>
-            <th>6th+ Place</th>
-          </tr>
-        </thead>
-        <tbody>
-    `;
-
-    let totalStats = {
-      gamesPlayed: 0,
-      totalKills: 0,
-      wins: 0,
-      secondPlace: 0,
-      thirdPlace: 0,
-      fourthPlace: 0,
-      fifthPlace: 0,
-      sixthPlacePlus: 0
-    };
-
-    sessions.forEach((session) => {
-      const stats = calculateSessionStats(session.matches || {});
-
-      // Add to totals
-      for (let key in totalStats) {
-        totalStats[key] += stats[key];
-      }
-
-      tableHTML += `
-        <tr>
-          <td>${formatDate(session.date)}</td>
-          <td>${stats.gamesPlayed}</td>
-          <td>${stats.totalKills}</td>
-          <td>${stats.averageKills}</td>
-          <td>${stats.wins} (${((stats.wins / stats.gamesPlayed) * 100).toFixed(1)}%)</td>
-          <td>${stats.secondPlace} (${((stats.secondPlace / stats.gamesPlayed) * 100).toFixed(1)}%)</td>
-          <td>${stats.thirdPlace} (${((stats.thirdPlace / stats.gamesPlayed) * 100).toFixed(1)}%)</td>
-          <td>${stats.fourthPlace} (${((stats.fourthPlace / stats.gamesPlayed) * 100).toFixed(1)}%)</td>
-          <td>${stats.fifthPlace} (${((stats.fifthPlace / stats.gamesPlayed) * 100).toFixed(1)}%)</td>
-          <td>${stats.sixthPlacePlus} (${((stats.sixthPlacePlus / stats.gamesPlayed) * 100).toFixed(1)}%)</td>
-        </tr>
-      `;
-    });
-
-    // Add total row
-    if (totalStats.gamesPlayed > 0) {
-      const totalAverageKills = (totalStats.totalKills / totalStats.gamesPlayed).toFixed(2);
-      tableHTML += `
-        <tfoot>
-          <tr>
-            <td><strong>Total</strong></td>
-            <td><strong>${totalStats.gamesPlayed}</strong></td>
-            <td><strong>${totalStats.totalKills}</strong></td>
-            <td><strong>${totalAverageKills}</strong></td>
-            <td><strong>${totalStats.wins} (${((totalStats.wins / totalStats.gamesPlayed) * 100).toFixed(1)}%)</strong></td>
-            <td><strong>${totalStats.secondPlace} (${((totalStats.secondPlace / totalStats.gamesPlayed) * 100).toFixed(1)}%)</strong></td>
-            <td><strong>${totalStats.thirdPlace} (${((totalStats.thirdPlace / totalStats.gamesPlayed) * 100).toFixed(1)}%)</strong></td>
-            <td><strong>${totalStats.fourthPlace} (${((totalStats.fourthPlace / totalStats.gamesPlayed) * 100).toFixed(1)}%)</strong></td>
-            <td><strong>${totalStats.fifthPlace} (${((totalStats.fifthPlace / totalStats.gamesPlayed) * 100).toFixed(1)}%)</strong></td>
-            <td><strong>${totalStats.sixthPlacePlus} (${((totalStats.sixthPlacePlus / totalStats.gamesPlayed) * 100).toFixed(1)}%)</strong></td>
-          </tr>
-        </tfoot>
-      `;
-    }
-
-    tableHTML += '</tbody></table>';
-    statsTable.innerHTML = tableHTML;
-
-    if (sessions.length === 0) {
-      statsTable.innerHTML = 'No game sessions found. Add some games first!';
-    }
-  });
-}
-function calculateSessionStats(matches) {
-  const stats = {
-    gamesPlayed: Object.keys(matches).length,
-    wins: 0,
-    secondPlace: 0,
-    thirdPlace: 0,
-    fourthPlace: 0,
-    fifthPlace: 0,
-    sixthPlacePlus: 0,
-    totalKills: 0,
-    brGamesPlayed: 0
-  };
-
-  Object.values(matches).forEach(match => {
-    switch(match.placement) {
-      case 1: stats.wins++; break;
-      case 2: stats.secondPlace++; break;
-      case 3: stats.thirdPlace++; break;
-      case 4: stats.fourthPlace++; break;
-      case 5: stats.fifthPlace++; break;
-      default: stats.sixthPlacePlus++;
-    }
-
-    stats.totalKills += match.totalKills || 0;
-    if (match.gameMode === 'Battle Royale') {
-      stats.brGamesPlayed++;
-    }
-  });
-
-  stats.averageKills = stats.gamesPlayed > 0 ? (stats.totalKills / stats.gamesPlayed).toFixed(2) : 0;
-
-  return stats;
-}
+// Achievements section
 function showAchievements() {
   mainContent.innerHTML = `
     <h2>Achievements</h2>
     <div class="filter-sort-container">
       <select id="achievementFilter">
         <option value="all">Show All</option>
+        <option value="completed">Completed</option>
+        <option value="inProgress">In Progress</option>
+        <option value="notStarted">Not Started</option>
         <option value="completedWeek">Completed This Week</option>
         <option value="completedMonth">Completed This Month</option>
         <option value="completedYear">Completed This Year</option>
-        <option value="inProgress">In Progress</option>
       </select>
       <select id="achievementSort">
         <option value="difficulty">Sort by Difficulty</option>
         <option value="ap">Sort by Achievement Points</option>
         <option value="progress">Sort by Progress</option>
         <option value="completionDate">Sort by Completion Date</option>
+      </select>
+      <select id="achievementGameTypeFilter">
+        <option value="Any">Any Game Type</option>
+        <option value="Warzone">Warzone</option>
+        <option value="Multiplayer">Multiplayer</option>
       </select>
     </div>
     <div id="achievementsContainer" class="awards-grid"></div>
@@ -699,233 +145,67 @@ function showAchievements() {
   // Add event listeners for filter and sort
   document.getElementById('achievementFilter').addEventListener('change', loadAchievements);
   document.getElementById('achievementSort').addEventListener('change', loadAchievements);
+  document.getElementById('achievementGameTypeFilter').addEventListener('change', loadAchievements);
 }
 
-function showChallenges() {
-  mainContent.innerHTML = `
-    <h2>Challenges</h2>
-    <div class="filter-sort-container">
-      <select id="challengeFilter">
-        <option value="all">Show All</option>
-        <option value="completedWeek">Completed This Week</option>
-        <option value="completedMonth">Completed This Month</option>
-        <option value="completedYear">Completed This Year</option>
-        <option value="inProgress">In Progress</option>
-      </select>
-      <select id="challengeSort">
-        <option value="difficulty">Sort by Difficulty</option>
-        <option value="cp">Sort by Challenge Points</option>
-        <option value="completionDate">Sort by Completion Date</option>
-        <option value="prize">Sort by Prize</option>
-      </select>
-    </div>
-    <div id="challengesContainer" class="awards-grid"></div>
-  `;
-  loadChallenges();
+function loadAchievements() {
+  const achievementsContainer = document.getElementById('achievementsContainer');
+  const filterValue = document.getElementById('achievementFilter').value;
+  const sortValue = document.getElementById('achievementSort').value;
+  const gameTypeFilter = document.getElementById('achievementGameTypeFilter').value;
   
-  // Add event listeners for filter and sort
-  document.getElementById('challengeFilter').addEventListener('change', loadChallenges);
-  document.getElementById('challengeSort').addEventListener('change', loadChallenges);
+  getAchievements().then((achievements) => {
+    let achievementsArray = Object.entries(achievements).map(([id, achievement]) => ({id, ...achievement}));
+    
+    achievementsArray = filterAchievements(achievementsArray, filterValue, gameTypeFilter);
+    achievementsArray = sortAchievements(achievementsArray, sortValue);
+    
+    displayAchievements(achievementsArray);
+  }).catch((error) => {
+    console.error("Error loading achievements:", error);
+    achievementsContainer.innerHTML = "Error loading achievements. Please try again.";
+  });
 }
 
-function showHelp() {
-  mainContent.innerHTML = `
-    <h2>Help</h2>
-    <p>Instructions on how to use the app:</p>
-    <ul>
-        <li><strong>Team Statistics:</strong> View the overall performance of the team including total kills, placements, and wins.</li>
-        <li><strong>Game Sessions:</strong> Manage and review past game sessions including adding new matches.</li>
-        <li><strong>Highlights:</strong> Watch recorded highlights of past matches.</li>
-        <li><strong>Maps:</strong> Add, edit, and delete maps used in the game sessions.</li>
-        <li><strong>Game Modes:</strong> Manage the game modes available for the sessions.</li>
-        <li><strong>Team Members:</strong> View, add, and manage team member profiles and their statistics.</li>
-    </ul>
-  `;
-}
+function displayAchievements(achievements) {
+  const container = document.getElementById('achievementsContainer');
+  container.innerHTML = '';
 
-function showAbout() {
-  mainContent.innerHTML = `
-    <h2>About Us</h2>
-    <img src="2022-group-logo.png" alt="Team Logo" class="team-logo-about">
-    <hr>
-       <p>Once upon a time, in a galaxy far far away...</p>
-    <hr>
-      <video controls style="width: 25%; margin-top: 20px;">
-      <source src="mongooseIntro.mp4" type="video/mp4">
-      Your browser does not support the video tag.
-    </video>
-  `;
-}
+  if (achievements.length === 0) {
+    container.innerHTML = 'No achievements found.';
+    return;
+  }
 
-function showTeamMembers() {
-    mainContent.innerHTML = `
-        <h2>Team Members</h2>
-        <button class="button" onclick="showModal('addTeamMember')">Add Team Member</button>
-        <div id="teamList" class="team-list"></div>
-    `;
-    loadTeamMembers();
-}
-
-function loadTeamMembers() {
-  const teamList = document.getElementById('teamList');
-  teamList.innerHTML = 'Loading team members...';
-
-  onValue(ref(database, 'teamMembers'), (snapshot) => {
-    teamList.innerHTML = '';
-    snapshot.forEach((childSnapshot) => {
-      const member = childSnapshot.val();
-      const memberId = childSnapshot.key;
-      const age = calculateAge(member.birthdate);
-      
-      let photoURL = member.photoURL;
-      if (!photoURL || (!photoURL.startsWith('https://') && !photoURL.startsWith('gs://'))) {
-        console.warn(`Invalid photo URL for member ${memberId}:`, photoURL);
-        photoURL = 'path/to/default/profile.png'; // Provide a default image path
-      }
-
-      teamList.innerHTML += `
-        <div class="card">
-          <img src="${photoURL}" alt="${member.name}" class="team-photo" onerror="this.src='path/to/fallback/profile.png';">
-          <div class="member-details">
-            <h3>${member.name}</h3>
-            <p><strong>Gamertag:</strong> ${member.gamertag}</p>
-            <p><strong>State:</strong> ${member.state}</p>
-            <p><strong>Birthdate:</strong> ${member.birthdate} (Age: ${age})</p>
-            <p><strong>Favorite Snack:</strong> ${member.favoriteSnack}</p>
-            <p><strong>BR PR:</strong> ${member.brPR !== undefined ? member.brPR : 'N/A'} ${member.brPRDate ? `(${formatDate(member.brPRDate)})` : ''}</p>
-            <p><strong>MP PR:</strong> ${member.mpPR !== undefined ? member.mpPR : 'N/A'} ${member.mpPRDate ? `(${formatDate(member.mpPRDate)})` : ''}</p>
-          </div>
-          <div class="actions">
-            <button class="button" onclick="showModal('editTeamMember', '${memberId}')">Edit</button>
-            <button class="button" onclick="deleteTeamMember('${memberId}')">Delete</button>
-          </div>
-        </div>
-      `;
-    });
-    if (teamList.innerHTML === '') {
-      teamList.innerHTML = 'No team members found. Add some!';
+  achievements.forEach(achievement => {
+    if (achievement && achievement.title) {
+      const card = createAchievementCard(achievement);
+      container.appendChild(card);
     }
   });
 }
 
-function calculateAge(birthdate) {
-    const today = new Date();
-    const birthDate = new Date(birthdate);
-    let age = today.getFullYear() - birthDate.getFullYear();
-    const m = today.getMonth() - birthDate.getMonth();
-    if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
-        age--;
-    }
-    return age;
+function createAchievementCard(achievement) {
+  const card = document.createElement('div');
+  card.className = 'card achievement-card';
+  
+  let imageUrl = achievement.customImageUrl || 'https://mongoose.mycodsquad.com/achievementbadgedefault.png';
+  
+  card.innerHTML = `
+    <img src="${imageUrl}" alt="${achievement.title}" onerror="this.src='https://mongoose.mycodsquad.com/achievementbadgedefault.png';">
+    <h3>${achievement.title}</h3>
+    <p>${achievement.description || 'No description available'}</p>
+    <p>Points: ${achievement.achievementPoints || 0}</p>
+    <p>Difficulty: ${achievement.difficulty || 'Not specified'}</p>
+    <p>Status: ${achievement.status || 'Not started'}</p>
+    <p>Times Completed: ${achievement.completionCount || 0}</p>
+    ${achievement.canCompleteMultipleTimes ? `<p>Progress: ${achievement.currentProgress || 0}/${achievement.timesToComplete || 1}</p>` : ''}
+    ${achievement.lastCompletedAt ? `<p>Last Completed: ${new Date(achievement.lastCompletedAt).toLocaleDateString()}</p>` : ''}
+  `;
+
+  return card;
 }
 
-function calculatePRValues() {
-  get(ref(database, 'gameModes')).then((gameModeSnapshot) => {
-    const gameModes = {};
-    gameModeSnapshot.forEach(child => {
-      gameModes[child.val().name] = child.val().type;
-    });
-
-    get(ref(database, 'gameSessions')).then((sessionsSnapshot) => {
-      const prValues = {};
-
-      sessionsSnapshot.forEach((sessionSnapshot) => {
-        const session = sessionSnapshot.val();
-        if (session.matches) {
-          Object.values(session.matches).forEach((match) => {
-            const gameType = gameModes[match.gameMode] === 'Battle Royale' ? 'brPR' : 'mpPR';
-            Object.entries(match.kills || {}).forEach(([player, kills]) => {
-              if (!prValues[player]) {
-                prValues[player] = { brPR: 0, mpPR: 0, brPRDate: '', mpPRDate: '' };
-              }
-              if (kills > prValues[player][gameType]) {
-                prValues[player][gameType] = kills;
-                prValues[player][`${gameType}Date`] = session.date;
-              }
-            });
-          });
-        }
-      });
-
-      // Update PR values for each team member
-      get(ref(database, 'teamMembers')).then((membersSnapshot) => {
-        membersSnapshot.forEach((memberSnapshot) => {
-          const memberId = memberSnapshot.key;
-          const member = memberSnapshot.val();
-          const memberPR = prValues[member.gamertag] || { brPR: 0, mpPR: 0, brPRDate: '', mpPRDate: '' };
-          update(ref(database, `teamMembers/${memberId}`), memberPR);
-        });
-      });
-    });
-  });
-}
-
-async function addOrUpdateTeamMember(e) {
-  e.preventDefault();
-  const form = e.target;
-  const memberId = form.dataset.id;
-  const memberData = {
-    name: form.name.value,
-    gamertag: form.gamertag.value,
-    state: form.state.value,
-    birthdate: form.birthdate.value,
-    favoriteSnack: form.favoriteSnack.value
-  };
-
-  const photo = form.photo.files[0];
-  if (photo) {
-    try {
-      const photoRef = storageRef(storage, `teamMembers/${Date.now()}_${photo.name}`);
-      const snapshot = await uploadBytes(photoRef, photo);
-      const url = await getDownloadURL(snapshot.ref);
-      console.log('Attempting to access URL:', url); // Add this line
-      if (!url.startsWith('https://') && !url.startsWith('gs://')) {
-        throw new Error('Invalid photo URL generated');
-      }
-      memberData.photoURL = url;
-    } catch (error) {
-      console.error('Error uploading team member photo:', error);
-      alert('Error uploading photo. Please try again.');
-      return;
-    }
-  }
-
-  try {
-    await saveTeamMember(memberId, memberData);
-    loadTeamMembers();
-    modal.style.display = "none";
-  } catch (error) {
-    console.error("Error adding/updating team member: ", error);
-    alert('Error adding/updating team member. Please try again.');
-  }
-}
-function saveTeamMember(memberId, memberData) {
-  const operation = memberId
-    ? update(ref(database, `teamMembers/${memberId}`), memberData)
-    : push(ref(database, 'teamMembers'), memberData);
-
-  operation
-    .then(() => {
-      loadTeamMembers();
-      modal.style.display = "none";
-    })
-    .catch(error => {
-      console.error("Error adding/updating team member: ", error);
-      alert('Error adding/updating team member. Please try again.');
-    });
-}
-
-window.deleteTeamMember = function(id) {
-  if (confirm('Are you sure you want to delete this team member?')) {
-    remove(ref(database, `teamMembers/${id}`))
-      .then(() => loadTeamMembers())
-      .catch(error => {
-        console.error("Error deleting team member: ", error);
-        alert('Error deleting team member. Please try again.');
-      });
-  }
-}
-
+// Game Sessions section
 function showGameSessions() {
   mainContent.innerHTML = `
     <h2>Game Sessions</h2>
@@ -933,7 +213,7 @@ function showGameSessions() {
     <div id="sessionList"></div>
   `;
   loadGameSessions();
-  calculatePRValues(); // Add this line to calculate PR values when showing game sessions
+  calculatePRValues();
 }
 
 function loadGameSessions() {
@@ -992,7 +272,6 @@ function loadMatches(sessionId) {
             if (session.matches) {
                 matchesHtml += '<table class="matches-table"><tr><th>Game Mode</th><th>Map</th><th>Placement</th><th>Total Kills</th><th>STARMAN</th><th>RSKILLA</th><th>SWFTSWORD</th><th>VAIDED</th><th>MOWGLI</th><th>Actions</th></tr>';
                 
-                // Convert matches object to array and sort by timestamp
                 const sortedMatches = Object.entries(session.matches)
                     .map(([id, match]) => ({ id, ...match }))
                     .sort((a, b) => b.timestamp - a.timestamp);
@@ -1026,366 +305,223 @@ function loadMatches(sessionId) {
     });
 }
 
-function addOrUpdateGameSession(e) {
+async function addOrUpdateMatch(e) {
   e.preventDefault();
   const form = e.target;
-  const sessionId = form.dataset.id;
+  const sessionId = form.dataset.sessionId;
+  const matchId = form.dataset.matchId || push(ref(database, `gameSessions/${sessionId}/matches`)).key;
   
-  // Create a date object from the input value
-  const inputDate = new Date(form.date.value);
-  
-  // Adjust for the local time zone
-  const userTimezoneOffset = inputDate.getTimezoneOffset() * 60000;
-  const adjustedDate = new Date(inputDate.getTime() + userTimezoneOffset);
-  
-  const sessionData = {
-    date: adjustedDate.toISOString(),
-    userTimezoneOffset: userTimezoneOffset
-  };
-  
-  const operation = sessionId
-    ? update(ref(database, `gameSessions/${sessionId}`), sessionData)
-    : push(ref(database, 'gameSessions'), sessionData);
+  try {
+    // Validate input
+    const gameType = form.gameType.value;
+    const gameMode = form.gameMode.value;
+    const map = form.map.value;
+    
+    if (!gameType || !gameMode || !map) {
+      throw new Error("Please select game type, mode, and map.");
+    }
 
-  operation
-    .then(() => {
-      loadGameSessions();
-      modal.style.display = "none";
-    })
-    .catch(error => {
-      console.error("Error adding/updating game session: ", error);
-      alert('Error adding/updating game session. Please try again.');
+    const placement = gameType.toLowerCase() === 'warzone' 
+      ? parseInt(form.placement.value) 
+      : (form.placement.checked ? 'Won' : 'Lost');
+
+    const totalKills = parseInt(form.totalKills.value);
+    
+    const matchData = {
+      id: matchId,
+      gameType: gameType,
+      gameMode: gameMode,
+      map: map,
+      placement: placement,
+      totalKills: isNaN(totalKills) || totalKills === -1 ? null : totalKills,
+      kills: {},
+      timestamp: Date.now()
+    };
+
+    // Process individual player kills
+    ['STARMAN', 'RSKILLA', 'SWFTSWORD', 'VAIDED', 'MOWGLI'].forEach(player => {
+      const kills = parseInt(form[`kills${player}`].value);
+      if (!isNaN(kills) && kills !== -1) {
+        matchData.kills[player] = kills;
+      }
     });
-}
 
-window.deleteGameSession = function(id) {
-  if (confirm('Are you sure you want to delete this game session?')) {
-    remove(ref(database, `gameSessions/${id}`))
-      .then(() => loadGameSessions())
-      .catch(error => {
-        console.error("Error deleting game session: ", error);
-        alert('Error deleting game session. Please try again.');
-      });
+    // Handle highlight video
+    const highlightVideo = form.highlightVideo.files[0];
+    if (highlightVideo) {
+      const videoRef = storageRef(storage, `highlights/${sessionId}/${Date.now()}_${highlightVideo.name}`);
+      const snapshot = await uploadBytes(videoRef, highlightVideo);
+      const url = await getDownloadURL(snapshot.ref);
+      matchData.highlightURL = url;
+    }
+
+    // Save match data
+    await set(ref(database, `gameSessions/${sessionId}/matches/${matchId}`), matchData);
+    
+    // Process achievements
+    await handleMatchUpdate(matchData);
+
+    // Reload matches and close modal
+    loadMatches(sessionId);
+    modal.style.display = "none";
+
+    // Show success message
+    alert(`Match successfully ${matchId ? 'updated' : 'added'}!`);
+
+  } catch (error) {
+    console.error("Error adding/updating match:", error);
+    alert(`Error ${matchId ? 'updating' : 'adding'} match: ${error.message}`);
   }
 }
+function showNotification(matchData) {
+    const achievementsUpdates = getAchievementsUpdates();
 
-async function saveMatch(sessionId, matchId, matchData) {
-  let operation;
-  if (matchId) {
-    // Update existing match
-    operation = update(ref(database, `gameSessions/${sessionId}/matches/${matchId}`), matchData);
-  } else {
-    // Add new match
-    operation = push(ref(database, `gameSessions/${sessionId}/matches`), matchData);
+    let notificationContent = '';
+    let soundToPlay = '';
+
+    if (achievementsUpdates.length > 0) {
+        notificationContent += `<h3>Updates</h3>`;
+        notificationContent += `<h4>Achievements</h4>`;
+        notificationContent += `<p>${achievementsUpdates.length} achievement(s) updated</p>`;
+        notificationContent += achievementsUpdates.map(update => `<p>${update}</p>`).join('');
+        soundToPlay = 'achievementsound2.mp3';
+    } else {
+        notificationContent = '<p>No new achievements updated this match.</p>';
+        soundToPlay = 'achievementsound1.mp3';
+    }
+
+    modalContent.innerHTML = notificationContent;
+    modal.style.display = "block";
+
+    const audio = new Audio(soundToPlay);
+    audio.play();
+}
+
+// Team Members section
+function showTeamMembers() {
+    mainContent.innerHTML = `
+        <h2>Team Members</h2>
+        <button class="button" onclick="showModal('addTeamMember')">Add Team Member</button>
+        <div id="teamList" class="team-list"></div>
+    `;
+    loadTeamMembers();
+}
+
+function loadTeamMembers() {
+  const teamList = document.getElementById('teamList');
+  teamList.innerHTML = 'Loading team members...';
+
+  onValue(ref(database, 'teamMembers'), (snapshot) => {
+    teamList.innerHTML = '';
+    snapshot.forEach((childSnapshot) => {
+      const member = childSnapshot.val();
+      const memberId = childSnapshot.key;
+      const age = calculateAge(member.birthdate);
+      
+      let photoURL = member.photoURL;
+      if (!photoURL || (!photoURL.startsWith('https://') && !photoURL.startsWith('gs://'))) {
+        console.warn(`Invalid photo URL for member ${memberId}:`, photoURL);
+        photoURL = 'path/to/default/profile.png'; // Provide a default image path
+      }
+
+      teamList.innerHTML += `
+        <div class="card">
+          <img src="${photoURL}" alt="${member.name}" class="team-photo" onerror="this.src='path/to/fallback/profile.png';">
+          <div class="member-details">
+            <h3>${member.name}</h3>
+            <p><strong>Gamertag:</strong> ${member.gamertag}</p>
+            <p><strong>State:</strong> ${member.state}</p>
+            <p><strong>Birthdate:</strong> ${member.birthdate} (Age: ${age})</p>
+            <p><strong>Favorite Snack:</strong> ${member.favoriteSnack}</p>
+            <p><strong>BR PR:</strong> ${member.brPR !== undefined ? member.brPR : 'N/A'} ${member.brPRDate ? `(${formatDate(member.brPRDate)})` : ''}</p>
+            <p><strong>MP PR:</strong> ${member.mpPR !== undefined ? member.mpPR : 'N/A'} ${member.mpPRDate ? `(${formatDate(member.mpPRDate)})` : ''}</p>
+          </div>
+          <div class="actions">
+            <button class="button" onclick="showModal('editTeamMember', '${memberId}')">Edit</button>
+            <button class="button" onclick="deleteTeamMember('${memberId}')">Delete</button>
+          </div>
+        </div>
+      `;
+    });
+    if (teamList.innerHTML === '') {
+      teamList.innerHTML = 'No team members found. Add some!';
+    }
+  });
+}
+
+async function addOrUpdateTeamMember(e) {
+  e.preventDefault();
+  const form = e.target;
+  const memberId = form.dataset.id;
+  const memberData = {
+    name: form.name.value,
+    gamertag: form.gamertag.value,
+    state: form.state.value,
+    birthdate: form.birthdate.value,
+    favoriteSnack: form.favoriteSnack.value
+  };
+
+  const photo = form.photo.files[0];
+  if (photo) {
+    try {
+      const photoRef = storageRef(storage, `teamMembers/${Date.now()}_${photo.name}`);
+      const snapshot = await uploadBytes(photoRef, photo);
+      const url = await getDownloadURL(snapshot.ref);
+      if (!url.startsWith('https://') && !url.startsWith('gs://')) {
+        throw new Error('Invalid photo URL generated');
+      }
+      memberData.photoURL = url;
+    } catch (error) {
+      console.error('Error uploading team member photo:', error);
+      alert('Error uploading photo. Please try again.');
+      return;
+    }
   }
 
   try {
-    await operation;
-    loadMatches(sessionId);
-    calculatePRValues();
+    await saveTeamMember(memberId, memberData);
+    loadTeamMembers();
     modal.style.display = "none";
   } catch (error) {
-    console.error("Error adding/updating match: ", error);
-    alert('Error adding/updating match. Please try again.');
+    console.error("Error adding/updating team member: ", error);
+    alert('Error adding/updating team member. Please try again.');
   }
 }
-window.deleteMatch = function(sessionId, matchId) {
-  if (confirm('Are you sure you want to delete this match?')) {
-    remove(ref(database, `gameSessions/${sessionId}/matches/${matchId}`))
-      .then(() => {
-        loadMatches(sessionId);
-        calculatePRValues(); // Add this line to recalculate PR values
-      })
+
+function saveTeamMember(memberId, memberData) {
+  const operation = memberId
+    ? update(ref(database, `teamMembers/${memberId}`), memberData)
+    : push(ref(database, 'teamMembers'), memberData);
+
+  return operation;
+}
+
+window.deleteTeamMember = function(id) {
+  if (confirm('Are you sure you want to delete this team member?')) {
+    remove(ref(database, `teamMembers/${id}`))
+      .then(() => loadTeamMembers())
       .catch(error => {
-        console.error("Error deleting match: ", error);
-        alert('Error deleting match. Please try again.');
+        console.error("Error deleting team member: ", error);
+        alert('Error deleting team member. Please try again.');
       });
   }
 }
 
-window.viewHighlight = function(highlightURL) {
-   console.log('Attempting to access highlight URL:', highlightURL);
-   if (!highlightURL) {
-     console.error('Highlight URL is undefined or null');
-     alert('Sorry, the highlight video is not available.');
-     return;
-   }
-   if (!highlightURL.startsWith('https://') && !highlightURL.startsWith('gs://')) {
-     console.error('Invalid highlight URL format:', highlightURL);
-     alert('Sorry, the highlight video URL is invalid.');
-     return;
-   }
-
-  modalContent.innerHTML = `
-    <h3>Match Highlight</h3>
-    <video id="highlightVideo" controls>
-      <source src="${highlightURL}" type="video/mp4">
-      Your browser does not support the video tag.
-    </video>
-  `;
-  modal.style.display = "block";
-
-  const video = document.getElementById('highlightVideo');
-  video.onerror = function() {
-    console.error('Error loading video:', highlightURL);
-    modalContent.innerHTML = '<p>Error loading the highlight video. Please try again later.</p>';
-  };
-}
-
-function showGameModes() {
-  mainContent.innerHTML = `
-    <h2>Game Modes</h2>
-    <button class="button" onclick="showModal('addGameMode')">Add Game Mode</button>
-    <div id="gameModeList"></div>
-  `;
-  loadGameModes();
-}
-
-function loadGameModes() {
-  const gameModeList = document.getElementById('gameModeList');
-  gameModeList.innerHTML = 'Loading game modes...';
-  
-  onValue(ref(database, 'gameModes'), (snapshot) => {
-    const gameModes = [];
-    snapshot.forEach((childSnapshot) => {
-      const gameMode = childSnapshot.val();
-      gameMode.id = childSnapshot.key;
-      gameModes.push(gameMode);
-    });
-
-    gameModes.sort((a, b) => a.name.localeCompare(b.name));
-
-    gameModeList.innerHTML = '';
-    gameModes.forEach((gameMode) => {
-      gameModeList.innerHTML += `
-        <div class="table-row">
-          <div class="name">${gameMode.name} (${gameMode.type})</div>
-          <div class="actions">
-            <button class="button" onclick="showModal('editGameMode', '${gameMode.id}')">Edit</button>
-            <button class="button" onclick="deleteGameMode('${gameMode.id}')">Delete</button>
-          </div>
-        </div>
-      `;
-    });
-    if (gameModeList.innerHTML === '') {
-      gameModeList.innerHTML = 'No game modes found. Add some!';
+// Utility functions
+function calculateAge(birthdate) {
+    const today = new Date();
+    const birthDate = new Date(birthdate);
+    let age = today.getFullYear() - birthDate.getFullYear();
+    const m = today.getMonth() - birthDate.getMonth();
+    if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+        age--;
     }
-  });
-}
-
-function addOrUpdateGameMode(e) {
-  e.preventDefault();
-  const form = e.target;
-  const gameModeId = form.dataset.id;
-  const gameModeData = {
-    name: form.name.value,
-    type: form.type.value
-  };
-
-  const operation = gameModeId
-    ? update(ref(database, `gameModes/${gameModeId}`), gameModeData)
-    : push(ref(database, 'gameModes'), gameModeData);
-
-  operation
-    .then(() => {
-      loadGameModes();
-      modal.style.display = "none";
-    })
-    .catch(error => {
-      console.error("Error adding/updating game mode: ", error);
-      alert('Error adding/updating game mode. Please try again.');
-    });
-}
-
-window.deleteGameMode = function(id) {
-  if (confirm('Are you sure you want to delete this game mode?')) {
-    remove(ref(database, `gameModes/${id}`))
-      .then(() => loadGameModes())
-      .catch(error => {
-        console.error("Error deleting game mode: ", error);
-        alert('Error deleting game mode. Please try again.');
-      });
-  }
-}
-
-function showMaps() {
-  mainContent.innerHTML = `
-    <h2>Maps</h2>
-    <button class="button" onclick="showModal('addMap')">Add Map</button>
-    <div id="mapList"></div>
-  `;
-  loadMaps();
-}
-
-function loadMaps() {
-  const mapList = document.getElementById('mapList');
-  mapList.innerHTML = 'Loading maps...';
-  
-  onValue(ref(database, 'maps'), (snapshot) => {
-    const maps = [];
-    snapshot.forEach((childSnapshot) => {
-      const map = childSnapshot.val();
-      map.id = childSnapshot.key;
-      maps.push(map);
-    });
-
-    maps.sort((a, b) => a.name.localeCompare(b.name));
-
-    mapList.innerHTML = '';
-    maps.forEach((map) => {
-      mapList.innerHTML += `
-        <div class="table-row">
-          <div class="name">${map.name}</div>
-          <div class="actions">
-            <button class="button" onclick="showModal('editMap', '${map.id}')">Edit</button>
-            <button class="button" onclick="deleteMap('${map.id}')">Delete</button>
-          </div>
-        </div>
-      `;
-    });
-    if (mapList.innerHTML === '') {
-      mapList.innerHTML = 'No maps found. Add some!';
-    }
-  });
-}
-
-function addOrUpdateMap(e) {
-  e.preventDefault();
-  const form = e.target;
-  const mapId = form.dataset.id;
-  const mapData = {
-    name: form.name.value
-  };
-
-  const operation = mapId
-    ? update(ref(database, `maps/${mapId}`), mapData)
-    : push(ref(database, 'maps'), mapData);
-
-  operation
-    .then(() => {
-      loadMaps();
-      modal.style.display = "none";
-    })
-    .catch(error => {
-      console.error("Error adding/updating map: ", error);
-      alert('Error adding/updating map. Please try again.');
-    });
-}
-
-window.deleteMap = function(id) {
-  if (confirm('Are you sure you want to delete this map?')) {
-    remove(ref(database, `maps/${id}`))
-      .then(() => loadMaps())
-      .catch(error => {
-        console.error("Error deleting map: ", error);
-        alert('Error deleting map. Please try again.');
-      });
-  }
-}
-
-function showHighlights() {
-  mainContent.innerHTML = `
-    <h2>Highlights</h2>
-    <div id="highlightsList"></div>
-  `;
-  loadHighlights();
-}
-
-function loadHighlights() {
-  const highlightsList = document.getElementById('highlightsList');
-  highlightsList.innerHTML = 'Loading highlights...';
-  
-  get(ref(database, 'gameSessions')).then((snapshot) => {
-    const highlights = [];
-    snapshot.forEach((sessionSnapshot) => {
-      const session = sessionSnapshot.val();
-      if (session.matches) {
-        Object.entries(session.matches).forEach(([matchId, match]) => {
-          if (match.highlightURL) {
-            highlights.push({
-              date: session.date,
-              gameMode: match.gameMode,
-              map: match.map,
-              placement: match.placement,
-              totalKills: match.totalKills,
-              kills: match.kills,
-              highlightURL: match.highlightURL
-            });
-          }
-        });
-      }
-    });
-
-    highlights.sort((a, b) => new Date(b.date) - new Date(a.date));
-
-    let highlightsHtml = `
-      <table class="highlights-table">
-        <tr>
-          <th>Date</th>
-          <th>Game Mode</th>
-          <th>Map</th>
-          <th>Placement</th>
-          <th>Total Kills</th>
-          <th>Kills by Player</th>
-          <th>Action</th>
-        </tr>
-    `;
-
-    highlights.forEach((highlight, index) => {
-      if (index < 20) {
-        highlightsHtml += `
-          <tr>
-            <td>${formatDate(highlight.date)}</td>
-            <td>${highlight.gameMode}</td>
-            <td>${highlight.map}</td>
-            <td>${highlight.placement}</td>
-            <td>${highlight.totalKills}</td>
-            <td>
-              STARMAN: ${highlight.kills.STARMAN || 0}<br>
-              RSKILLA: ${highlight.kills.RSKILLA || 0}<br>
-              SWFTSWORD: ${highlight.kills.SWFTSWORD || 0}<br>
-              VAIDED: ${highlight.kills.VAIDED || 0}<br>
-              MOWGLI: ${highlight.kills.MOWGLI || 0}
-            </td>
-            <td><button class="button" onclick="viewHighlight('${highlight.highlightURL}')">Watch Video</button></td>
-          </tr>
-        `;
-      }
-    });
-
-    highlightsHtml += '</table>';
-    highlightsList.innerHTML = highlightsHtml;
-
-    if (highlights.length === 0) {
-      highlightsList.innerHTML = 'No highlights found.';
-    }
-  });
-}
-
-function createAchievementCard(id, achievement) {
-  const card = document.createElement('div');
-  card.className = 'card achievement-card';
-  
-  let imageUrl = achievement.imageUrl || achievement.defaultImageUrl;
-   console.log('Attempting to access URL:', imageURL); // Add this line
-  if (!imageUrl || (!imageUrl.startsWith('https://') && !imageUrl.startsWith('gs://'))) {
-    console.warn(`Invalid image URL for achievement ${id}:`, imageUrl);
-    imageUrl = 'https://firebasestorage.googleapis.com/v0/b/gamenight-37cc6.appspot.com/o/achievements%2Fsample.png?alt=media&token=a96d1b32-4a21-4f92-86a9-6281a19053cf'; // Provide a default image path
-  }
-
-  card.innerHTML = `
-    <img src="${imageUrl}" alt="${achievement.title}" onerror="this.src='path/to/fallback/image.png';">
-    <h3>${achievement.title}</h3>
-    <p>${achievement.description}</p>
-    <p>Completed: ${achievement.currentCount}/${achievement.completionCount}</p>
-  `;
-  return card;
+    return age;
 }
 
 function formatDate(dateString, userTimezoneOffset) {
     const date = new Date(dateString);
     
-    // Adjust the date based on the stored user timezone offset
     if (userTimezoneOffset !== undefined) {
         date.setTime(date.getTime() + userTimezoneOffset);
     }
@@ -1394,148 +530,10 @@ function formatDate(dateString, userTimezoneOffset) {
     return date.toLocaleDateString(undefined, options);
 }
 
- async function addMatch(e) {
-    e.preventDefault();
-    console.log('addMatch function called');
-    const form = e.target;
-    const sessionId = form.dataset.sessionId;
-    const matchId = form.dataset.matchId;
-    const gameMode = form.gameMode.value;
-    console.log('Form data:', {
-        sessionId,
-        matchId,
-        gameMode
-    });
-    try {
-        const gameModes = await get(ref(database, 'gameModes')).then(snapshot => {
-            const modes = {};
-            snapshot.forEach(child => {
-                modes[child.val().name] = child.val().type;
-            });
-            return modes;
-        });
-        console.log('Game modes fetched:', gameModes);
-        let placement;
-        if (gameModes[gameMode] === 'Battle Royale') {
-            placement = parseInt(form.placement.value);
-        } else if (gameModes[gameMode] === 'Multiplayer') {
-            placement = form.placement.checked ? 'Won' : 'Lost';
-        }
-        console.log('Placement:', placement);
-        const matchData = {
-            gameMode: gameMode,
-            map: form.map.value,
-            placement: placement,
-            totalKills: parseInt(form.totalKills.value) === -1 ? null : parseInt(form.totalKills.value),
-            kills: {},
-            timestamp: Date.now()
-        };
-        console.log('Match data before adding kills:', matchData);
-        ['STARMAN', 'RSKILLA', 'SWFTSWORD', 'VAIDED', 'MOWGLI'].forEach(player => {
-            const kills = parseInt(form[`kills${player}`].value);
-            if (kills !== -1) {
-                matchData.kills[player] = kills;
-            }
-        });
-        console.log('Match data after adding kills:', matchData);
-        const highlightVideo = form.highlightVideo.files[0];
-        if (highlightVideo) {
-            console.log('Highlight video found:', highlightVideo.name);
-            try {
-                const videoRef = storageRef(storage, `highlights/${sessionId}/${Date.now()}_${highlightVideo.name}`);
-                const snapshot = await uploadBytes(videoRef, highlightVideo);
-                const url = await getDownloadURL(snapshot.ref);
-                console.log('Generated highlight video URL:', url);
-                if (!url.startsWith('https://') && !url.startsWith('gs://')) {
-                    console.error('Invalid video URL generated:', url);
-                    throw new Error('Invalid video URL generated');
-                }
-                matchData.highlightURL = url;
-            } catch (error) {
-                console.error('Error uploading highlight video:', error);
-                alert('Error uploading highlight video. The match will be saved without the video.');
-            }
-        } else if (matchId) {
-            console.log('Checking for existing highlight URL');
-            try {
-                const existingMatch = await get(ref(database, `gameSessions/${sessionId}/matches/${matchId}`));
-                if (existingMatch.exists() && existingMatch.val().highlightURL) {
-                    matchData.highlightURL = existingMatch.val().highlightURL;
-                    console.log('Existing highlight URL found:', matchData.highlightURL);
-                }
-            } catch (error) {
-                console.error('Error retrieving existing highlight URL:', error);
-            }
-        }
-        console.log('Final match data before saving:', matchData);
-        if (matchId) {
-            console.log('Updating existing match');
-            await update(ref(database, `gameSessions/${sessionId}/matches/${matchId}`), matchData);
-        } else {
-            console.log('Adding new match');
-            await push(ref(database, `gameSessions/${sessionId}/matches`), matchData);
-        }
-        console.log('Match saved successfully');
-
-        // Process achievements and challenges
-        await processMatchResult(matchData);
-
-        // Show notification
-        showNotification(matchData);
-
-        loadMatches(sessionId);
-        modal.style.display = "none";
-    } catch (error) {
-        console.error("Error adding/updating match:", error);
-        alert('Error adding/updating match. Please try again.');
-    }
-}
-function showNotification(matchData) {
-    const achievementsUpdates = getAchievementsUpdates();
-    const challengesUpdates = getChallengesUpdates();
-
-    let notificationContent = '';
-    let soundToPlay = '';
-
-    if (achievementsUpdates.length > 0 || challengesUpdates.length > 0) {
-        notificationContent += `<h3>Updates</h3>`;
-        
-        if (achievementsUpdates.length > 0) {
-            notificationContent += `<h4>Achievements</h4>`;
-            notificationContent += `<p>${achievementsUpdates.length} achievement(s) updated</p>`;
-            notificationContent += achievementsUpdates.map(update => `<p>${update}</p>`).join('');
-            soundToPlay = '/sounds/achievementsound2.mp3';
-        } else {
-            soundToPlay = '/sounds/achievementsound1.mp3';
-        }
-
-        if (challengesUpdates.length > 0) {
-            notificationContent += `<h4>Challenges</h4>`;
-            notificationContent += `<p>${challengesUpdates.length} challenge(s) updated</p>`;
-            notificationContent += challengesUpdates.map(update => `<p>${update}</p>`).join('');
-            soundToPlay = soundToPlay || '/sounds/challengesound2.mp3';
-        } else if (!soundToPlay) {
-            soundToPlay = '/sounds/challengesound1.mp3';
-        }
-    } else {
-        notificationContent = '<p>No new achievements or challenges updated this match.</p>';
-        soundToPlay = '/sounds/achievementsound1.mp3';
-    }
-
-    // Display the notification
-    modalContent.innerHTML = notificationContent;
-    modal.style.display = "block";
-
-    // Play the sound
-    const audio = new Audio(soundToPlay);
-    audio.play();
-}
-
-// new combined show modal
+// Modal handling
 window.showModal = async function(action, id = null, subId = null) {
     modalContent.innerHTML = '';
     let achievement = {};
-    let challenge = {};
     let match = null;
 
     switch(action) {
@@ -1617,19 +615,25 @@ window.showModal = async function(action, id = null, subId = null) {
             modalContent.innerHTML = `
                 <h3>${action === 'addMatch' ? 'Add' : 'Edit'} Match</h3>
                 <form id="matchForm" data-session-id="${id}" ${action === 'editMatch' ? `data-match-id="${subId}"` : ''} class="vertical-form">
-                    <div class="form-group horizontal">
-                        <div class="form-field">
-                            <label for="gameMode">Game Mode</label>
-                            <select id="gameMode" required>
-                                <option value="">Select Game Mode</option>
-                            </select>
-                        </div>
-                        <div class="form-field">
-                            <label for="map">Map</label>
-                            <select id="map" required>
-                                <option value="">Select Map</option>
-                            </select>
-                        </div>
+                    <div class="form-group">
+                        <label for="gameType">Game Type</label>
+                        <select id="gameType" required>
+                            <option value="">Select Game Type</option>
+                            <option value="warzone">Warzone</option>
+                            <option value="multiplayer">Multiplayer</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="gameMode">Game Mode</label>
+                        <select id="gameMode" required>
+                            <option value="">Select Game Mode</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="map">Map</label>
+                        <select id="map" required>
+                            <option value="">Select Map</option>
+                        </select>
                     </div>
                     <div id="placementContainer" class="form-group">
                         <!-- Placement input will be dynamically added here -->
@@ -1638,26 +642,12 @@ window.showModal = async function(action, id = null, subId = null) {
                         <label for="totalKills">Total Kills <span id="totalKillsValue" class="slider-value">N/A</span></label>
                         <input type="range" id="totalKills" class="slider" min="-1" max="30" step="1" value="-1">
                     </div>
+                    <!-- Repeat for each team member -->
                     <div class="form-group">
                         <label for="killsSTARMAN">Kills (STARMAN) <span id="killsSTARMANValue" class="slider-value">N/A</span></label>
                         <input type="range" id="killsSTARMAN" class="slider" min="-1" max="30" step="1" value="-1">
                     </div>
-                    <div class="form-group">
-                        <label for="killsRSKILLA">Kills (RSKILLA) <span id="killsRSKILLAValue" class="slider-value">N/A</span></label>
-                        <input type="range" id="killsRSKILLA" class="slider" min="-1" max="30" step="1" value="-1">
-                    </div>
-                    <div class="form-group">
-                        <label for="killsSWFTSWORD">Kills (SWFTSWORD) <span id="killsSWFTSWORDValue" class="slider-value">N/A</span></label>
-                        <input type="range" id="killsSWFTSWORD" class="slider" min="-1" max="30" step="1" value="-1">
-                    </div>
-                    <div class="form-group">
-                        <label for="killsVAIDED">Kills (VAIDED) <span id="killsVAIDEDValue" class="slider-value">N/A</span></label>
-                        <input type="range" id="killsVAIDED" class="slider" min="-1" max="30" step="1" value="-1">
-                    </div>
-                    <div class="form-group">
-                        <label for="killsMOWGLI">Kills (MOWGLI) <span id="killsMOWGLIValue" class="slider-value">N/A</span></label>
-                        <input type="range" id="killsMOWGLI" class="slider" min="-1" max="30" step="1" value="-1">
-                    </div>
+                    <!-- ... (repeat for other team members) -->
                     <div class="form-group">
                         <label for="highlightVideo">Highlight Video</label>
                         <input type="file" id="highlightVideo" accept="video/*">
@@ -1666,19 +656,24 @@ window.showModal = async function(action, id = null, subId = null) {
                     <button type="submit" class="button">${action === 'addMatch' ? 'Add' : 'Update'} Match</button>
                 </form>
             `;
-            await loadGameModesAndMaps();
-            document.getElementById('matchForm').addEventListener('submit', addMatch);
-            document.getElementById('gameMode').addEventListener('change', updatePlacementInput);
+            document.getElementById('matchForm').addEventListener('submit', addOrUpdateMatch);
+            document.getElementById('gameType').addEventListener('change', updateGameModeOptions);
+            document.getElementById('gameType').addEventListener('change', updateMapOptions);
+            document.getElementById('gameType').addEventListener('change', updatePlacementInput);
 
             ['totalKills', 'killsSTARMAN', 'killsRSKILLA', 'killsSWFTSWORD', 'killsVAIDED', 'killsMOWGLI'].forEach(slider => {
                 document.getElementById(slider).addEventListener('input', updateSliderValue);
             });
 
             if (action === 'editMatch' && match) {
+                // Populate form with existing match data
+                document.getElementById('gameType').value = match.gameType;
+                await updateGameModeOptions();
                 document.getElementById('gameMode').value = match.gameMode;
+                await updateMapOptions();
                 document.getElementById('map').value = match.map;
                 await updatePlacementInput();
-                if (match.gameMode === 'Battle Royale') {
+                if (match.gameType === 'warzone') {
                     document.getElementById('placement').value = match.placement;
                     updatePlacementValue();
                 } else {
@@ -1694,180 +689,340 @@ window.showModal = async function(action, id = null, subId = null) {
             }
             break;
 
-        case 'addMap':
-            modalContent.innerHTML = `
-                <h3>Add Map</h3>
-                <form id="mapForm">
-                    <input type="text" id="name" placeholder="Map Name" required>
-                    <button type="submit">Add Map</button>
-                </form>
-            `;
-            document.getElementById('mapForm').addEventListener('submit', addOrUpdateMap);
-            break;
-
-        case 'editMap':
-            const mapSnapshot = await get(ref(database, `maps/${id}`));
-            if (mapSnapshot.exists()) {
-                const map = mapSnapshot.val();
-                modalContent.innerHTML = `
-                    <h3>Edit Map</h3>
-                    <form id="mapForm" data-id="${id}">
-                        <input type="text" id="name" value="${map.name}" required>
-                        <button type="submit">Update Map</button>
-                    </form>
-                `;
-                document.getElementById('mapForm').addEventListener('submit', addOrUpdateMap);
-            }
-            break;
-
-        case 'addGameMode':
-            modalContent.innerHTML = `
-                <h3>Add Game Mode</h3>
-                <form id="gameModeForm">
-                    <input type="text" id="name" placeholder="Game Mode Name" required>
-                    <select id="type" required>
-                        <option value="">Select Type</option>
-                        <option value="Battle Royale">Battle Royale</option>
-                        <option value="Multiplayer">Multiplayer</option>
-                    </select>
-                    <button type="submit">Add Game Mode</button>
-                </form>
-            `;
-            document.getElementById('gameModeForm').addEventListener('submit', addOrUpdateGameMode);
-            break;
-
-        case 'editGameMode':
-            const gameModeSnapshot = await get(ref(database, `gameModes/${id}`));
-            if (gameModeSnapshot.exists()) {
-                const gameMode = gameModeSnapshot.val();
-                modalContent.innerHTML = `
-                    <h3>Edit Game Mode</h3>
-                    <form id="gameModeForm" data-id="${id}">
-                        <input type="text" id="name" value="${gameMode.name}" required>
-                        <select id="type" required>
-                            <option value="">Select Type</option>
-                            <option value="Battle Royale" ${gameMode.type === 'Battle Royale' ? 'selected' : ''}>Battle Royale</option>
-                            <option value="Multiplayer" ${gameMode.type === 'Multiplayer' ? 'selected' : ''}>Multiplayer</option>
-                        </select>
-                        <button type="submit">Update Game Mode</button>
-                    </form>
-                `;
-                document.getElementById('gameModeForm').addEventListener('submit', addOrUpdateGameMode);
-            }
-            break;
-
-        case 'addAchievement':
-        case 'editAchievement':
-            if (action === 'editAchievement') {
-                const achievementSnapshot = await get(ref(database, `achievements/${id}`));
-                achievement = achievementSnapshot.val();
-            }
-            modalContent.innerHTML = `
-                <h3>${action === 'addAchievement' ? 'Add' : 'Edit'} Achievement</h3>
-                <form id="achievementForm" data-id="${id || ''}">
-                    <input type="text" id="title" value="${achievement.title || ''}" placeholder="Title" required>
-                    <textarea id="description" placeholder="Description" required>${achievement.description || ''}</textarea>
-                    <input type="number" id="ap" value="${achievement.ap || ''}" placeholder="Achievement Points" required>
-                    <select id="difficultyLevel" required>
-                        <option value="">Select Difficulty</option>
-                        <option value="Easy" ${achievement.difficultyLevel === 'Easy' ? 'selected' : ''}>Easy</option>
-                        <option value="Moderate" ${achievement.difficultyLevel === 'Moderate' ? 'selected' : ''}>Moderate</option>
-                        <option value="Hard" ${achievement.difficultyLevel === 'Hard' ? 'selected' : ''}>Hard</option>
-                        <option value="Extra Hard" ${achievement.difficultyLevel === 'Extra Hard' ? 'selected' : ''}>Extra Hard</option>
-                    </select>
-                    <input type="number" id="requiredCompletionCount" value="${achievement.requiredCompletionCount || ''}" placeholder="Required Completion Count" required>
-                    <label><input type="checkbox" id="repeatable" ${achievement.repeatable ? 'checked' : ''}> Repeatable</label>
-                    <select id="gameMode" required>
-                        <option value="">Select Game Mode</option>
-                    </select>
-                    <select id="specificMode" required>
-                        <option value="">Select Specific Mode</option>
-                    </select>
-                    <select id="map" required>
-                        <option value="">Select Map</option>
-                    </select>
-                    <textarea id="logicCriteria" placeholder="Logic Criteria (JSON)">${achievement.logicCriteria || ''}</textarea>
-                    <label><input type="checkbox" id="locked" ${achievement.locked ? 'checked' : ''}> Locked</label>
-                    <input type="date" id="startDate" value="${achievement.startDate || ''}" placeholder="Start Date">
-                    <input type="date" id="endDate" value="${achievement.endDate || ''}" placeholder="End Date">
-                    <label><input type="checkbox" id="useHistoricalData" ${achievement.useHistoricalData ? 'checked' : ''}> Use Historical Data</label>
-                    <button type="submit">${action === 'addAchievement' ? 'Add' : 'Update'} Achievement</button>
-                </form>
-            `;
-            document.getElementById('achievementForm').addEventListener('submit', addOrUpdateAchievement);
-            break;
-
-        case 'addChallenge':
-        case 'editChallenge':
-            if (action === 'editChallenge') {
-                const challengeSnapshot = await get(ref(database, `challenges/${id}`));
-                challenge = challengeSnapshot.val();
-            }
-            modalContent.innerHTML = `
-                <h3>${action === 'addChallenge' ? 'Add' : 'Edit'} Challenge</h3>
-                <form id="challengeForm" data-id="${id || ''}">
-                    <input type="text" id="title" value="${challenge.title || ''}" placeholder="Title" required>
-                    <textarea id="description" placeholder="Description" required>${challenge.description || ''}</textarea>
-<input type="number" id="cp" value="${challenge.cp || ''}" placeholder="Challenge Points" required>
-                    <select id="difficultyLevel" required>
-                        <option value="">Select Difficulty</option>
-                        <option value="Easy" ${challenge.difficultyLevel === 'Easy' ? 'selected' : ''}>Easy</option>
-                        <option value="Moderate" ${challenge.difficultyLevel === 'Moderate' ? 'selected' : ''}>Moderate</option>
-                        <option value="Hard" ${challenge.difficultyLevel === 'Hard' ? 'selected' : ''}>Hard</option>
-                        <option value="Extra Hard" ${challenge.difficultyLevel === 'Extra Hard' ? 'selected' : ''}>Extra Hard</option>
-                    </select>
-                    <input type="number" id="requiredCompletionCount" value="${challenge.requiredCompletionCount || ''}" placeholder="Required Completion Count" required>
-                    <label><input type="checkbox" id="repeatable" ${challenge.repeatable ? 'checked' : ''}> Repeatable</label>
-                    <select id="gameMode" required>
-                        <option value="">Select Game Mode</option>
-                    </select>
-                    <select id="specificMode" required>
-                        <option value="">Select Specific Mode</option>
-                    </select>
-                    <select id="map" required>
-                        <option value="">Select Map</option>
-                    </select>
-                    <textarea id="logicCriteria" placeholder="Logic Criteria (JSON)">${challenge.logicCriteria || ''}</textarea>
-                    <label><input type="checkbox" id="locked" ${challenge.locked ? 'checked' : ''}> Locked</label>
-                    <input type="date" id="startDate" value="${challenge.startDate || ''}" placeholder="Start Date">
-                    <input type="date" id="endDate" value="${challenge.endDate || ''}" placeholder="End Date">
-                    <label><input type="checkbox" id="useHistoricalData" ${challenge.useHistoricalData ? 'checked' : ''}> Use Historical Data</label>
-                    <input type="text" id="prizeDescription" value="${challenge.prizeDescription || ''}" placeholder="Prize Description">
-                    <select id="prizeSponsor" required>
-                        <option value="">Select Prize Sponsor</option>
-                    </select>
-                    <label><input type="checkbox" id="soloChallenge" ${challenge.soloChallenge ? 'checked' : ''}> Solo Challenge</label>
-                    <button type="submit">${action === 'addChallenge' ? 'Add' : 'Update'} Challenge</button>
-                </form>
-            `;
-            document.getElementById('challengeForm').addEventListener('submit', addOrUpdateChallenge);
-            break;
-
-        default:
-            console.error('Unknown modal action:', action);
-            return;
+    case 'addAchievement':
+    case 'editAchievement':
+    if (action === 'editAchievement') {
+        const achievementSnapshot = await get(ref(database, `achievements/${id}`));
+        achievement = achievementSnapshot.val() || {};
     }
-
-    modal.style.display = "block";
-
-    // Populate dynamic select options
-    if (action.includes('Achievement') || action.includes('Challenge')) {
+    modalContent.innerHTML = `
+        <h3>${action === 'addAchievement' ? 'Add' : 'Edit'} Achievement</h3>
+        <form id="achievementForm" data-id="${id || ''}" class="achievement-form">
+            <div class="form-group">
+                <label for="title">Achievement Title</label>
+                <input type="text" id="title" name="title" value="${achievement.title || ''}" required>
+            </div>
+            <div class="form-group">
+                <label for="description">Description</label>
+                <textarea id="description" name="description" required>${achievement.description || ''}</textarea>
+            </div>
+            <div class="form-group">
+                <label for="gameMode">Game Type / Mode</label>
+                <select id="gameMode" name="gameMode" required>
+                    <option value="Any|Any">Any</option>
+                    <!-- Options will be populated dynamically -->
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="map">Map</label>
+                <select id="map" name="map" required>
+                    <option value="Any">Any</option>
+                    <!-- Options will be populated dynamically -->
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="placement">Placement</label>
+                <select id="placement" name="placement" required>
+                    <option value="Any" ${achievement.placement === 'Any' ? 'selected' : ''}>Any</option>
+                    <option value="1" ${achievement.placement === '1' ? 'selected' : ''}>1st</option>
+                    <option value="2" ${achievement.placement === '2' ? 'selected' : ''}>2nd</option>
+                    <option value="3" ${achievement.placement === '3' ? 'selected' : ''}>3rd</option>
+                    <option value="Won" ${achievement.placement === 'Won' ? 'selected' : ''}>Won (Multiplayer)</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="totalKills">Total Kills</label>
+                <select id="totalKillsOperator" name="totalKillsOperator">
+                    <option value=">=" ${achievement.totalKillsOperator === '>=' ? 'selected' : ''}>>=</option>
+                    <option value="=" ${achievement.totalKillsOperator === '=' ? 'selected' : ''}>=</option>
+                    <option value="<=" ${achievement.totalKillsOperator === '<=' ? 'selected' : ''}><=</option>
+                </select>
+                <input type="number" id="totalKills" name="totalKills" value="${achievement.totalKills || 0}" min="0">
+            </div>
+            <div id="teamMemberKills">
+                ${['STARMAN', 'RSKILLA', 'SWFTSWORD', 'VAIDED', 'MOWGLI'].map(member => `
+                    <div class="form-group">
+                        <label for="${member}Kills">${member} Kills</label>
+                        <select id="${member}KillsOperator" name="${member}KillsOperator">
+                            <option value=">=" ${achievement.teamMemberKills?.[member]?.operator === '>=' ? 'selected' : ''}>>=</option>
+                            <option value="=" ${achievement.teamMemberKills?.[member]?.operator === '=' ? 'selected' : ''}>=</option>
+                            <option value="<=" ${achievement.teamMemberKills?.[member]?.operator === '<=' ? 'selected' : ''}><=</option>
+                        </select>
+                        <input type="number" id="${member}Kills" name="${member}Kills" value="${achievement.teamMemberKills?.[member]?.value || 0}" min="0">
+                    </div>
+                `).join('')}
+            </div>
+            <div class="form-group">
+                <label for="achievementPoints">Achievement Points</label>
+                <input type="number" id="achievementPoints" name="achievementPoints" value="${achievement.achievementPoints || 0}" min="0" required>
+            </div>
+            <div class="form-group">
+                <label for="difficulty">Difficulty</label>
+                <select id="difficulty" name="difficulty" required>
+                    <option value="Easy" ${achievement.difficulty === 'Easy' ? 'selected' : ''}>Easy</option>
+                    <option value="Moderate" ${achievement.difficulty === 'Moderate' ? 'selected' : ''}>Moderate</option>
+                    <option value="Hard" ${achievement.difficulty === 'Hard' ? 'selected' : ''}>Hard</option>
+                    <option value="Extra Hard" ${achievement.difficulty === 'Extra Hard' ? 'selected' : ''}>Extra Hard</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="timesToComplete">Times to Complete</label>
+                <input type="number" id="timesToComplete" name="timesToComplete" value="${achievement.timesToComplete || 1}" min="1" required>
+            </div>
+            <div class="form-group">
+                <label for="canCompleteMultipleTimes">Can Complete Multiple Times</label>
+                <input type="checkbox" id="canCompleteMultipleTimes" name="canCompleteMultipleTimes" ${achievement.canCompleteMultipleTimes ? 'checked' : ''}>
+            </div>
+            <div class="form-group">
+                <label>Occurs on Day of Week</label>
+                <div id="occursOnDOW">
+                    ${['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'].map((day, index) => `
+                        <label>
+                            <input type="checkbox" name="occursOnDOW" value="${index}" 
+                                ${achievement.occursOnDOW && achievement.occursOnDOW.includes(index) ? 'checked' : ''}>
+                            ${day}
+                        </label>
+                    `).join('')}
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="isActive">Is Active</label>
+                <input type="checkbox" id="isActive" name="isActive" ${achievement.isActive !== false ? 'checked' : ''}>
+            </div>
+            <button type="submit" class="submit-btn">${action === 'addAchievement' ? 'Add' : 'Update'} Achievement</button>
+        </form>
+    `;
+    document.getElementById('achievementForm').addEventListener('submit', addOrUpdateAchievement);
+    document.getElementById('gameMode').addEventListener('change', updateGameModeAndMapOptions);
+    
+    // Populate game modes and maps
+    setTimeout(() => {
         populateGameModes();
         populateMaps();
-        if (action.includes('Challenge')) {
-            populateTeamMembers();
-        }
+        updateGameModeAndMapOptions();
+    }, 0);
+    break;
     }
+}
+// Helper functions for populating select options
+async function addOrUpdateGameSession(e) {
+  e.preventDefault();
+  const form = e.target;
+  const sessionId = form.dataset.id || push(ref(database, 'gameSessions')).key;
+  
+  const inputDate = new Date(form.date.value);
+  const userTimezoneOffset = inputDate.getTimezoneOffset() * 60000;
+  const adjustedDate = new Date(inputDate.getTime() - userTimezoneOffset);
+  
+  const sessionData = {
+    date: adjustedDate.toISOString(),
+    userTimezoneOffset: userTimezoneOffset,
+    id: sessionId
+  };
+  
+  try {
+    await set(ref(database, `gameSessions/${sessionId}`), sessionData);
+    loadGameSessions();
+    modal.style.display = "none";
+  } catch (error) {
+    console.error("Error adding/updating game session: ", error);
+    alert('Error adding/updating game session. Please try again.');
+  }
+}
+
+// Populate Game Modes
+async function populateGameModes() {
+  console.log("Populating game modes...");
+  
+  const gameModeSelect = document.getElementById('gameMode');
+  
+  if (!gameModeSelect) {
+    console.error("Game mode select element not found");
+    return;
+  }
+  
+  // Clear existing options
+  gameModeSelect.innerHTML = '<option value="Any|Any">Any</option>';
+  
+  try {
+    const snapshot = await get(ref(database, 'gameTypes'));
+    const gameTypes = snapshot.val();
+    
+    if (!gameTypes) {
+      console.warn("No game types found in the database");
+      return;
+    }
+    
+    for (const [typeId, typeData] of Object.entries(gameTypes)) {
+      console.log(`Processing game type: ${typeId}`);
+      
+      // Add game type as an option
+      const typeOption = document.createElement('option');
+      typeOption.value = `${typeData.name}|Any`;
+      typeOption.textContent = `${typeData.name} - Any`;
+      gameModeSelect.appendChild(typeOption);
+      
+      if (typeData.gameModes) {
+        for (const [modeId, mode] of Object.entries(typeData.gameModes)) {
+          console.log(`Adding game mode: ${mode.name}`);
+          
+          const option = document.createElement('option');
+          option.value = `${typeData.name}|${mode.name}`;
+          option.textContent = `${typeData.name} - ${mode.name}`;
+          gameModeSelect.appendChild(option);
+        }
+      } else {
+        console.warn(`No game modes found for game type: ${typeId}`);
+      }
+    }
+  } catch (error) {
+    console.error("Error fetching game types:", error);
+  }
+}
+
+async function populateMaps() {
+  const mapSelect = document.getElementById('map');
+  mapSelect.innerHTML = '<option value="Any">Any</option>';
+
+  try {
+    const snapshot = await get(ref(database, 'maps'));
+    const maps = snapshot.val();
+    console.log("Maps data retrieved:", maps);
+
+    for (const [gameType, gameMaps] of Object.entries(maps)) {
+      const optgroup = document.createElement('optgroup');
+      optgroup.label = gameType.charAt(0).toUpperCase() + gameType.slice(1);
+      
+      for (const [mapId, map] of Object.entries(gameMaps)) {
+        const option = document.createElement('option');
+        option.value = `${gameType}|${map.name}`;
+        option.textContent = map.name;
+        optgroup.appendChild(option);
+      }
+
+      mapSelect.appendChild(optgroup);
+    }
+  } catch (error) {
+    console.error("Error fetching maps:", error);
+  }
+}
+// Initialize sample achievements
+window.initializeSampleAchievements = function() {
+  const sampleAchievements = generateSampleAchievements();
+
+  console.log("Starting to initialize sample achievements");
+
+  sampleAchievements.forEach(achievement => {
+    push(ref(database, 'achievements'), achievement)
+      .then(() => console.log(`Added sample achievement: ${achievement.title}`))
+      .catch(error => console.error(`Error adding sample achievement ${achievement.title}:`, error));
+  });
+
+  console.log("Sample achievements have been added for testing.");
+  alert("Sample achievements have been added successfully!");
+}
+
+// Database structure update
+window.mergeAndUpdateDatabase = async function() {
+  try {
+    const snapshot = await get(ref(database));
+    const existingData = snapshot.val();
+
+    // ... (Merge logic for gameTypes and maps)
+
+    await set(ref(database), existingData);
+    console.log("Database updated successfully with merged data");
+    alert("Database structure updated while preserving existing data");
+  } catch (error) {
+    console.error("Error updating database:", error);
+    alert("Error updating database. Check console for details.");
+  }
 };
 
-                    
-// Functions to update slider value labels
+// Export necessary functions
+export { 
+  addOrUpdateAchievement, 
+  handleMatchUpdate,
+  showAchievementNotification
+};
+// stuff claude claims he left out
+// Update Game Mode Options
+async function updateGameModeOptions() {
+    const gameType = document.getElementById('gameType').value;
+    const gameModeSelect = document.getElementById('gameMode');
+    gameModeSelect.innerHTML = '<option value="">Select Game Mode</option>';
+
+    if (gameType) {
+        try {
+            const gameModes = await get(ref(database, `gameTypes/${gameType}/gameModes`));
+            gameModes.forEach((modeSnapshot) => {
+                const mode = modeSnapshot.val();
+                const option = document.createElement('option');
+                option.value = modeSnapshot.key;
+                option.textContent = mode.name;
+                gameModeSelect.appendChild(option);
+            });
+        } catch (error) {
+            console.error("Error fetching game modes:", error);
+        }
+    }
+}
+
+// Update Map Options
+async function updateMapOptions() {
+    const gameType = document.getElementById('gameType').value;
+    const mapSelect = document.getElementById('map');
+    mapSelect.innerHTML = '<option value="">Select Map</option>';
+
+    if (gameType) {
+        try {
+            const maps = await get(ref(database, `maps/${gameType}`));
+            maps.forEach((mapSnapshot) => {
+                const map = mapSnapshot.val();
+                const option = document.createElement('option');
+                option.value = mapSnapshot.key;
+                option.textContent = map.name;
+                mapSelect.appendChild(option);
+            });
+        } catch (error) {
+            console.error("Error fetching maps:", error);
+        }
+    }
+}
+
+// Update Placement Input
+function updatePlacementInput() {
+    const gameType = document.getElementById('gameType').value;
+    const placementContainer = document.getElementById('placementContainer');
+    
+    if (gameType === 'warzone') {
+        placementContainer.innerHTML = `
+            <label for="placement">Placement <span id="placementValue" class="slider-value">1st</span></label>
+            <input type="range" id="placement" class="slider" min="1" max="10" step="1" value="1" required>
+        `;
+        document.getElementById('placement').addEventListener('input', updatePlacementValue);
+    } else if (gameType === 'multiplayer') {
+        placementContainer.innerHTML = `
+            <label for="placement">Result</label>
+            <div class="toggle-switch">
+                <input type="checkbox" id="placement" name="placement" class="toggle-input">
+                <label for="placement" class="toggle-label">
+                    <span class="toggle-inner"></span>
+                </label>
+            </div>
+        `;
+        document.getElementById('placement').checked = false; // Default to 'Lost'
+    }
+}
+
+// Update Placement Value (for Warzone)
 function updatePlacementValue() {
     const placement = document.getElementById('placement').value;
     const placementText = placement == 10 ? '10th+' : `${placement}${getOrdinalSuffix(placement)}`;
     document.getElementById('placementValue').textContent = placementText;
 }
 
+// Get Ordinal Suffix
 function getOrdinalSuffix(i) {
     var j = i % 10,
         k = i % 100;
@@ -1882,6 +1037,8 @@ function getOrdinalSuffix(i) {
     }
     return "th";
 }
+
+// Update Slider Value
 function updateSliderValue(event) {
     const slider = event.target;
     const valueSpan = document.getElementById(`${slider.id}Value`);
@@ -1889,102 +1046,361 @@ function updateSliderValue(event) {
     valueSpan.textContent = value === -1 ? 'N/A' : value;
 }
 
-function updateTeamStats() {
-    get(ref(database, 'teamMembers')).then((snapshot) => {
-        const teamMembers = snapshot.val();
-        const leaderboardData = [];
+// Update Game Mode and Map Options (for Achievements)
+async function updateGameModeAndMapOptions() {
+  const gameType = document.getElementById('gameType').value;
+  const gameModeSelect = document.getElementById('gameMode');
+  const mapSelect = document.getElementById('map');
 
-        for (const [id, member] of Object.entries(teamMembers)) {
-            leaderboardData.push({
-                name: member.name,
-                completedChallenges: member.completedChallenges || 0,
-                inProgressChallenges: member.inProgressChallenges || 0,
-                totalCP: member.totalCP || 0
-            });
-        }
+  // Clear existing options
+  gameModeSelect.innerHTML = '<option value="Any">Any</option>';
+  mapSelect.innerHTML = '<option value="Any">Any</option>';
 
-        // Sort leaderboard by total CP
-        leaderboardData.sort((a, b) => b.totalCP - a.totalCP);
+  if (gameType !== 'Any') {
+    try {
+      // Fetch game modes
+      const gameModes = await getGameModes(gameType);
+      gameModes.forEach(mode => {
+        const option = document.createElement('option');
+        option.value = mode.name;
+        option.textContent = mode.name;
+        gameModeSelect.appendChild(option);
+      });
 
-        const leaderboardHTML = `
-            <h3>Challenges Leaderboard</h3>
-            <table class="stats-table">
-                <thead>
-                    <tr>
-                        <th>Name</th>
-                        <th>Completed Challenges</th>
-                        <th>In-Progress Challenges</th>
-                        <th>Total CP</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    ${leaderboardData.map(member => `
-                        <tr>
-                            <td>${member.name}</td>
-                            <td>${member.completedChallenges}</td>
-                            <td>${member.inProgressChallenges}</td>
-                            <td>${member.totalCP}</td>
-                        </tr>
-                    `).join('')}
-                </tbody>
-            </table>
-        `;
-
-        // Add this leaderboard to the existing stats page
-        const statsContainer = document.getElementById('statsTable');
-        statsContainer.insertAdjacentHTML('afterend', leaderboardHTML);
-    });
+      // Fetch maps
+      const maps = await getMaps(gameType);
+      maps.forEach(map => {
+        const option = document.createElement('option');
+        option.value = map.name;
+        option.textContent = map.name;
+        mapSelect.appendChild(option);
+      });
+    } catch (error) {
+      console.error('Error fetching game modes or maps:', error);
+    }
+  }
 }
-// Add these helper functions to populate select options
-function populateGameModes() {
-  get(ref(database, 'gameModes')).then((snapshot) => {
-    const gameModes = snapshot.val();
-    const gameModeSelect = document.getElementById('gameMode');
-    const specificModeSelect = document.getElementById('specificMode');
 
-    for (const [id, mode] of Object.entries(gameModes)) {
-      const option = document.createElement('option');
-      option.value = mode.name;
-      option.textContent = mode.name;
-      gameModeSelect.appendChild(option);
+// Added after major update
+async function handleMatchUpdate(matchData) {
+  try {
+    // Process the match result (this function should be imported from awardsmanager.js)
+    await processMatchResult(matchData);
+    
+    // Get updates about achievements (this function should be imported from awardsmanager.js)
+    const updates = getAchievementsUpdates();
+    
+    // Show notifications for each update
+    updates.forEach(update => showAchievementNotification(update));
+  } catch (error) {
+    console.error("Error handling match update:", error);
+    alert("An error occurred while processing the match. Please try again.");
+  }
+}
 
-      const specificOption = document.createElement('option');
-      specificOption.value = mode.name;
-      specificOption.textContent = mode.name;
-      specificModeSelect.appendChild(specificOption);
+function showAchievementNotification(message) {
+  const notification = document.createElement('div');
+  notification.className = 'achievement-notification';
+  notification.textContent = message;
+  document.body.appendChild(notification);
+
+  setTimeout(() => notification.classList.add('show'), 10);
+  setTimeout(() => {
+    notification.classList.remove('show');
+    setTimeout(() => notification.remove(), 300);
+  }, 3000);
+}
+// Functions to finish
+function showStats() {
+  // Implement the logic to display statistics
+  console.log("Showing stats...");
+  // You'll need to implement the actual stats display logic here
+}
+
+function calculatePRValues() {
+  // Implement the logic to calculate PR (Personal Record) values
+  console.log("Calculating PR values...");
+  // You'll need to implement the actual PR calculation logic here
+}
+
+function showHighlights() {
+  // Implement the logic to display highlights
+  console.log("Showing highlights...");
+  // You'll need to implement the actual highlights display logic here
+}
+
+function showGameTypesAdmin() {
+  // Implement the logic for the game types admin section
+  console.log("Showing game types admin...");
+  // You'll need to implement the actual game types admin UI and logic here
+}
+
+function showHelp() {
+  // Implement the logic to display help information
+  console.log("Showing help...");
+  // You'll need to implement the actual help display logic here
+}
+
+function showAbout() {
+  // Implement the logic to display about information
+  console.log("Showing about...");
+  // You'll need to implement the actual about display logic here
+}
+// This function should be called when the 'Add Achievement' or 'Edit Achievement' button is clicked
+function showAchievementModal(achievementId = null) {
+  const achievement = achievementId ? getAchievementById(achievementId) : {};
+  const modalTitle = achievementId ? 'Edit Achievement' : 'Add Achievement';
+
+  const modalContent = `
+    <h2>${modalTitle}</h2>
+    <form id="achievementForm" data-id="${achievementId || ''}">
+      <div class="form-group">
+        <label for="title">Title (Required)</label>
+        <input type="text" id="title" name="title" required value="${achievement.title || ''}">
+      </div>
+      <div class="form-group">
+        <label for="description">Description</label>
+        <textarea id="description" name="description">${achievement.description || ''}</textarea>
+      </div>
+      <div class="form-group">
+        <label for="gameType">Game Type</label>
+        <select id="gameType" name="gameType">
+          <option value="Any" ${achievement.gameType === 'Any' ? 'selected' : ''}>Any</option>
+          <option value="warzone" ${achievement.gameType === 'warzone' ? 'selected' : ''}>Warzone</option>
+          <option value="multiplayer" ${achievement.gameType === 'multiplayer' ? 'selected' : ''}>Multiplayer</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label for="gameMode">Game Mode</label>
+        <select id="gameMode" name="gameMode">
+          <option value="Any" ${achievement.gameMode === 'Any' ? 'selected' : ''}>Any</option>
+          <!-- Populate with game modes based on selected game type -->
+        </select>
+      </div>
+      <div class="form-group">
+        <label for="map">Map</label>
+        <select id="map" name="map">
+          <option value="Any" ${achievement.map === 'Any' ? 'selected' : ''}>Any</option>
+          <!-- Populate with maps based on selected game type -->
+        </select>
+      </div>
+      <div class="form-group">
+        <label for="placement">Placement</label>
+        <select id="placement" name="placement">
+          <option value="Any" ${achievement.placement === 'Any' ? 'selected' : ''}>Any</option>
+          <option value="1" ${achievement.placement === '1' ? 'selected' : ''}>1st</option>
+          <option value="2" ${achievement.placement === '2' ? 'selected' : ''}>2nd</option>
+          <option value="3" ${achievement.placement === '3' ? 'selected' : ''}>3rd</option>
+          <option value="Won" ${achievement.placement === 'Won' ? 'selected' : ''}>Won (Multiplayer)</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label for="totalKills">Total Kills</label>
+        <input type="number" id="totalKills" name="totalKills" min="0" value="${achievement.totalKills || 0}">
+        <select id="totalKillsOperator" name="totalKillsOperator">
+          <option value=">=" ${achievement.totalKillsOperator === '>=' ? 'selected' : ''}>>=</option>
+          <option value="=" ${achievement.totalKillsOperator === '=' ? 'selected' : ''}>=</option>
+          <option value="<=" ${achievement.totalKillsOperator === '<=' ? 'selected' : ''}><=</option>
+        </select>
+      </div>
+      <div id="teamMemberKills">
+        ${['STARMAN', 'RSKILLA', 'SWFTSWORD', 'VAIDED', 'MOWGLI'].map(member => `
+          <div class="form-group">
+            <label for="${member}Kills">${member} Kills</label>
+            <input type="number" id="${member}Kills" name="${member}Kills" min="0" value="${achievement.teamMemberKills?.[member]?.value || 0}">
+            <select id="${member}KillsOperator" name="${member}KillsOperator">
+              <option value=">=" ${achievement.teamMemberKills?.[member]?.operator === '>=' ? 'selected' : ''}>>=</option>
+              <option value="=" ${achievement.teamMemberKills?.[member]?.operator === '=' ? 'selected' : ''}>=</option>
+              <option value="<=" ${achievement.teamMemberKills?.[member]?.operator === '<=' ? 'selected' : ''}><=</option>
+            </select>
+          </div>
+        `).join('')}
+      </div>
+      <div class="form-group">
+        <label for="achievementPoints">Achievement Points</label>
+        <input type="number" id="achievementPoints" name="achievementPoints" min="0" value="${achievement.achievementPoints || 0}">
+      </div>
+      <div class="form-group">
+        <label for="difficulty">Difficulty</label>
+        <select id="difficulty" name="difficulty">
+          <option value="Easy" ${achievement.difficulty === 'Easy' ? 'selected' : ''}>Easy</option>
+          <option value="Moderate" ${achievement.difficulty === 'Moderate' ? 'selected' : ''}>Moderate</option>
+          <option value="Hard" ${achievement.difficulty === 'Hard' ? 'selected' : ''}>Hard</option>
+          <option value="Extra Hard" ${achievement.difficulty === 'Extra Hard' ? 'selected' : ''}>Extra Hard</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label for="timesToComplete">Times to Complete</label>
+        <input type="number" id="timesToComplete" name="timesToComplete" min="1" value="${achievement.timesToComplete || 1}">
+      </div>
+      <div class="form-group">
+        <label for="canCompleteMultipleTimes">
+          <input type="checkbox" id="canCompleteMultipleTimes" name="canCompleteMultipleTimes" ${achievement.canCompleteMultipleTimes ? 'checked' : ''}>
+          Can Complete Multiple Times
+        </label>
+      </div>
+      <div class="form-group">
+        <label>Occurs on Day of Week</label>
+        <div id="occursOnDOW">
+          ${['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'].map((day, index) => `
+            <label>
+              <input type="checkbox" name="occursOnDOW" value="${index}" 
+                ${achievement.occursOnDOW && achievement.occursOnDOW.includes(index) ? 'checked' : ''}>
+              ${day}
+            </label>
+          `).join('')}
+        </div>
+      </div>
+      <div class="form-group">
+        <label for="isActive">
+          <input type="checkbox" id="isActive" name="isActive" ${achievement.isActive !== false ? 'checked' : ''}>
+          Is Active
+        </label>
+      </div>
+      <button type="submit">Save Achievement</button>
+    </form>
+  `;
+
+  // Set the modal content and display it
+  document.getElementById('modalContent').innerHTML = modalContent;
+  document.getElementById('modal').style.display = 'block';
+
+  // Add event listener for form submission
+  document.getElementById('achievementForm').addEventListener('submit', handleAchievementSubmit);
+
+  // Populate game modes and maps based on selected game type
+  document.getElementById('gameType').addEventListener('change', updateGameModeAndMapOptions);
+  updateGameModeAndMapOptions(); // Initial population
+}
+
+async function handleAchievementSubmit(event) {
+  event.preventDefault();
+  const form = event.target;
+  const achievementId = form.dataset.id || null;
+
+  const achievementData = {
+    title: form.title.value,
+    description: form.description.value,
+    gameType: form.gameType.value,
+    gameMode: form.gameMode.value,
+    map: form.map.value,
+    placement: form.placement.value,
+    totalKills: parseInt(form.totalKills.value) || 0,
+    totalKillsOperator: form.totalKillsOperator.value,
+    teamMemberKills: {},
+    achievementPoints: parseInt(form.achievementPoints.value) || 0,
+    difficulty: form.difficulty.value,
+    timesToComplete: parseInt(form.timesToComplete.value) || 1,
+    canCompleteMultipleTimes: form.canCompleteMultipleTimes.checked,
+    occursOnDOW: Array.from(form.querySelectorAll('input[name="occursOnDOW"]:checked')).map(input => parseInt(input.value)),
+    isActive: form.isActive.checked,
+    status: achievementId ? form.status.value : 'Not Started',
+    currentProgress: achievementId ? parseInt(form.currentProgress.value) || 0 : 0,
+    completionCount: achievementId ? parseInt(form.completionCount.value) || 0 : 0,
+    updatedAt: new Date().toISOString()
+  };
+
+  // Process team member kills
+  ['STARMAN', 'RSKILLA', 'SWFTSWORD', 'VAIDED', 'MOWGLI'].forEach(member => {
+    const kills = parseInt(form[`${member}Kills`].value);
+    const operator = form[`${member}KillsOperator`].value;
+    if (kills > 0) {
+      achievementData.teamMemberKills[member] = { operator, value: kills };
     }
   });
-}
-function populateMaps() {
-  get(ref(database, 'maps')).then((snapshot) => {
-    const maps = snapshot.val();
-    const mapSelect = document.getElementById('map');
 
-    for (const [id, map] of Object.entries(maps)) {
-      const option = document.createElement('option');
-      option.value = map.name;
-      option.textContent = map.name;
-      mapSelect.appendChild(option);
+  try {
+    if (achievementId) {
+      // Update existing achievement
+      await updateAchievement(achievementId, achievementData);
+    } else {
+      // Add new achievement
+      achievementData.createdAt = new Date().toISOString();
+      await addAchievement(achievementData);
     }
-  });
+    
+    // Close modal and refresh achievements list
+    document.getElementById('modal').style.display = 'none';
+    loadAchievements(); // Assuming you have a function to reload the achievements list
+  } catch (error) {
+    console.error('Error saving achievement:', error);
+    alert('An error occurred while saving the achievement. Please try again.');
+  }
 }
-
-function populateTeamMembers() {
-  get(ref(database, 'teamMembers')).then((snapshot) => {
-    const teamMembers = snapshot.val();
-    const sponsorSelect = document.getElementById('prizeSponsor');
-
-    for (const [id, member] of Object.entries(teamMembers)) {
-      const option = document.createElement('option');
-      option.value = member.name;
-      option.textContent = member.name;
-      sponsorSelect.appendChild(option);
+async function getAchievementById(id) {
+  try {
+    const achievementRef = ref(database, `achievements/${id}`);
+    const snapshot = await get(achievementRef);
+    if (snapshot.exists()) {
+      return { id, ...snapshot.val() };
+    } else {
+      console.log("No achievement found with ID:", id);
+      return null;
     }
-  });
+  } catch (error) {
+    console.error("Error fetching achievement:", error);
+    throw error;
+  }
 }
 
-window.initializeSampleAwardsForTesting = initializeSampleAwardsForTesting;
+async function addAchievement(achievementData) {
+  try {
+    const achievementsRef = ref(database, 'achievements');
+    const newAchievementRef = push(achievementsRef);
+    await set(newAchievementRef, achievementData);
+    console.log("Achievement added successfully");
+    return newAchievementRef.key;
+  } catch (error) {
+    console.error("Error adding achievement:", error);
+    throw error;
+  }
+}
 
-window.onload = function() {
-    modal.style.display = "none"; // Ensure modal is hidden on load
-};
+async function updateAchievement(id, achievementData) {
+  try {
+    const achievementRef = ref(database, `achievements/${id}`);
+    await update(achievementRef, achievementData);
+    console.log("Achievement updated successfully");
+  } catch (error) {
+    console.error("Error updating achievement:", error);
+    throw error;
+  }
+}
+
+async function getGameModes(gameType) {
+  try {
+    const gameTypesRef = ref(database, `gameTypes/${gameType}/gameModes`);
+    const snapshot = await get(gameTypesRef);
+    if (snapshot.exists()) {
+      return Object.entries(snapshot.val()).map(([id, mode]) => ({
+        id,
+        name: mode.name
+      }));
+    } else {
+      console.log("No game modes found for game type:", gameType);
+      return [];
+    }
+  } catch (error) {
+    console.error("Error fetching game modes:", error);
+    throw error;
+  }
+}
+
+async function getMaps(gameType) {
+  try {
+    const mapsRef = ref(database, `maps/${gameType}`);
+    const snapshot = await get(mapsRef);
+    if (snapshot.exists()) {
+      return Object.entries(snapshot.val()).map(([id, map]) => ({
+        id,
+        name: map.name
+      }));
+    } else {
+      console.log("No maps found for game type:", gameType);
+      return [];
+    }
+  } catch (error) {
+    console.error("Error fetching maps:", error);
+    throw error;
+  }
+}

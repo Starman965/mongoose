@@ -1130,3 +1130,39 @@ function showAchievementNotification(message) {
     setTimeout(() => notification.remove(), 300);
   }, 3000);
 }
+// Functions to finish
+function showStats() {
+  // Implement the logic to display statistics
+  console.log("Showing stats...");
+  // You'll need to implement the actual stats display logic here
+}
+
+function calculatePRValues() {
+  // Implement the logic to calculate PR (Personal Record) values
+  console.log("Calculating PR values...");
+  // You'll need to implement the actual PR calculation logic here
+}
+
+function showHighlights() {
+  // Implement the logic to display highlights
+  console.log("Showing highlights...");
+  // You'll need to implement the actual highlights display logic here
+}
+
+function showGameTypesAdmin() {
+  // Implement the logic for the game types admin section
+  console.log("Showing game types admin...");
+  // You'll need to implement the actual game types admin UI and logic here
+}
+
+function showHelp() {
+  // Implement the logic to display help information
+  console.log("Showing help...");
+  // You'll need to implement the actual help display logic here
+}
+
+function showAbout() {
+  // Implement the logic to display about information
+  console.log("Showing about...");
+  // You'll need to implement the actual about display logic here
+}

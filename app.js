@@ -76,7 +76,7 @@ function showAchievementManagement() {
   const adminContent = document.getElementById('adminContent');
   adminContent.innerHTML = `
     <h3>Achievement Management</h3>
-    <button class="button" onclick="showModal('addAchievement')">Add New Achievement</button>
+    <button class="button" onclick="showModal('showAchievementModal')">Add New Achievement</button>
     <div id="achievementList"></div>
   `;
   loadAchievementList();
@@ -97,7 +97,7 @@ function loadAchievementList() {
           <td>${achievement.difficulty}</td>
           <td>${achievement.status}</td>
           <td>
-            <button class="button" onclick="showModal('editAchievement', '${id}')">Edit</button>
+            <button class="button" onclick="showModal('showAchievementModal', '${id}')">Edit</button>
             <button class="button" onclick="deleteAchievement('${id}')">Delete</button>
           </td>
         </tr>

@@ -8,8 +8,7 @@ import {
   deleteAchievement, 
   getAchievements, 
   filterAchievements, 
-  sortAchievements,
-  generateSampleAchievements 
+  sortAchievements 
 } from './awardsmanager.js';
 
 const storage = getStorage();

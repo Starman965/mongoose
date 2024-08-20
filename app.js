@@ -1327,3 +1327,80 @@ async function handleAchievementSubmit(event) {
     alert('An error occurred while saving the achievement. Please try again.');
   }
 }
+async function getAchievementById(id) {
+  try {
+    const achievementRef = ref(database, `achievements/${id}`);
+    const snapshot = await get(achievementRef);
+    if (snapshot.exists()) {
+      return { id, ...snapshot.val() };
+    } else {
+      console.log("No achievement found with ID:", id);
+      return null;
+    }
+  } catch (error) {
+    console.error("Error fetching achievement:", error);
+    throw error;
+  }
+}
+
+async function addAchievement(achievementData) {
+  try {
+    const achievementsRef = ref(database, 'achievements');
+    const newAchievementRef = push(achievementsRef);
+    await set(newAchievementRef, achievementData);
+    console.log("Achievement added successfully");
+    return newAchievementRef.key;
+  } catch (error) {
+    console.error("Error adding achievement:", error);
+    throw error;
+  }
+}
+
+async function updateAchievement(id, achievementData) {
+  try {
+    const achievementRef = ref(database, `achievements/${id}`);
+    await update(achievementRef, achievementData);
+    console.log("Achievement updated successfully");
+  } catch (error) {
+    console.error("Error updating achievement:", error);
+    throw error;
+  }
+}
+
+async function getGameModes(gameType) {
+  try {
+    const gameTypesRef = ref(database, `gameTypes/${gameType}/gameModes`);
+    const snapshot = await get(gameTypesRef);
+    if (snapshot.exists()) {
+      return Object.entries(snapshot.val()).map(([id, mode]) => ({
+        id,
+        name: mode.name
+      }));
+    } else {
+      console.log("No game modes found for game type:", gameType);
+      return [];
+    }
+  } catch (error) {
+    console.error("Error fetching game modes:", error);
+    throw error;
+  }
+}
+
+async function getMaps(gameType) {
+  try {
+    const mapsRef = ref(database, `maps/${gameType}`);
+    const snapshot = await get(mapsRef);
+    if (snapshot.exists()) {
+      return Object.entries(snapshot.val()).map(([id, map]) => ({
+        id,
+        name: map.name
+      }));
+    } else {
+      console.log("No maps found for game type:", gameType);
+      return [];
+    }
+  } catch (error) {
+    console.error("Error fetching maps:", error);
+    throw error;
+  }
+}

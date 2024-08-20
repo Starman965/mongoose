@@ -213,7 +213,6 @@ function showGameSessions() {
     <div id="sessionList"></div>
   `;
   loadGameSessions();
-  calculatePRValues();
 }
 
 function loadGameSessions() {
@@ -230,29 +229,31 @@ function loadGameSessions() {
 
         sessions.sort((a, b) => new Date(b.date) - new Date(a.date));
 
-        sessionList.innerHTML = '';
-        sessions.forEach((session) => {
-            sessionList.innerHTML += `
-                <div class="card">
-                    <h3>${formatDate(session.date, session.userTimezoneOffset)}</h3>
-                    <p>Number of matches: ${session.matches ? Object.keys(session.matches).length : 0}</p>
-                    <div class="button-group">
-                        <button class="button" onclick="toggleMatches('${session.id}')">View Matches</button>
-                        <button class="button" onclick="showModal('addMatch', '${session.id}')">Add Match</button>
-                        <button class="button" onclick="showModal('editGameSession', '${session.id}')">Edit Session</button>
-                        <button class="button" onclick="deleteGameSession('${session.id}')">Delete Session</button>
+        if (sessions.length === 0) {
+            sessionList.innerHTML = 'No game sessions found. Click the "Add Game Session" button to create one!';
+        } else {
+            sessionList.innerHTML = '';
+            sessions.forEach((session) => {
+                sessionList.innerHTML += `
+                    <div class="card">
+                        <h3>${formatDate(session.date, session.userTimezoneOffset)}</h3>
+                        <p>Number of matches: ${session.matches ? Object.keys(session.matches).length : 0}</p>
+                        <div class="button-group">
+                            <button class="button" onclick="toggleMatches('${session.id}')">View Matches</button>
+                            <button class="button" onclick="showModal('addMatch', '${session.id}')">Add Match</button>
+                            <button class="button" onclick="showModal('editGameSession', '${session.id}')">Edit Session</button>
+                            <button class="button" onclick="deleteGameSession('${session.id}')">Delete Session</button>
+                        </div>
+                        <div id="matches-${session.id}" class="matches-container" style="display: none;"></div>
                     </div>
-                    <div id="matches-${session.id}" class="matches-container" style="display: none;"></div>
-                </div>
-            `;
-        });
-
-        if (sessionList.innerHTML === '') {
-            sessionList.innerHTML = 'No game sessions found. Add some!';
+                `;
+            });
         }
+    }, (error) => {
+        console.error("Error loading game sessions:", error);
+        sessionList.innerHTML = 'Error loading game sessions. Please try again.';
     });
 }
-
 window.toggleMatches = function(sessionId) {
     const matchesContainer = document.getElementById(`matches-${sessionId}`);
     if (matchesContainer.style.display === 'none') {

@@ -1048,59 +1048,39 @@ function updateSliderValue(event) {
 
 // Update Game Mode and Map Options (for Achievements)
 async function updateGameModeAndMapOptions() {
-  console.log("Updating game mode and map options...");
+  const gameType = document.getElementById('gameType').value;
   const gameModeSelect = document.getElementById('gameMode');
   const mapSelect = document.getElementById('map');
 
-  if (!gameModeSelect || !mapSelect) {
-    console.error("Game mode or map select element not found");
-    return;
-  }
-
-  const [selectedGameType, selectedGameMode] = gameModeSelect.value.split('|');
-  console.log(`Selected: Game Type - ${selectedGameType}, Game Mode - ${selectedGameMode}`);
-
-  // Clear existing map options and add 'Any' option
+  // Clear existing options
+  gameModeSelect.innerHTML = '<option value="Any">Any</option>';
   mapSelect.innerHTML = '<option value="Any">Any</option>';
 
-  if (selectedGameType !== 'Any') {
+  if (gameType !== 'Any') {
     try {
-      // Fetch maps based on selected game type
-      const mapsSnapshot = await get(ref(database, `maps/${selectedGameType.toLowerCase()}`));
-      console.log("Maps data retrieved:", mapsSnapshot.val());
-      if (mapsSnapshot.exists()) {
-        mapsSnapshot.forEach((mapSnapshot) => {
-          const map = mapSnapshot.val();
-          const option = document.createElement('option');
-          option.value = map.name;
-          option.textContent = map.name;
-          mapSelect.appendChild(option);
-        });
-      } else {
-        console.warn(`No maps found for game type: ${selectedGameType}`);
-      }
-    } catch (error) {
-      console.error("Error fetching maps:", error);
-    }
-  }
+      // Fetch game modes
+      const gameModes = await getGameModes(gameType);
+      gameModes.forEach(mode => {
+        const option = document.createElement('option');
+        option.value = mode.name;
+        option.textContent = mode.name;
+        gameModeSelect.appendChild(option);
+      });
 
-  // Set selected values if editing an achievement
-  const achievementForm = document.getElementById('achievementForm');
-  if (achievementForm) {
-    const achievementId = achievementForm.dataset.id;
-    if (achievementId) {
-      try {
-        const achievementSnapshot = await get(ref(database, `achievements/${achievementId}`));
-        const achievement = achievementSnapshot.val();
-        if (achievement) {
-          mapSelect.value = achievement.map || 'Any';
-        }
-      } catch (error) {
-        console.error("Error fetching achievement data:", error);
-      }
+      // Fetch maps
+      const maps = await getMaps(gameType);
+      maps.forEach(map => {
+        const option = document.createElement('option');
+        option.value = map.name;
+        option.textContent = map.name;
+        mapSelect.appendChild(option);
+      });
+    } catch (error) {
+      console.error('Error fetching game modes or maps:', error);
     }
   }
 }
+
 // Added after major update
 async function handleMatchUpdate(matchData) {
   try {
@@ -1165,4 +1145,185 @@ function showAbout() {
   // Implement the logic to display about information
   console.log("Showing about...");
   // You'll need to implement the actual about display logic here
+}
+// This function should be called when the 'Add Achievement' or 'Edit Achievement' button is clicked
+function showAchievementModal(achievementId = null) {
+  const achievement = achievementId ? getAchievementById(achievementId) : {};
+  const modalTitle = achievementId ? 'Edit Achievement' : 'Add Achievement';
+
+  const modalContent = `
+    <h2>${modalTitle}</h2>
+    <form id="achievementForm" data-id="${achievementId || ''}">
+      <div class="form-group">
+        <label for="title">Title (Required)</label>
+        <input type="text" id="title" name="title" required value="${achievement.title || ''}">
+      </div>
+      <div class="form-group">
+        <label for="description">Description</label>
+        <textarea id="description" name="description">${achievement.description || ''}</textarea>
+      </div>
+      <div class="form-group">
+        <label for="gameType">Game Type</label>
+        <select id="gameType" name="gameType">
+          <option value="Any" ${achievement.gameType === 'Any' ? 'selected' : ''}>Any</option>
+          <option value="warzone" ${achievement.gameType === 'warzone' ? 'selected' : ''}>Warzone</option>
+          <option value="multiplayer" ${achievement.gameType === 'multiplayer' ? 'selected' : ''}>Multiplayer</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label for="gameMode">Game Mode</label>
+        <select id="gameMode" name="gameMode">
+          <option value="Any" ${achievement.gameMode === 'Any' ? 'selected' : ''}>Any</option>
+          <!-- Populate with game modes based on selected game type -->
+        </select>
+      </div>
+      <div class="form-group">
+        <label for="map">Map</label>
+        <select id="map" name="map">
+          <option value="Any" ${achievement.map === 'Any' ? 'selected' : ''}>Any</option>
+          <!-- Populate with maps based on selected game type -->
+        </select>
+      </div>
+      <div class="form-group">
+        <label for="placement">Placement</label>
+        <select id="placement" name="placement">
+          <option value="Any" ${achievement.placement === 'Any' ? 'selected' : ''}>Any</option>
+          <option value="1" ${achievement.placement === '1' ? 'selected' : ''}>1st</option>
+          <option value="2" ${achievement.placement === '2' ? 'selected' : ''}>2nd</option>
+          <option value="3" ${achievement.placement === '3' ? 'selected' : ''}>3rd</option>
+          <option value="Won" ${achievement.placement === 'Won' ? 'selected' : ''}>Won (Multiplayer)</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label for="totalKills">Total Kills</label>
+        <input type="number" id="totalKills" name="totalKills" min="0" value="${achievement.totalKills || 0}">
+        <select id="totalKillsOperator" name="totalKillsOperator">
+          <option value=">=" ${achievement.totalKillsOperator === '>=' ? 'selected' : ''}>>=</option>
+          <option value="=" ${achievement.totalKillsOperator === '=' ? 'selected' : ''}>=</option>
+          <option value="<=" ${achievement.totalKillsOperator === '<=' ? 'selected' : ''}><=</option>
+        </select>
+      </div>
+      <div id="teamMemberKills">
+        ${['STARMAN', 'RSKILLA', 'SWFTSWORD', 'VAIDED', 'MOWGLI'].map(member => `
+          <div class="form-group">
+            <label for="${member}Kills">${member} Kills</label>
+            <input type="number" id="${member}Kills" name="${member}Kills" min="0" value="${achievement.teamMemberKills?.[member]?.value || 0}">
+            <select id="${member}KillsOperator" name="${member}KillsOperator">
+              <option value=">=" ${achievement.teamMemberKills?.[member]?.operator === '>=' ? 'selected' : ''}>>=</option>
+              <option value="=" ${achievement.teamMemberKills?.[member]?.operator === '=' ? 'selected' : ''}>=</option>
+              <option value="<=" ${achievement.teamMemberKills?.[member]?.operator === '<=' ? 'selected' : ''}><=</option>
+            </select>
+          </div>
+        `).join('')}
+      </div>
+      <div class="form-group">
+        <label for="achievementPoints">Achievement Points</label>
+        <input type="number" id="achievementPoints" name="achievementPoints" min="0" value="${achievement.achievementPoints || 0}">
+      </div>
+      <div class="form-group">
+        <label for="difficulty">Difficulty</label>
+        <select id="difficulty" name="difficulty">
+          <option value="Easy" ${achievement.difficulty === 'Easy' ? 'selected' : ''}>Easy</option>
+          <option value="Moderate" ${achievement.difficulty === 'Moderate' ? 'selected' : ''}>Moderate</option>
+          <option value="Hard" ${achievement.difficulty === 'Hard' ? 'selected' : ''}>Hard</option>
+          <option value="Extra Hard" ${achievement.difficulty === 'Extra Hard' ? 'selected' : ''}>Extra Hard</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label for="timesToComplete">Times to Complete</label>
+        <input type="number" id="timesToComplete" name="timesToComplete" min="1" value="${achievement.timesToComplete || 1}">
+      </div>
+      <div class="form-group">
+        <label for="canCompleteMultipleTimes">
+          <input type="checkbox" id="canCompleteMultipleTimes" name="canCompleteMultipleTimes" ${achievement.canCompleteMultipleTimes ? 'checked' : ''}>
+          Can Complete Multiple Times
+        </label>
+      </div>
+      <div class="form-group">
+        <label>Occurs on Day of Week</label>
+        <div id="occursOnDOW">
+          ${['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'].map((day, index) => `
+            <label>
+              <input type="checkbox" name="occursOnDOW" value="${index}" 
+                ${achievement.occursOnDOW && achievement.occursOnDOW.includes(index) ? 'checked' : ''}>
+              ${day}
+            </label>
+          `).join('')}
+        </div>
+      </div>
+      <div class="form-group">
+        <label for="isActive">
+          <input type="checkbox" id="isActive" name="isActive" ${achievement.isActive !== false ? 'checked' : ''}>
+          Is Active
+        </label>
+      </div>
+      <button type="submit">Save Achievement</button>
+    </form>
+  `;
+
+  // Set the modal content and display it
+  document.getElementById('modalContent').innerHTML = modalContent;
+  document.getElementById('modal').style.display = 'block';
+
+  // Add event listener for form submission
+  document.getElementById('achievementForm').addEventListener('submit', handleAchievementSubmit);
+
+  // Populate game modes and maps based on selected game type
+  document.getElementById('gameType').addEventListener('change', updateGameModeAndMapOptions);
+  updateGameModeAndMapOptions(); // Initial population
+}
+
+async function handleAchievementSubmit(event) {
+  event.preventDefault();
+  const form = event.target;
+  const achievementId = form.dataset.id || null;
+
+  const achievementData = {
+    title: form.title.value,
+    description: form.description.value,
+    gameType: form.gameType.value,
+    gameMode: form.gameMode.value,
+    map: form.map.value,
+    placement: form.placement.value,
+    totalKills: parseInt(form.totalKills.value) || 0,
+    totalKillsOperator: form.totalKillsOperator.value,
+    teamMemberKills: {},
+    achievementPoints: parseInt(form.achievementPoints.value) || 0,
+    difficulty: form.difficulty.value,
+    timesToComplete: parseInt(form.timesToComplete.value) || 1,
+    canCompleteMultipleTimes: form.canCompleteMultipleTimes.checked,
+    occursOnDOW: Array.from(form.querySelectorAll('input[name="occursOnDOW"]:checked')).map(input => parseInt(input.value)),
+    isActive: form.isActive.checked,
+    status: achievementId ? form.status.value : 'Not Started',
+    currentProgress: achievementId ? parseInt(form.currentProgress.value) || 0 : 0,
+    completionCount: achievementId ? parseInt(form.completionCount.value) || 0 : 0,
+    updatedAt: new Date().toISOString()
+  };
+
+  // Process team member kills
+  ['STARMAN', 'RSKILLA', 'SWFTSWORD', 'VAIDED', 'MOWGLI'].forEach(member => {
+    const kills = parseInt(form[`${member}Kills`].value);
+    const operator = form[`${member}KillsOperator`].value;
+    if (kills > 0) {
+      achievementData.teamMemberKills[member] = { operator, value: kills };
+    }
+  });
+
+  try {
+    if (achievementId) {
+      // Update existing achievement
+      await updateAchievement(achievementId, achievementData);
+    } else {
+      // Add new achievement
+      achievementData.createdAt = new Date().toISOString();
+      await addAchievement(achievementData);
+    }
+    
+    // Close modal and refresh achievements list
+    document.getElementById('modal').style.display = 'none';
+    loadAchievements(); // Assuming you have a function to reload the achievements list
+  } catch (error) {
+    console.error('Error saving achievement:', error);
+    alert('An error occurred while saving the achievement. Please try again.');
+  }
 }

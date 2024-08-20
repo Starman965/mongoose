@@ -251,15 +251,6 @@ function showAchievementsAdmin() {
   `;
   loadAchievementsAdmin();
 }
-// these two exports added 8.19 and wonder if they should be in my awardsmanager.js
-export function getAchievementsUpdates() {
-  // This function can be implemented to return recent achievement updates
-  // if you're tracking them separately
-  return [];
-}
-
-export { processMatchResult };
-
 function showAchievementManagement() {
   const adminContent = document.getElementById('adminContent');
   adminContent.innerHTML = `

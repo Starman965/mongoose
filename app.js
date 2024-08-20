@@ -1118,7 +1118,6 @@ function showStats() {
         <div id="statsTable"></div>
     `;
     loadStats();
-    updateTeamStats();
 }
 function loadStats() {
   const statsTable = document.getElementById('statsTable');

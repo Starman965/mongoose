@@ -312,12 +312,21 @@ async function addOrUpdateMatch(e) {
   const sessionId = form.dataset.sessionId;
   const matchId = form.dataset.matchId || push(ref(database, `gameSessions/${sessionId}/matches`)).key;
   
-  const gameType = form.gameType.value;
-  const gameMode = form.gameMode.value;
-  const map = form.map.value;
-  
   try {
-    const placement = gameType === 'warzone' ? parseInt(form.placement.value) : (form.placement.checked ? 'Won' : 'Lost');
+    // Validate input
+    const gameType = form.gameType.value;
+    const gameMode = form.gameMode.value;
+    const map = form.map.value;
+    
+    if (!gameType || !gameMode || !map) {
+      throw new Error("Please select game type, mode, and map.");
+    }
+
+    const placement = gameType.toLowerCase() === 'warzone' 
+      ? parseInt(form.placement.value) 
+      : (form.placement.checked ? 'Won' : 'Lost');
+
+    const totalKills = parseInt(form.totalKills.value);
     
     const matchData = {
       id: matchId,
@@ -325,17 +334,20 @@ async function addOrUpdateMatch(e) {
       gameMode: gameMode,
       map: map,
       placement: placement,
-      totalKills: parseInt(form.totalKills.value) === -1 ? null : parseInt(form.totalKills.value), kills: {},
+      totalKills: isNaN(totalKills) || totalKills === -1 ? null : totalKills,
+      kills: {},
       timestamp: Date.now()
     };
 
+    // Process individual player kills
     ['STARMAN', 'RSKILLA', 'SWFTSWORD', 'VAIDED', 'MOWGLI'].forEach(player => {
       const kills = parseInt(form[`kills${player}`].value);
-      if (kills !== -1) {
+      if (!isNaN(kills) && kills !== -1) {
         matchData.kills[player] = kills;
       }
     });
 
+    // Handle highlight video
     const highlightVideo = form.highlightVideo.files[0];
     if (highlightVideo) {
       const videoRef = storageRef(storage, `highlights/${sessionId}/${Date.now()}_${highlightVideo.name}`);
@@ -344,20 +356,22 @@ async function addOrUpdateMatch(e) {
       matchData.highlightURL = url;
     }
 
+    // Save match data
     await set(ref(database, `gameSessions/${sessionId}/matches/${matchId}`), matchData);
     
     // Process achievements
-    await processMatchResult(matchData);
+    await handleMatchUpdate(matchData);
 
+    // Reload matches and close modal
     loadMatches(sessionId);
     modal.style.display = "none";
 
-    // Show notification
-    showNotification(matchData);
+    // Show success message
+    alert(`Match successfully ${matchId ? 'updated' : 'added'}!`);
 
   } catch (error) {
     console.error("Error adding/updating match:", error);
-    alert('Error adding/updating match. Please try again.');
+    alert(`Error ${matchId ? 'updating' : 'adding'} match: ${error.message}`);
   }
 }
 function showNotification(matchData) {

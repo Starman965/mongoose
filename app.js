@@ -128,9 +128,9 @@ function checkAchievementCriteria(achievement, matchData) {
     if (!achievement.occursOnDOW.includes(matchDay)) return false;
   }
 
-  if (achievement.gameTypeId !== 'Any' && achievement.gameTypeId !== matchData.gameTypeId) return false;
-  if (achievement.gameModeId !== 'Any' && achievement.gameModeId !== matchData.gameModeId) return false;
-  if (achievement.mapId !== 'Any' && achievement.mapId !== matchData.mapId) return false;
+  if (achievement.gameType !== 'Any' && achievement.gameType !== matchData.gameType) return false;
+  if (achievement.gameMode !== 'Any' && achievement.gameMode !== matchData.gameMode) return false;
+  if (achievement.map !== 'Any' && achievement.map !== matchData.map) return false;
 
   if (achievement.placement !== 'Any') {
     if (matchData.gameType.toLowerCase() === 'multiplayer') {
@@ -148,6 +148,7 @@ function checkAchievementCriteria(achievement, matchData) {
 
   return true;
 }
+
 function checkOperatorCondition(operator, achievementValue, matchValue) {
   switch (operator) {
     case '=': return achievementValue === matchValue;
@@ -250,6 +251,14 @@ function showAchievementsAdmin() {
   `;
   loadAchievementsAdmin();
 }
+// these two exports added 8.19 and wonder if they should be in my awardsmanager.js
+export function getAchievementsUpdates() {
+  // This function can be implemented to return recent achievement updates
+  // if you're tracking them separately
+  return [];
+}
+
+export { processMatchResult };
 
 function showAchievementManagement() {
   const adminContent = document.getElementById('adminContent');
@@ -475,9 +484,9 @@ function addOrUpdateAchievement(e) {
     id: achievementId,
     title: form.title.value,
     description: form.description.value,
-    gameTypeId: form.gameType.value,
-    gameModeId: form.gameMode.value,
-    mapId: form.map.value,
+    gameType: form.gameType.value,
+    gameMode: form.gameMode.value,
+    map: form.map.value,
     achievementPoints: parseInt(form.achievementPoints.value) || 0,
     placement: form.placement.value,
     totalKills: parseInt(form.totalKills.value) || 0,
@@ -2572,8 +2581,17 @@ async function updateAchievementProgress(id, achievement, matchData) {
 
   achievement.lastProgressDate = matchData.timestamp;
 
-  await set(ref(database, `achievements/${id}`), achievement);
+  await update(ref(database, `achievements/${id}`), achievement);
 
   // Notify user of achievement update
   showAchievementNotification(update);
 }
+// This function should be called after a match is added or updated
+async function handleMatchUpdate(matchData) {
+  await processMatchResult(matchData);
+  const updates = getAchievementsUpdates();
+  updates.forEach(update => showAchievementNotification(update));
+}
+
+// Export functions that need to be used by other modules
+export { addOrUpdateAchievement, handleMatchUpdate };

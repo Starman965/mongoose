@@ -2542,3 +2542,38 @@ window.mergeAndUpdateDatabase = async function() {
     alert("Error updating database. Check console for details.");
   }
 };
+async function updateAchievementProgress(id, achievement, matchData) {
+  achievement.currentProgress++;
+  let update = `Progress made on achievement "${achievement.title}"`;
+
+  if (achievement.currentProgress >= achievement.timesToComplete) {
+    achievement.status = 'Completed';
+    achievement.completedAt = matchData.timestamp;
+    update = `Achievement "${achievement.title}" completed!`;
+
+    achievement.completionCount = (achievement.completionCount || 0) + 1;
+
+    if (!achievement.completionHistory) achievement.completionHistory = [];
+    achievement.completionHistory.push({
+      completedAt: matchData.timestamp,
+      matchId: matchData.id
+    });
+
+    if (!achievement.canCompleteMultipleTimes) {
+      achievement.isActive = false;
+    } else {
+      achievement.currentProgress = 0;
+    }
+
+    achievement.lastCompletedAt = matchData.timestamp;
+  } else {
+    achievement.status = 'In Progress';
+  }
+
+  achievement.lastProgressDate = matchData.timestamp;
+
+  await set(ref(database, `achievements/${id}`), achievement);
+
+  // Notify user of achievement update
+  showAchievementNotification(update);
+}

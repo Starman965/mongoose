@@ -789,7 +789,8 @@ window.showModal = async function(action, id = null, subId = null) {
         updateGameModeAndMapOptions();
     }, 0);
     break;
-
+    }
+}
 // Helper functions for populating select options
 async function addOrUpdateGameSession(e) {
   e.preventDefault();

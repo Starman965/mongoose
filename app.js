@@ -825,3 +825,159 @@ export {
   handleMatchUpdate,
   showAchievementNotification
 };
+// stuff claude claims he left out
+// Update Game Mode Options
+async function updateGameModeOptions() {
+    const gameType = document.getElementById('gameType').value;
+    const gameModeSelect = document.getElementById('gameMode');
+    gameModeSelect.innerHTML = '<option value="">Select Game Mode</option>';
+
+    if (gameType) {
+        try {
+            const gameModes = await get(ref(database, `gameTypes/${gameType}/gameModes`));
+            gameModes.forEach((modeSnapshot) => {
+                const mode = modeSnapshot.val();
+                const option = document.createElement('option');
+                option.value = modeSnapshot.key;
+                option.textContent = mode.name;
+                gameModeSelect.appendChild(option);
+            });
+        } catch (error) {
+            console.error("Error fetching game modes:", error);
+        }
+    }
+}
+
+// Update Map Options
+async function updateMapOptions() {
+    const gameType = document.getElementById('gameType').value;
+    const mapSelect = document.getElementById('map');
+    mapSelect.innerHTML = '<option value="">Select Map</option>';
+
+    if (gameType) {
+        try {
+            const maps = await get(ref(database, `maps/${gameType}`));
+            maps.forEach((mapSnapshot) => {
+                const map = mapSnapshot.val();
+                const option = document.createElement('option');
+                option.value = mapSnapshot.key;
+                option.textContent = map.name;
+                mapSelect.appendChild(option);
+            });
+        } catch (error) {
+            console.error("Error fetching maps:", error);
+        }
+    }
+}
+
+// Update Placement Input
+function updatePlacementInput() {
+    const gameType = document.getElementById('gameType').value;
+    const placementContainer = document.getElementById('placementContainer');
+    
+    if (gameType === 'warzone') {
+        placementContainer.innerHTML = `
+            <label for="placement">Placement <span id="placementValue" class="slider-value">1st</span></label>
+            <input type="range" id="placement" class="slider" min="1" max="10" step="1" value="1" required>
+        `;
+        document.getElementById('placement').addEventListener('input', updatePlacementValue);
+    } else if (gameType === 'multiplayer') {
+        placementContainer.innerHTML = `
+            <label for="placement">Result</label>
+            <div class="toggle-switch">
+                <input type="checkbox" id="placement" name="placement" class="toggle-input">
+                <label for="placement" class="toggle-label">
+                    <span class="toggle-inner"></span>
+                </label>
+            </div>
+        `;
+        document.getElementById('placement').checked = false; // Default to 'Lost'
+    }
+}
+
+// Update Placement Value (for Warzone)
+function updatePlacementValue() {
+    const placement = document.getElementById('placement').value;
+    const placementText = placement == 10 ? '10th+' : `${placement}${getOrdinalSuffix(placement)}`;
+    document.getElementById('placementValue').textContent = placementText;
+}
+
+// Get Ordinal Suffix
+function getOrdinalSuffix(i) {
+    var j = i % 10,
+        k = i % 100;
+    if (j == 1 && k != 11) {
+        return "st";
+    }
+    if (j == 2 && k != 12) {
+        return "nd";
+    }
+    if (j == 3 && k != 13) {
+        return "rd";
+    }
+    return "th";
+}
+
+// Update Slider Value
+function updateSliderValue(event) {
+    const slider = event.target;
+    const valueSpan = document.getElementById(`${slider.id}Value`);
+    const value = parseInt(slider.value);
+    valueSpan.textContent = value === -1 ? 'N/A' : value;
+}
+
+// Update Game Mode and Map Options (for Achievements)
+async function updateGameModeAndMapOptions() {
+  console.log("Updating game mode and map options...");
+  const gameModeSelect = document.getElementById('gameMode');
+  const mapSelect = document.getElementById('map');
+
+  if (!gameModeSelect || !mapSelect) {
+    console.error("Game mode or map select element not found");
+    return;
+  }
+
+  const [selectedGameType, selectedGameMode] = gameModeSelect.value.split('|');
+  console.log(`Selected: Game Type - ${selectedGameType}, Game Mode - ${selectedGameMode}`);
+
+  // Clear existing map options and add 'Any' option
+  mapSelect.innerHTML = '<option value="Any">Any</option>';
+
+  if (selectedGameType !== 'Any') {
+    try {
+      // Fetch maps based on selected game type
+      const mapsSnapshot = await get(ref(database, `maps/${selectedGameType.toLowerCase()}`));
+      console.log("Maps data retrieved:", mapsSnapshot.val());
+      if (mapsSnapshot.exists()) {
+        mapsSnapshot.forEach((mapSnapshot) => {
+          const map = mapSnapshot.val();
+          const option = document.createElement('option');
+          option.value = map.name;
+          option.textContent = map.name;
+          mapSelect.appendChild(option);
+        });
+      } else {
+        console.warn(`No maps found for game type: ${selectedGameType}`);
+      }
+    } catch (error) {
+      console.error("Error fetching maps:", error);
+    }
+  }
+
+  // Set selected values if editing an achievement
+  const achievementForm = document.getElementById('achievementForm');
+  if (achievementForm) {
+    const achievementId = achievementForm.dataset.id;
+    if (achievementId) {
+      try {
+        const achievementSnapshot = await get(ref(database, `achievements/${achievementId}`));
+        const achievement = achievementSnapshot.val();
+        if (achievement) {
+          mapSelect.value = achievement.map || 'Any';
+        }
+      } catch (error) {
+        console.error("Error fetching achievement data:", error);
+      }
+    }
+  }
+}

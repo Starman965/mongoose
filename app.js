@@ -573,7 +573,7 @@ window.showModal = async function(action, id = null, subId = null) {
             }
             break;
 
-        case 'addGameSession':
+          case 'addGameSession':
             modalContent.innerHTML = `
                 <h3>Add Game Session</h3>
                 <form id="gameSessionForm">
@@ -824,11 +824,16 @@ async function addOrUpdateGameSession(e) {
     await set(ref(database, `gameSessions/${sessionId}`), sessionData);
     loadGameSessions();
     modal.style.display = "none";
+    alert('Game session added successfully!');
   } catch (error) {
     console.error("Error adding/updating game session: ", error);
     alert('Error adding/updating game session. Please try again.');
   }
 }
+
+// Make sure this function is exported if it's in a module
+export { addOrUpdateGameSession };
+
 // Populate Game Modes
 async function populateGameModes() {
   console.log("Populating game modes...");

@@ -1106,7 +1106,7 @@ function showAdmin() {
 
     // Attach event listeners for the Admin buttons
     document.getElementById('achievementsAdminNav').addEventListener('click', () => showAchievementsPage());
-    document.getElementById('teamMembersAdminNav').addEventListener('click', () => showTeamMembersPage());
+    document.getElementById('teamMembersAdminNav').addEventListener('click', () => showAdminTeamMembersPage());
     document.getElementById('gameTypesAdminNav').addEventListener('click', () => showGameTypesPage());
     document.getElementById('mapsAdminNav').addEventListener('click', () => showMapsPage());
     document.getElementById('dbUtilitiesAdminNav').addEventListener('click', () => showDatabaseUtilitiesPage());
@@ -1118,10 +1118,185 @@ function showAchievementsPage() {
 }
 
 
-function showTeamMembersPage() {
+function showAdminTeamMembersPage() {
     const adminContent = document.getElementById('adminContent');
-    adminContent.innerHTML = '<h2>Manage Team Members</h2><p>Team Members management UI will go here.</p>';
+    
+    adminContent.innerHTML = `
+        <h2>Manage Team Members</h2>
+        <button id="addAdminMemberBtn" class="button">Add New Member</button>
+        <div id="adminTeamMembersTableContainer">
+            <table id="adminTeamMembersTable" class="admin-team-members-table">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Gamertag</th>
+                        <th>State</th>
+                        <th>Birthdate</th>
+                        <th>Favorite Snack</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Team Members Rows will be dynamically added here -->
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Modal for Adding/Editing Team Members -->
+        <div id="adminMemberModal" class="modal">
+            <div class="modal-content">
+                <span class="close" id="closeAdminMemberModal">&times;</span>
+                <form id="adminAddEditMemberForm">
+                    <h3 id="adminModalTitle">Add New Member</h3>
+                    <div class="form-group">
+                        <label for="adminMemberName">Name</label>
+                        <input type="text" id="adminMemberName" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="adminMemberGamertag">Gamertag</label>
+                        <input type="text" id="adminMemberGamertag" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="adminMemberState">State</label>
+                        <input type="text" id="adminMemberState" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="adminMemberBirthdate">Birthdate</label>
+                        <input type="date" id="adminMemberBirthdate" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="adminMemberFavoriteSnack">Favorite Snack</label>
+                        <input type="text" id="adminMemberFavoriteSnack" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="adminMemberAvatar">Avatar</label>
+                        <input type="file" id="adminMemberAvatar" accept="image/*">
+                    </div>
+                    <button type="submit" class="button">Save Member</button>
+                </form>
+            </div>
+        </div>
+    `;
+
+    // Attach event listener for the "Add New Member" button
+    document.getElementById('addAdminMemberBtn').addEventListener('click', () => openAdminMemberModal());
+    document.getElementById('closeAdminMemberModal').addEventListener('click', closeAdminMemberModal);
+
+    // Load team members in the admin view
+    loadAdminTeamMembers();
 }
+function loadAdminTeamMembers() {
+    const adminTeamMembersTableBody = document.querySelector('#adminTeamMembersTable tbody');
+    adminTeamMembersTableBody.innerHTML = 'Loading team members...';
+
+    onValue(ref(database, 'teamMembers'), (snapshot) => {
+        adminTeamMembersTableBody.innerHTML = '';
+        snapshot.forEach((childSnapshot) => {
+            const member = childSnapshot.val();
+            const memberId = childSnapshot.key;
+            
+            adminTeamMembersTableBody.innerHTML += `
+                <tr>
+                    <td>${member.name}</td>
+                    <td>${member.gamertag}</td>
+                    <td>${member.state}</td>
+                    <td>${member.birthdate}</td>
+                    <td>${member.favoriteSnack}</td>
+                    <td>
+                        <button class="button" onclick="editAdminTeamMember('${memberId}')">Edit</button>
+                        <button class="button" onclick="deleteAdminTeamMember('${memberId}')">Delete</button>
+                    </td>
+                </tr>
+            `;
+        });
+
+        if (adminTeamMembersTableBody.innerHTML === '') {
+            adminTeamMembersTableBody.innerHTML = '<tr><td colspan="6">No team members found.</td></tr>';
+        }
+    });
+}
+function openAdminMemberModal(member = null) {
+    const modal = document.getElementById('adminMemberModal');
+    const modalTitle = document.getElementById('adminModalTitle');
+    const form = document.getElementById('adminAddEditMemberForm');
+    
+    // Reset form fields
+    form.reset();
+
+    if (member) {
+        modalTitle.textContent = 'Edit Member';
+        form.dataset.id = member.id;
+        document.getElementById('adminMemberName').value = member.name;
+        document.getElementById('adminMemberGamertag').value = member.gamertag;
+        document.getElementById('adminMemberState').value = member.state;
+        document.getElementById('adminMemberBirthdate').value = member.birthdate;
+        document.getElementById('adminMemberFavoriteSnack').value = member.favoriteSnack;
+    } else {
+        modalTitle.textContent = 'Add New Member';
+        delete form.dataset.id;
+    }
+
+    modal.style.display = 'block';
+}
+
+function closeAdminMemberModal() {
+    document.getElementById('adminMemberModal').style.display = 'none';
+}
+document.getElementById('adminAddEditMemberForm').addEventListener('submit', async function (e) {
+    e.preventDefault();
+
+    const form = e.target;
+    const memberId = form.dataset.id || null;
+    const memberData = {
+        name: form.adminMemberName.value,
+        gamertag: form.adminMemberGamertag.value,
+        state: form.adminMemberState.value,
+        birthdate: form.adminMemberBirthdate.value,
+        favoriteSnack: form.adminMemberFavoriteSnack.value
+    };
+
+    const avatarFile = form.adminMemberAvatar.files[0];
+
+    if (avatarFile) {
+        try {
+            const avatarRef = ref(storage, `teamMembers/${Date.now()}_${avatarFile.name}`);
+            const snapshot = await uploadBytes(avatarRef, avatarFile);
+            const avatarURL = await getDownloadURL(snapshot.ref);
+            memberData.photoURL = avatarURL;
+        } catch (error) {
+            console.error('Error uploading avatar:', error);
+            alert('Error uploading avatar.');
+            return;
+        }
+    }
+
+    try {
+        if (memberId) {
+            await update(ref(database, `teamMembers/${memberId}`), memberData);
+        } else {
+            await push(ref(database, 'teamMembers'), memberData);
+        }
+        closeAdminMemberModal();
+        loadAdminTeamMembers(); // Refresh the list
+    } catch (error) {
+        console.error('Error saving team member:', error);
+        alert('Error saving team member.');
+    }
+});
+
+function deleteAdminTeamMember(memberId) {
+    if (confirm('Are you sure you want to delete this member?')) {
+        remove(ref(database, `teamMembers/${memberId}`))
+            .then(() => {
+                loadAdminTeamMembers(); // Refresh the list
+            })
+            .catch((error) => {
+                console.error('Error deleting team member:', error);
+                alert('Error deleting team member.');
+            });
+    }
+}
+
 
 function showGameTypesPage() {
     const adminContent = document.getElementById('adminContent');

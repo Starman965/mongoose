@@ -1225,7 +1225,7 @@ function displayAchievements() {
             const achievementId = childSnapshot.key;
 
             // Add trophy icon if achievement is completed
-            const awardIcon = achievement.status === 'Completed' ? '<img src="trophy.png" alt="Trophy" />' : '';
+            const awardIcon = achievement.status === 'Completed' ? '<img src="achievementbadgedefault.png" alt="Trophy" />' : '';
             
             achievementsContainer.innerHTML += `
                 <div class="achievement-card">

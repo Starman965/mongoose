@@ -1113,22 +1113,30 @@ function showAdmin() {
 }
 
 function showAchievementsPage() {
-    mainContent.innerHTML = '<h2>Manage Achievements</h2><p>Achievements management UI will go here.</p>';
+    const adminContent = document.getElementById('adminContent');
+    adminContent.innerHTML = '<h2>Manage Achievements</h2><p>Achievements management UI will go here.</p>';
 }
 
+
 function showTeamMembersPage() {
-    mainContent.innerHTML = '<h2>Manage Team Members</h2><p>Team Members management UI will go here.</p>';
+    const adminContent = document.getElementById('adminContent');
+    adminContent.innerHTML = '<h2>Manage Team Members</h2><p>Team Members management UI will go here.</p>';
 }
 
 function showGameTypesPage() {
-    mainContent.innerHTML = '<h2>Manage Game Types and Modes</h2><p>Game Types and Modes management UI will go here.</p>';
+    const adminContent = document.getElementById('adminContent');
+    adminContent.innerHTML = '<h2>Manage Game Types and Modes</h2><p>Game Types and Modes management UI will go here.</p>';
 }
+
 
 function showMapsPage() {
-    mainContent.innerHTML = '<h2>Manage Maps</h2><p>Maps management UI will go here.</p>';
+    const adminContent = document.getElementById('adminContent');
+    adminContent.innerHTML = '<h2>Manage Maps</h2><p>Maps management UI will go here.</p>';
 }
 
+
 function showDatabaseUtilitiesPage() {
-    mainContent.innerHTML = '<h2>Database Utilities</h2><p>Database utilities and tools will go here.</p>';
+    const adminContent = document.getElementById('adminContent');
+    adminContent.innerHTML = '<h2>Database Utilities</h2><p>Database utilities and tools will go here.</p>';
 }
 

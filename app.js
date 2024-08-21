@@ -20,7 +20,10 @@ window.onclick = (event) => {
 // Navigation setup
 document.getElementById('statsNav').addEventListener('click', () => showSection('stats'));
 document.getElementById('sessionsNav').addEventListener('click', () => showSection('sessions'));
+// achievements page will go here
+document.getElementById('highlightsNav').addEventListener('click', () => showHighlightsPage());
 document.getElementById('teamNav').addEventListener('click', () => showSection('team'));
+// admin page will go here
 document.getElementById('helpNav').addEventListener('click', () => showHelp());
 document.getElementById('aboutNav').addEventListener('click', () => showAbout());
 
@@ -757,7 +760,81 @@ function formatDateForInput(dateString) {
     return date.toISOString().split('T')[0];
 }
 
-// ChatGPT 8.20: Function to view highlight video in a modal
+// Highlights Page Functions
+// Function to show Highlights page
+function showHighlightsPage() {
+    mainContent.innerHTML = `
+        <h2>Match Highlights</h2>
+        <div id="highlightsTableContainer">
+            <table id="highlightsTable" class="highlights-table">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Game Type</th>
+                        <th>Game Mode</th>
+                        <th>Map</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Highlight Rows will be dynamically added here -->
+                </tbody>
+            </table>
+        </div>
+    `;
+    loadHighlights();
+}
+
+// Function to load highlights
+function loadHighlights() {
+    const highlightsTableBody = document.querySelector('#highlightsTable tbody');
+    highlightsTableBody.innerHTML = 'Loading highlights...';
+
+    // Fetch game sessions from the database
+    get(ref(database, 'gameSessions')).then((snapshot) => {
+        const sessions = [];
+        snapshot.forEach((childSnapshot) => {
+            const session = childSnapshot.val();
+            session.id = childSnapshot.key;
+            sessions.push(session);
+        });
+
+        let highlightRows = '';
+        sessions.forEach((session) => {
+            const sessionDate = formatDate(session.date, session.userTimezoneOffset);
+
+            Object.entries(session.matches || {}).forEach(([matchId, match]) => {
+                if (match.highlightURL) {
+                    highlightRows += `
+                        <tr>
+                            <td>${sessionDate}</td>
+                            <td>${match.gameType}</td>
+                            <td>${match.gameMode}</td>
+                            <td>${match.map}</td>
+                            <td>
+                                <button class="button" onclick="viewHighlight('${match.highlightURL}')">View Highlight</button>
+                            </td>
+                        </tr>
+                    `;
+                }
+            });
+        });
+
+        // Populate the table with the highlight rows
+        if (highlightRows === '') {
+            highlightsTableBody.innerHTML = '<tr><td colspan="5">No highlights found.</td></tr>';
+        } else {
+            highlightsTableBody.innerHTML = highlightRows;
+        }
+    }).catch((error) => {
+        console.error("Error loading highlights:", error);
+        highlightsTableBody.innerHTML = '<tr><td colspan="5">Error loading highlights. Please try again.</td></tr>';
+    });
+}
+
+
+
+// ChatGPT 8.20: These Functions are to view highlight video in a modal in Matches Area
 window.viewHighlight = function(url) {
     const modal = document.getElementById('videoModal');
     const videoPlayer = document.getElementById('highlightVideoPlayer');

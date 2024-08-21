@@ -1177,6 +1177,7 @@ function loadAchievements() {
     });
 }
 function analyzeAchievements() {
+    // Fetch match data
     onValue(ref(database, 'gameSessions'), (snapshot) => {
         snapshot.forEach((sessionSnapshot) => {
             const session = sessionSnapshot.val();
@@ -1184,14 +1185,9 @@ function analyzeAchievements() {
             session.matches && Object.keys(session.matches).forEach((matchId) => {
                 const match = session.matches[matchId];
                 
-                // Example condition: Check for a win
-                if (match.placement === 1) {
-                    updateAchievementProgress('winAchievementId');
-                }
-
-                // Example condition: Check for team kill streak achievement
-                if (match.totalKills >= 20) {
-                    updateAchievementProgress('killStreakAchievementId');
+                // Check for the STARMAN's Rampage achievement
+                if (match.kills && match.kills.STARMAN >= 10) {
+                    updateAchievementProgress('starmanRampageAchievementId');
                 }
             });
         });
@@ -1205,7 +1201,7 @@ function updateAchievementProgress(achievementId) {
         if (snapshot.exists()) {
             const achievement = snapshot.val();
 
-            // Update the achievement's status to "Completed" and increment the completion count
+            // Update the achievement's status to "Completed" if it's not already completed
             if (achievement.status !== 'Completed') {
                 update(achievementRef, {
                     status: 'Completed',
@@ -1215,6 +1211,35 @@ function updateAchievementProgress(achievementId) {
         }
     });
 }
+
+function updateAchievementProgress(achievementId) {
+    const achievementRef = ref(database, `achievements/${achievementId}`);
+
+    get(achievementRef).then((snapshot) => {
+        if (snapshot.exists()) {
+            const achievement = snapshot.val();
+            console.log("Achievement data before update:", achievement);
+
+            // Update the achievement's status to "Completed" if it's not already completed
+            if (achievement.status !== 'Completed') {
+                console.log(`Updating achievement ${achievementId} to Completed.`);
+                update(achievementRef, {
+                    status: 'Completed',
+                    completionCount: achievement.completionCount + 1
+                }).then(() => {
+                    console.log("Achievement successfully updated.");
+                }).catch((error) => {
+                    console.error("Error updating achievement:", error);
+                });
+            }
+        } else {
+            console.error("Achievement not found:", achievementId);
+        }
+    }).catch((error) => {
+        console.error("Error fetching achievement:", error);
+    });
+}
+
 function displayAchievements() {
     const achievementsContainer = document.getElementById('achievementsContainer');
     achievementsContainer.innerHTML = '';

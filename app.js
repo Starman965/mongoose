@@ -868,7 +868,7 @@ async function updateTeamMember(e) {
 }
 
 function showHelp() {
-  mainContent.innerHTML = '<h2>Help</h2><p>Help information will be displayed here.</p>';
+  mainContent.innerHTML = '<h2>Help</h2><p>If you need help and this is an emergency, please log off and call 911.</p>';
 }
 
 function showAbout() {

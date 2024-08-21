@@ -440,8 +440,8 @@ window.showAddMatchModal = function(sessionId) {
                 <!-- Placement input will be dynamically added here -->
             </div>
             <div class="form-group">
-                <label for="totalKills">Total Kills</label>
-                <input type="number" id="totalKills" min="0" value="0">
+                <label for="totalKills">Total Kills <span id="totalKillsValue">0</span></label>
+                <input type="range" id="totalKills" min="0" max="100" value="0" class="slider" required>
             </div>
             <div id="playerKillsContainer">
                 <!-- Player kill inputs will be dynamically added here -->
@@ -454,11 +454,20 @@ window.showAddMatchModal = function(sessionId) {
         </form>
     `;
     
+    // Total kills slider
+    const totalKillsSlider = document.getElementById('totalKills');
+    const totalKillsValue = document.getElementById('totalKillsValue');
+    
+    totalKillsSlider.addEventListener('input', () => {
+        totalKillsValue.textContent = totalKillsSlider.value;
+    });
+    
     document.getElementById('addMatchForm').addEventListener('submit', (e) => addMatch(e, sessionId));
     document.getElementById('gameType').addEventListener('change', updateGameModeAndMapOptions);
     updatePlayerKillInputs();
     modal.style.display = 'block';
 }
+
 // Function to add a new match
 async function addMatch(e, sessionId) {
     e.preventDefault();
@@ -658,16 +667,14 @@ function updatePlacementInput(gameType, currentPlacement = null) {
     if (gameType === 'warzone') {
         placementContainer.innerHTML = `
             <label for="placement">Placement <span id="placementValue"></span></label>
-            <input type="range" id="placement" class="slider" min="1" max="150" step="1" value="${currentPlacement || 1}" required>
+            <input type="range" id="placement" class="slider" min="1" max="10" step="1" value="${currentPlacement || 1}" required>
         `;
         const placementSlider = document.getElementById('placement');
         const placementValue = document.getElementById('placementValue');
-        placementValue.textContent = currentPlacement || '1st';
+        placementValue.textContent = getPlacementText(currentPlacement || 1);
+
         placementSlider.addEventListener('input', () => {
-            placementValue.textContent = placementSlider.value === '1' ? '1st' : 
-                                         placementSlider.value === '2' ? '2nd' : 
-                                         placementSlider.value === '3' ? '3rd' : 
-                                         `${placementSlider.value}th`;
+            placementValue.textContent = getPlacementText(placementSlider.value);
         });
     } else if (gameType === 'multiplayer') {
         placementContainer.innerHTML = `
@@ -682,20 +689,37 @@ function updatePlacementInput(gameType, currentPlacement = null) {
     }
 }
 
+function getPlacementText(value) {
+    if (value === '1') return '1st';
+    if (value === '2') return '2nd';
+    if (value === '3') return '3rd';
+    return `${value}th`;
+}
+
+
 // Function to update player kill inputs
 function updatePlayerKillInputs(currentKills = {}) {
     const playerKillsContainer = document.getElementById('playerKillsContainer');
     playerKillsContainer.innerHTML = '';
 
     ['STARMAN', 'RSKILLA', 'SWFTSWORD', 'VAIDED', 'MOWGLI'].forEach(player => {
+        const playerKills = currentKills[player] || 0;
         playerKillsContainer.innerHTML += `
             <div class="form-group">
-                <label for="kills-${player}">${player} Kills</label>
-                <input type="number" id="kills-${player}" min="0" value="${currentKills[player] || 0}">
+                <label for="kills-${player}">${player} Kills <span id="killsValue-${player}">${playerKills}</span></label>
+                <input type="range" id="kills-${player}" min="0" max="30" value="${playerKills}" class="slider" required>
             </div>
         `;
+        
+        const killsSlider = document.getElementById(`kills-${player}`);
+        const killsValue = document.getElementById(`killsValue-${player}`);
+        
+        killsSlider.addEventListener('input', () => {
+            killsValue.textContent = killsSlider.value;
+        });
     });
 }
+
 
 // Function to get game modes for a given game type
 async function getGameModes(gameType) {

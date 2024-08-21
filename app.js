@@ -876,7 +876,7 @@ function showAbout() {
     <div class="about-us">
       <!-- Team Logo -->
       <div class="team-logo-about" style="text-align: center;">
-        <img src="team-logo.png" alt="Team Logo">
+        <img src="2022-group-logo.png" alt="Team Logo">
       </div>
 
       <!-- About Us Header -->
@@ -908,14 +908,14 @@ function showAbout() {
 
       <!-- Centered Wedding Photo -->
       <div class="wedding-photo" style="text-align: center; margin: 30px 0;">
-        <img src="wedding-photo.jpg" alt="Wedding Photo" style="max-width: 500px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
+        <img src="wedding-photo.JPG" alt="Wedding Photo" style="max-width: 500px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
         <figcaption style="color: #FFD700; font-style: italic; margin-top: 10px;">The first time we met in person at Usman’s wedding in Disney World</figcaption>
       </div>
 
       <!-- Embedded Team Trailer -->
       <div class="team-trailer" style="text-align: center; margin-top: 20px;">
         <video controls style="max-width: 100%; border-radius: 8px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
-          <source src="trailer.mp4" type="video/mp4">
+          <source src="mongooseintro.mp4" type="video/mp4">
           Your browser does not support the video tag.
         </video>
       </div>

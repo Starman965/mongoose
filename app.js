@@ -757,9 +757,49 @@ function formatDateForInput(dateString) {
     return date.toISOString().split('T')[0];
 }
 
-// Function to view highlight video
+// ChatGPT 8.20: Function to view highlight video in a modal
 window.viewHighlight = function(url) {
-    window.open(url, '_blank');
+    const modal = document.getElementById('videoModal');
+    const videoPlayer = document.getElementById('highlightVideoPlayer');
+    const videoSource = document.getElementById('highlightVideoSource');
+
+    // Set the video source to the provided URL
+    videoSource.src = url;
+    videoPlayer.load(); // Reload the video element with the new source
+
+    // Show the modal
+    modal.style.display = 'block';
+    
+    // Play the video when modal is opened
+    videoPlayer.play();
+}
+
+// Get the modal element and the close button
+const videoModal = document.getElementById('videoModal');
+const closeVideoModal = document.getElementById('closeVideoModal');
+
+// Close the modal when the 'x' is clicked
+closeVideoModal.onclick = function() {
+    const videoPlayer = document.getElementById('highlightVideoPlayer');
+
+    // Pause the video when the modal is closed
+    videoPlayer.pause();
+
+    // Hide the modal
+    videoModal.style.display = 'none';
+}
+
+// Close the modal if the user clicks anywhere outside of the modal content
+window.onclick = function(event) {
+    if (event.target == videoModal) {
+        const videoPlayer = document.getElementById('highlightVideoPlayer');
+
+        // Pause the video when the modal is closed
+        videoPlayer.pause();
+
+        // Hide the modal
+        videoModal.style.display = 'none';
+    }
 }
 
 // Function to show Team Members page

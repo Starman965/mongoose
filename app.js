@@ -392,7 +392,6 @@ function addGameSession(e) {
         }
     });
 }
-*/
 // Function to update a game session
 function updateGameSession(e, sessionId) {
     e.preventDefault();

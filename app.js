@@ -1189,18 +1189,19 @@ function loadAchievements() {
 function analyzeAchievements() {
     console.log("Starting achievement analysis...");
 
-    // Fetch all matches from the database
-    onValue(ref(database, 'gameSessions'), (snapshot) => {
+    // Fetch all matches from the database once
+    get(ref(database, 'gameSessions')).then((snapshot) => {
         snapshot.forEach((sessionSnapshot) => {
             const session = sessionSnapshot.val();
             console.log("Analyzing session:", session);
 
+            // Loop through matches in each session
             session.matches && Object.keys(session.matches).forEach((matchId) => {
                 const match = session.matches[matchId];
                 console.log("Analyzing match:", match);
 
-                // Fetch achievements from the database
-                onValue(ref(database, 'achievements'), (achievementSnapshot) => {
+                // Fetch achievements from the database once
+                get(ref(database, 'achievements')).then((achievementSnapshot) => {
                     achievementSnapshot.forEach((achievementChild) => {
                         const achievement = achievementChild.val();
                         const achievementId = achievementChild.key;
@@ -1211,13 +1212,17 @@ function analyzeAchievements() {
                             checkAchievementCriteria(match, achievement, achievementId, matchId); // Pass matchId here
                         }
                     });
+                }).catch((error) => {
+                    console.error("Error fetching achievements:", error);
                 });
             });
         });
+    }).catch((error) => {
+        console.error("Error fetching game sessions:", error);
     });
 }
 
-function checkAchievementCriteria(match, achievement, achievementId, matchId) { // Accept matchId as a parameter
+function checkAchievementCriteria(match, achievement, achievementId, matchId) {
     console.log("Checking criteria for achievement:", achievement.title);
 
     // Example: Check specific achievement criteria like STARMAN's Rampage
@@ -1225,8 +1230,8 @@ function checkAchievementCriteria(match, achievement, achievementId, matchId) { 
         if (match.kills && match.kills.STARMAN >= 10) {
             console.log(`STARMAN's Rampage criteria met in match:`, match);
             
-            // Ensure that this is correctly updating in Firebase
-            updateAchievementProgress(achievementId, matchId); // Pass matchId here
+            // Update the achievement progress once
+            updateAchievementProgress(achievementId, matchId);
         } else {
             console.log(`STARMAN's Rampage criteria not met. STARMAN kills:`, match.kills ? match.kills.STARMAN : 0);
         }

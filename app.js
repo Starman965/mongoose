@@ -877,7 +877,7 @@ function showAbout() {
     <div class="about-us">
       <!-- Team Logo -->
       <div class="team-logo">
-        <img src="team-logo.png" alt="Team Logo" style="max-width: 100px;">
+        <img src="2022-group-logo.png" alt="Team Logo" style="max-width: 100px;">
       </div>
 
       <h2>About Us: The Story of Mongoose Omelet</h2>

@@ -873,11 +873,11 @@ function showHelp() {
 
 function showAbout() {
   mainContent.innerHTML = `
-    <div class="about-us">
-      <!-- Team Logo -->
-      <div class="team-logo-about" style="text-align: center;">
-       <img src="2022-group-logo.png" alt="Mongoose Omelette Team Logo" width="300" height="300" style="display: block; margin: 0 auto;">
-      </div>
+    <div class="about-us" style="text-align: center; display: flex; flex-direction: column; align-items: center; justify-content: center;">
+  <!-- Team Logo -->
+  <div class="team-logo-about">
+    <img src="2022-group-logo.png" alt="Mongoose Omelette Team Logo" width="300" height="300" style="display: block; margin: 0 auto;">
+  </div>
 
       <!-- About Us Header -->
       <h1 style="text-align: center; color: #FFD700; font-size: 2em; margin-bottom: 20px;">

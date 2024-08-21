@@ -1237,7 +1237,23 @@ window.openAdminMemberModal = function(member = null) {
         delete form.dataset.id;
     }
 
+    // Attach the event listener after the modal is opened
+    form.addEventListener('submit', saveMember);
+
     modal.style.display = 'block';
+}
+
+window.editAdminTeamMember = function(memberId) {
+    get(ref(database, `teamMembers/${memberId}`)).then((snapshot) => {
+        if (snapshot.exists()) {
+            const member = snapshot.val();
+            member.id = memberId;
+            openAdminMemberModal(member); // Fill the form with member data
+        }
+    }).catch((error) => {
+        console.error('Error fetching member data:', error);
+        alert('Error fetching member data.');
+    });
 }
 
 window.closeAdminMemberModal = function() {

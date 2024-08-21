@@ -201,8 +201,545 @@ function displayPlayerStats(stats, container) {
     container.innerHTML = html;
 }
 
+// Function for the Game Sessions Tab
+
+// Function to show Game Sessions page
 function showGameSessions() {
-  mainContent.innerHTML = '<h2>Game Sessions</h2><p>Game sessions will be displayed here.</p>';
+    mainContent.innerHTML = `
+        <h2>Game Sessions</h2>
+        <button class="button" onclick="showAddGameSessionModal()">Add Game Session</button>
+        <div id="sessionList"></div>
+    `;
+    loadGameSessions();
+}
+
+// Function to load and display game sessions
+function loadGameSessions() {
+    const sessionList = document.getElementById('sessionList');
+    sessionList.innerHTML = 'Loading game sessions...';
+
+    get(ref(database, 'gameSessions')).then((snapshot) => {
+        const sessions = [];
+        snapshot.forEach((childSnapshot) => {
+            const session = childSnapshot.val();
+            session.id = childSnapshot.key;
+            sessions.push(session);
+        });
+
+        sessions.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+        if (sessions.length === 0) {
+            sessionList.innerHTML = 'No game sessions found. Click the "Add Game Session" button to create one!';
+        } else {
+            sessionList.innerHTML = '';
+            sessions.forEach((session) => {
+                sessionList.innerHTML += `
+                    <div class="card">
+                        <h3>${formatDate(session.date)}</h3>
+                        <p>Number of matches: ${session.matches ? Object.keys(session.matches).length : 0}</p>
+                        <div class="button-group">
+                            <button class="button" onclick="toggleMatches('${session.id}')">View Matches</button>
+                            <button class="button" onclick="showAddMatchModal('${session.id}')">Add Match</button>
+                            <button class="button" onclick="showEditGameSessionModal('${session.id}')">Edit Session</button>
+                            <button class="button" onclick="deleteGameSession('${session.id}')">Delete Session</button>
+                        </div>
+                        <div id="matches-${session.id}" class="matches-container" style="display: none;"></div>
+                    </div>
+                `;
+            });
+        }
+    }).catch(error => {
+        console.error("Error loading game sessions:", error);
+        sessionList.innerHTML = 'Error loading game sessions. Please try again.';
+    });
+}
+
+// Function to toggle match visibility
+function toggleMatches(sessionId) {
+    const matchesContainer = document.getElementById(`matches-${sessionId}`);
+    if (matchesContainer.style.display === 'none') {
+        loadMatches(sessionId);
+        matchesContainer.style.display = 'block';
+    } else {
+        matchesContainer.style.display = 'none';
+    }
+}
+
+// Function to load matches for a session
+function loadMatches(sessionId) {
+    const matchesContainer = document.getElementById(`matches-${sessionId}`);
+    get(ref(database, `gameSessions/${sessionId}`)).then((snapshot) => {
+        if (snapshot.exists()) {
+            const session = snapshot.val();
+            let matchesHtml = '<h3>Matches</h3>';
+            if (session.matches) {
+                matchesHtml += '<table class="matches-table"><tr><th>Game Type</th><th>Game Mode</th><th>Map</th><th>Placement</th><th>Total Kills</th><th>Actions</th></tr>';
+                
+                const sortedMatches = Object.entries(session.matches)
+                    .map(([id, match]) => ({ id, ...match }))
+                    .sort((a, b) => b.timestamp - a.timestamp);
+
+                sortedMatches.forEach((match) => {
+                    matchesHtml += `
+                        <tr>
+                            <td>${match.gameType}</td>
+                            <td>${match.gameMode}</td>
+                            <td>${match.map}</td>
+                            <td>${match.placement}</td>
+                            <td>${match.totalKills || 'N/A'}</td>
+                            <td>
+                                <button class="button" onclick="showEditMatchModal('${sessionId}', '${match.id}')">Edit</button>
+                                <button class="button" onclick="deleteMatch('${sessionId}', '${match.id}')">Delete</button>
+                                ${match.highlightURL ? `<button class="button" onclick="viewHighlight('${match.highlightURL}')">View Highlight</button>` : ''}
+                            </td>
+                        </tr>
+                    `;
+                });
+                matchesHtml += '</table>';
+            } else {
+                matchesHtml += '<p>No matches found for this session.</p>';
+            }
+            matchesContainer.innerHTML = matchesHtml;
+        }
+    });
+}
+
+// Function to delete a game session
+function deleteGameSession(sessionId) {
+    if (confirm('Are you sure you want to delete this game session? This action cannot be undone.')) {
+        remove(ref(database, `gameSessions/${sessionId}`))
+            .then(() => {
+                loadGameSessions();
+            })
+            .catch((error) => {
+                console.error("Error deleting game session:", error);
+                alert('Error deleting game session. Please try again.');
+            });
+    }
+}
+
+// Function to delete a match
+function deleteMatch(sessionId, matchId) {
+    if (confirm('Are you sure you want to delete this match? This action cannot be undone.')) {
+        remove(ref(database, `gameSessions/${sessionId}/matches/${matchId}`))
+            .then(() => {
+                loadMatches(sessionId);
+            })
+            .catch((error) => {
+                console.error("Error deleting match:", error);
+                alert('Error deleting match. Please try again.');
+            });
+    }
+}
+// Functions for Game Session Inputs
+// Show modal for adding a new game session
+function showAddGameSessionModal() {
+    const modal = document.getElementById('modal');
+    const modalContent = document.getElementById('modalContent');
+    
+    modalContent.innerHTML = `
+        <h3>Add New Game Session</h3>
+        <form id="addSessionForm">
+            <div class="form-group">
+                <label for="sessionDate">Session Date</label>
+                <input type="date" id="sessionDate" required>
+            </div>
+            <button type="submit" class="button">Add Session</button>
+        </form>
+    `;
+    
+    document.getElementById('addSessionForm').addEventListener('submit', addGameSession);
+    modal.style.display = 'block';
+}
+
+// Function to add a new game session
+function addGameSession(e) {
+    e.preventDefault();
+    const sessionDate = document.getElementById('sessionDate').value;
+    const newSessionRef = push(ref(database, 'gameSessions'));
+    set(newSessionRef, {
+        date: sessionDate,
+        userTimezoneOffset: new Date().getTimezoneOffset() * 60000
+    }).then(() => {
+        document.getElementById('modal').style.display = 'none';
+        loadGameSessions();
+    }).catch((error) => {
+        console.error("Error adding game session:", error);
+        alert('Error adding game session. Please try again.');
+    });
+}
+
+// Show modal for editing a game session
+function showEditGameSessionModal(sessionId) {
+    const modal = document.getElementById('modal');
+    const modalContent = document.getElementById('modalContent');
+    
+    get(ref(database, `gameSessions/${sessionId}`)).then((snapshot) => {
+        if (snapshot.exists()) {
+            const session = snapshot.val();
+            modalContent.innerHTML = `
+                <h3>Edit Game Session</h3>
+                <form id="editSessionForm">
+                    <div class="form-group">
+                        <label for="sessionDate">Session Date</label>
+                        <input type="date" id="sessionDate" value="${formatDateForInput(session.date)}" required>
+                    </div>
+                    <button type="submit" class="button">Update Session</button>
+                </form>
+            `;
+            
+            document.getElementById('editSessionForm').addEventListener('submit', (e) => updateGameSession(e, sessionId));
+            modal.style.display = 'block';
+        }
+    });
+}
+
+// Function to update a game session
+function updateGameSession(e, sessionId) {
+    e.preventDefault();
+    const sessionDate = document.getElementById('sessionDate').value;
+    update(ref(database, `gameSessions/${sessionId}`), {
+        date: sessionDate,
+        userTimezoneOffset: new Date().getTimezoneOffset() * 60000
+    }).then(() => {
+        document.getElementById('modal').style.display = 'none';
+        loadGameSessions();
+    }).catch((error) => {
+        console.error("Error updating game session:", error);
+        alert('Error updating game session. Please try again.');
+    });
+}
+
+// Show modal for adding a new match
+function showAddMatchModal(sessionId) {
+    const modal = document.getElementById('modal');
+    const modalContent = document.getElementById('modalContent');
+    
+    modalContent.innerHTML = `
+        <h3>Add New Match</h3>
+        <form id="addMatchForm">
+            <div class="form-group">
+                <label for="gameType">Game Type</label>
+                <select id="gameType" required onchange="updateGameModeOptions()">
+                    <option value="">Select Game Type</option>
+                    <option value="warzone">Warzone</option>
+                    <option value="multiplayer">Multiplayer</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="gameMode">Game Mode</label>
+                <select id="gameMode" required>
+                    <option value="">Select Game Mode</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="map">Map</label>
+                <select id="map" required>
+                    <option value="">Select Map</option>
+                </select>
+            </div>
+            <div id="placementContainer" class="form-group">
+                <!-- Placement input will be dynamically added here -->
+            </div>
+            <div class="form-group">
+                <label for="totalKills">Total Kills</label>
+                <input type="number" id="totalKills" min="0" value="0">
+            </div>
+            <div id="playerKillsContainer">
+                <!-- Player kill inputs will be dynamically added here -->
+            </div>
+            <div class="form-group">
+                <label for="highlightVideo">Highlight Video</label>
+                <input type="file" id="highlightVideo" accept="video/*">
+            </div>
+            <button type="submit" class="button">Add Match</button>
+        </form>
+    `;
+    
+    document.getElementById('addMatchForm').addEventListener('submit', (e) => addMatch(e, sessionId));
+    document.getElementById('gameType').addEventListener('change', updateGameModeAndMapOptions);
+    updatePlayerKillInputs();
+    modal.style.display = 'block';
+}
+
+// Function to add a new match
+async function addMatch(e, sessionId) {
+    e.preventDefault();
+    const form = e.target;
+    const matchData = {
+        gameType: form.gameType.value,
+        gameMode: form.gameMode.value,
+        map: form.map.value,
+        placement: form.gameType.value === 'warzone' ? parseInt(form.placement.value) : form.placement.checked ? 'Won' : 'Lost',
+        totalKills: parseInt(form.totalKills.value),
+        kills: {},
+        timestamp: Date.now()
+    };
+
+    // Process individual player kills
+    document.querySelectorAll('[id^="kills-"]').forEach(input => {
+        const player = input.id.split('-')[1];
+        const kills = parseInt(input.value);
+        if (!isNaN(kills)) {
+            matchData.kills[player] = kills;
+        }
+    });
+
+    // Handle highlight video
+    const highlightVideo = form.highlightVideo.files[0];
+    if (highlightVideo) {
+        try {
+            const videoRef = storageRef(storage, `highlights/${sessionId}/${Date.now()}_${highlightVideo.name}`);
+            const snapshot = await uploadBytes(videoRef, highlightVideo);
+            const url = await getDownloadURL(snapshot.ref);
+            matchData.highlightURL = url;
+        } catch (error) {
+            console.error("Error uploading highlight video:", error);
+            alert('Error uploading highlight video. The match will be saved without the video.');
+        }
+    }
+
+    // Save match data
+    const newMatchRef = push(ref(database, `gameSessions/${sessionId}/matches`));
+    set(newMatchRef, matchData).then(() => {
+        document.getElementById('modal').style.display = 'none';
+        loadMatches(sessionId);
+    }).catch((error) => {
+        console.error("Error adding match:", error);
+        alert('Error adding match. Please try again.');
+    });
+}
+
+// Show modal for editing a match
+function showEditMatchModal(sessionId, matchId) {
+    const modal = document.getElementById('modal');
+    const modalContent = document.getElementById('modalContent');
+    
+    get(ref(database, `gameSessions/${sessionId}/matches/${matchId}`)).then((snapshot) => {
+        if (snapshot.exists()) {
+            const match = snapshot.val();
+            modalContent.innerHTML = `
+                <h3>Edit Match</h3>
+                <form id="editMatchForm">
+                    <div class="form-group">
+                        <label for="gameType">Game Type</label>
+                        <select id="gameType" required onchange="updateGameModeOptions()">
+                            <option value="warzone" ${match.gameType === 'warzone' ? 'selected' : ''}>Warzone</option>
+                            <option value="multiplayer" ${match.gameType === 'multiplayer' ? 'selected' : ''}>Multiplayer</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="gameMode">Game Mode</label>
+                        <select id="gameMode" required>
+                            <option value="${match.gameMode}">${match.gameMode}</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="map">Map</label>
+                        <select id="map" required>
+                            <option value="${match.map}">${match.map}</option>
+                        </select>
+                    </div>
+                    <div id="placementContainer" class="form-group">
+                        <!-- Placement input will be dynamically added here -->
+                    </div>
+                    <div class="form-group">
+                        <label for="totalKills">Total Kills</label>
+                        <input type="number" id="totalKills" min="0" value="${match.totalKills || 0}">
+                    </div>
+                    <div id="playerKillsContainer">
+                        <!-- Player kill inputs will be dynamically added here -->
+                    </div>
+                    <div class="form-group">
+                        <label for="highlightVideo">Highlight Video</label>
+                        <input type="file" id="highlightVideo" accept="video/*">
+                        ${match.highlightURL ? `<p>Current video: <a href="${match.highlightURL}" target="_blank">View</a></p>` : ''}
+                    </div>
+                    <button type="submit" class="button">Update Match</button>
+                </form>
+            `;
+            
+           document.getElementById('editMatchForm').addEventListener('submit', (e) => updateMatch(e, sessionId, matchId));
+            document.getElementById('gameType').addEventListener('change', updateGameModeAndMapOptions);
+            updateGameModeAndMapOptions();
+            updatePlacementInput(match.gameType, match.placement);
+            updatePlayerKillInputs(match.kills);
+            modal.style.display = 'block';
+        }
+    });
+}
+
+// Function to update a match
+async function updateMatch(e, sessionId, matchId) {
+    e.preventDefault();
+    const form = e.target;
+    const matchData = {
+        gameType: form.gameType.value,
+        gameMode: form.gameMode.value,
+        map: form.map.value,
+        placement: form.gameType.value === 'warzone' ? parseInt(form.placement.value) : form.placement.checked ? 'Won' : 'Lost',
+        totalKills: parseInt(form.totalKills.value),
+        kills: {},
+        timestamp: Date.now()
+    };
+
+    // Process individual player kills
+    document.querySelectorAll('[id^="kills-"]').forEach(input => {
+        const player = input.id.split('-')[1];
+        const kills = parseInt(input.value);
+        if (!isNaN(kills)) {
+            matchData.kills[player] = kills;
+        }
+    });
+
+    // Handle highlight video
+    const highlightVideo = form.highlightVideo.files[0];
+    if (highlightVideo) {
+        try {
+            const videoRef = storageRef(storage, `highlights/${sessionId}/${Date.now()}_${highlightVideo.name}`);
+            const snapshot = await uploadBytes(videoRef, highlightVideo);
+            const url = await getDownloadURL(snapshot.ref);
+            matchData.highlightURL = url;
+        } catch (error) {
+            console.error("Error uploading highlight video:", error);
+            alert('Error uploading highlight video. The match will be updated without changing the video.');
+        }
+    }
+
+    // Update match data
+    update(ref(database, `gameSessions/${sessionId}/matches/${matchId}`), matchData).then(() => {
+        document.getElementById('modal').style.display = 'none';
+        loadMatches(sessionId);
+    }).catch((error) => {
+        console.error("Error updating match:", error);
+        alert('Error updating match. Please try again.');
+    });
+}
+
+// Function to update game mode and map options based on selected game type
+async function updateGameModeAndMapOptions() {
+    const gameType = document.getElementById('gameType').value;
+    const gameModeSelect = document.getElementById('gameMode');
+    const mapSelect = document.getElementById('map');
+
+    // Clear existing options
+    gameModeSelect.innerHTML = '<option value="">Select Game Mode</option>';
+    mapSelect.innerHTML = '<option value="">Select Map</option>';
+
+    if (gameType) {
+        try {
+            // Fetch game modes
+            const gameModes = await getGameModes(gameType);
+            gameModes.forEach(mode => {
+                const option = document.createElement('option');
+                option.value = mode.name;
+                option.textContent = mode.name;
+                gameModeSelect.appendChild(option);
+            });
+
+            // Fetch maps
+            const maps = await getMaps(gameType);
+            maps.forEach(map => {
+                const option = document.createElement('option');
+                option.value = map.name;
+                option.textContent = map.name;
+                mapSelect.appendChild(option);
+            });
+
+            // Update placement input
+            updatePlacementInput(gameType);
+        } catch (error) {
+            console.error('Error fetching game modes or maps:', error);
+        }
+    }
+}
+
+// Function to update placement input based on game type
+function updatePlacementInput(gameType, currentPlacement = null) {
+    const placementContainer = document.getElementById('placementContainer');
+    
+    if (gameType === 'warzone') {
+        placementContainer.innerHTML = `
+            <label for="placement">Placement <span id="placementValue"></span></label>
+            <input type="range" id="placement" class="slider" min="1" max="150" step="1" value="${currentPlacement || 1}" required>
+        `;
+        const placementSlider = document.getElementById('placement');
+        const placementValue = document.getElementById('placementValue');
+        placementValue.textContent = currentPlacement || '1st';
+        placementSlider.addEventListener('input', () => {
+            placementValue.textContent = placementSlider.value === '1' ? '1st' : 
+                                         placementSlider.value === '2' ? '2nd' : 
+                                         placementSlider.value === '3' ? '3rd' : 
+                                         `${placementSlider.value}th`;
+        });
+    } else if (gameType === 'multiplayer') {
+        placementContainer.innerHTML = `
+            <label for="placement">Result</label>
+            <div class="toggle-switch">
+                <input type="checkbox" id="placement" name="placement" class="toggle-input" ${currentPlacement === 'Won' ? 'checked' : ''}>
+                <label for="placement" class="toggle-label">
+                    <span class="toggle-inner"></span>
+                </label>
+            </div>
+        `;
+    }
+}
+
+// Function to update player kill inputs
+function updatePlayerKillInputs(currentKills = {}) {
+    const playerKillsContainer = document.getElementById('playerKillsContainer');
+    playerKillsContainer.innerHTML = '';
+
+    ['STARMAN', 'RSKILLA', 'SWFTSWORD', 'VAIDED', 'MOWGLI'].forEach(player => {
+        playerKillsContainer.innerHTML += `
+            <div class="form-group">
+                <label for="kills-${player}">${player} Kills</label>
+                <input type="number" id="kills-${player}" min="0" value="${currentKills[player] || 0}">
+            </div>
+        `;
+    });
+}
+
+// Function to get game modes for a given game type
+async function getGameModes(gameType) {
+    const snapshot = await get(ref(database, `gameTypes/${gameType}/gameModes`));
+    if (snapshot.exists()) {
+        return Object.entries(snapshot.val()).map(([id, mode]) => ({
+            id,
+            name: mode.name
+        }));
+    }
+    return [];
+}
+
+// Function to get maps for a given game type
+async function getMaps(gameType) {
+    const snapshot = await get(ref(database, `maps/${gameType}`));
+    if (snapshot.exists()) {
+        return Object.entries(snapshot.val()).map(([id, map]) => ({
+            id,
+            name: map.name
+        }));
+    }
+    return [];
+}
+
+// Utility function to format date for input fields
+function formatDateForInput(dateString) {
+    const date = new Date(dateString);
+    return date.toISOString().split('T')[0];
+}
+
+// Function to view highlight video
+function viewHighlight(url) {
+    window.open(url, '_blank');
+}
+
+// Utility function to format date
+function formatDate(dateString) {
+    const date = new Date(dateString);
+    const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+    return date.toLocaleDateString(undefined, options);
 }
 
 // Function to show Team Members page

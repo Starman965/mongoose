@@ -1195,7 +1195,6 @@ function analyzeAchievements() {
             const session = sessionSnapshot.val();
             console.log("Analyzing session:", session);
 
-            // Check all matches in the session
             session.matches && Object.keys(session.matches).forEach((matchId) => {
                 const match = session.matches[matchId];
                 console.log("Analyzing match:", match);
@@ -1206,11 +1205,10 @@ function analyzeAchievements() {
                         const achievement = achievementChild.val();
                         const achievementId = achievementChild.key;
 
-                        console.log("Evaluating achievement:", achievement.title, achievement);
-
                         // Check if the achievement allows using historical data
                         if (achievement.useHistoricalData) {
-                            checkAchievementCriteria(match, achievement, achievementId);
+                            console.log(`Evaluating achievement with historical data: ${achievement.title}`);
+                            checkAchievementCriteria(match, achievement, achievementId, matchId); // Pass matchId here
                         }
                     });
                 });
@@ -1219,7 +1217,7 @@ function analyzeAchievements() {
     });
 }
 
-function checkAchievementCriteria(match, achievement, achievementId) {
+function checkAchievementCriteria(match, achievement, achievementId, matchId) { // Accept matchId as a parameter
     console.log("Checking criteria for achievement:", achievement.title);
 
     // Example: Check specific achievement criteria like STARMAN's Rampage
@@ -1228,13 +1226,13 @@ function checkAchievementCriteria(match, achievement, achievementId) {
             console.log(`STARMAN's Rampage criteria met in match:`, match);
             
             // Ensure that this is correctly updating in Firebase
-            updateAchievementProgress(achievementId, matchId);
+            updateAchievementProgress(achievementId, matchId); // Pass matchId here
         } else {
             console.log(`STARMAN's Rampage criteria not met. STARMAN kills:`, match.kills ? match.kills.STARMAN : 0);
         }
     }
 
-    // Add other achievement checks as needed
+    // Add other achievement checks here as needed
 }
 
 function updateAchievementProgress(achievementId, matchId) {

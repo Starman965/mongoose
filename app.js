@@ -752,7 +752,7 @@ function formatDateForInput(dateString) {
 }
 
 // Function to view highlight video
-function viewHighlight(url) {
+window.viewHighlight = function(url) {
     window.open(url, '_blank');
 }
 

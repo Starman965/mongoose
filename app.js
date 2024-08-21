@@ -1091,15 +1091,19 @@ function showAbout() {
 function showAdmin() {
     mainContent.innerHTML = `
         <h2>Administration</h2>
-        <div class="admin-options">
+        <div id="adminTabs" class="admin-options">
             <button id="achievementsAdminNav" class="admin-button">Achievements</button>
             <button id="teamMembersAdminNav" class="admin-button">Team Members</button>
             <button id="gameTypesAdminNav" class="admin-button">Game Types and Modes</button>
             <button id="mapsAdminNav" class="admin-button">Maps</button>
             <button id="dbUtilitiesAdminNav" class="admin-button">Database Utilities</button>
         </div>
+        <div id="adminContent">
+            <!-- Content for the selected admin tab will be displayed here -->
+            <p>Select an admin section to manage.</p>
+        </div>
     `;
-    
+
     // Attach event listeners for the Admin buttons
     document.getElementById('achievementsAdminNav').addEventListener('click', () => showAchievementsPage());
     document.getElementById('teamMembersAdminNav').addEventListener('click', () => showTeamMembersPage());
@@ -1107,6 +1111,7 @@ function showAdmin() {
     document.getElementById('mapsAdminNav').addEventListener('click', () => showMapsPage());
     document.getElementById('dbUtilitiesAdminNav').addEventListener('click', () => showDatabaseUtilitiesPage());
 }
+
 function showAchievementsPage() {
     mainContent.innerHTML = '<h2>Manage Achievements</h2><p>Achievements management UI will go here.</p>';
 }

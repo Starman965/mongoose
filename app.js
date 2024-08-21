@@ -915,7 +915,7 @@ function showAbout() {
       <!-- Embedded Team Trailer -->
       <div class="team-trailer" style="text-align: center; margin-top: 20px;">
         <video controls style="max-width: 100%; border-radius: 8px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
-          <source src="mongooseintro.mp4" type="video/mp4">
+          <source src="mongooseIntro.mp4" type="video/mp4">
           Your browser does not support the video tag.
         </video>
       </div>

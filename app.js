@@ -235,7 +235,7 @@ function loadGameSessions() {
             sessions.forEach((session) => {
                 sessionList.innerHTML += `
                     <div class="card">
-                        <h3>${formatDate(session.date)}</h3>
+                        <h3>${formatDate(session.date, session.userTimezoneOffset)}</h3>
                         <p>Number of matches: ${session.matches ? Object.keys(session.matches).length : 0}</p>
                         <div class="button-group">
                             <button class="button" onclick="toggleMatches('${session.id}')">View Matches</button>

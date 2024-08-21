@@ -1243,20 +1243,35 @@ function updateAchievementProgress(achievementId, matchId) {
             const achievement = snapshot.val();
             console.log("Achievement data before update:", achievement);
 
-            // Update the achievement's status if it is not yet completed
-            if (achievement.status !== 'Completed') {
-                console.log(`Updating achievement ${achievementId} to Completed.`);
+            let newCompletionCount = achievement.completionCount || 0; // Default to 0 if not set
+
+            // Increment the completion count
+            newCompletionCount += 1;
+
+            // If the achievement can be completed multiple times, update the completion count
+            if (achievement.canCompleteMultipleTimes) {
                 update(achievementRef, {
-                    status: 'Completed',
-                    completionCount: achievement.completionCount + 1,
+                    completionCount: newCompletionCount,
                     lastCompletedMatchId: matchId
                 }).then(() => {
-                    console.log("Achievement successfully updated.");
+                    console.log(`Achievement ${achievementId} successfully updated. Completion count: ${newCompletionCount}`);
                 }).catch((error) => {
                     console.error("Error updating achievement:", error);
                 });
             } else {
-                console.log("Achievement already completed:", achievementId);
+                // If the achievement can only be completed once, ensure it's marked as completed
+                if (achievement.status !== 'Completed') {
+                    update(achievementRef, {
+                        status: 'Completed',
+                        completionCount: newCompletionCount
+                    }).then(() => {
+                        console.log("Achievement successfully updated.");
+                    }).catch((error) => {
+                        console.error("Error updating achievement:", error);
+                    });
+                } else {
+                    console.log("Achievement already completed:", achievementId);
+                }
             }
         } else {
             console.error("Achievement not found:", achievementId);
@@ -1265,6 +1280,7 @@ function updateAchievementProgress(achievementId, matchId) {
         console.error("Error fetching achievement:", error);
     });
 }
+
 
 function displayAchievements() {
     const achievementsContainer = document.getElementById('achievementsContainer');
@@ -1277,7 +1293,10 @@ function displayAchievements() {
 
             // Add trophy icon if achievement is completed
             const awardIcon = achievement.status === 'Completed' ? '<img src="achievementbadgedefault.png" alt="Trophy" />' : '';
-            
+
+            // Log whether the trophy icon is being added
+            console.log(`${achievement.title} status: ${achievement.status}, Trophy Icon Added: ${awardIcon !== ''}`);
+
             achievementsContainer.innerHTML += `
                 <div class="achievement-card">
                     <h3>${achievement.title}</h3>
@@ -1291,3 +1310,4 @@ function displayAchievements() {
         });
     });
 }
+

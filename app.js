@@ -437,7 +437,7 @@ function updateGameSession(e, sessionId) {
 }
 
 // Show modal for adding a new match
-function showAddMatchModal(sessionId) {
+/* function showAddMatchModal(sessionId) {
     const modal = document.getElementById('modal');
     const modalContent = document.getElementById('modalContent');
     
@@ -487,7 +487,7 @@ function showAddMatchModal(sessionId) {
     updatePlayerKillInputs();
     modal.style.display = 'block';
 }
-
+*/
 // Function to add a new match
 async function addMatch(e, sessionId) {
     e.preventDefault();

@@ -626,7 +626,7 @@ async function updateMatch(e, sessionId, matchId) {
 }
 
 // Function to update game mode and map options based on selected game type
-async function updateGameModeAndMapOptions() {
+window.updateGameModeAndMapOptions = async function() {
     const gameType = document.getElementById('gameType').value;
     const gameModeSelect = document.getElementById('gameMode');
     const mapSelect = document.getElementById('map');

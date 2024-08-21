@@ -318,7 +318,7 @@ window.deleteGameSession = function(sessionId) {
     }
 }
 // Function to delete a match
-function deleteMatch(sessionId, matchId) {
+ window.deleteMatch = function(sessionId, matchId) {
     if (confirm('Are you sure you want to delete this match? This action cannot be undone.')) {
         remove(ref(database, `gameSessions/${sessionId}/matches/${matchId}`))
             .then(() => {
@@ -508,7 +508,7 @@ async function addMatch(e, sessionId) {
 }
 
 // Show modal for editing a match
-function showEditMatchModal(sessionId, matchId) {
+ window.showEditMatchModal =  function(sessionId, matchId) {
     const modal = document.getElementById('modal');
     const modalContent = document.getElementById('modalContent');
     

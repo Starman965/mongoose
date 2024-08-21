@@ -1177,20 +1177,28 @@ function loadAchievements() {
     });
 }
 function analyzeAchievements() {
+    console.log("Starting to analyze achievements...");
+
     // Fetch all matches from the database
     onValue(ref(database, 'gameSessions'), (snapshot) => {
         snapshot.forEach((sessionSnapshot) => {
             const session = sessionSnapshot.val();
-            
+            console.log("Analyzing session:", session);
+
+            // Check all matches in the session
             session.matches && Object.keys(session.matches).forEach((matchId) => {
                 const match = session.matches[matchId];
-                
+                console.log("Analyzing match:", match);
+
                 // Fetch achievements from the database
                 onValue(ref(database, 'achievements'), (achievementSnapshot) => {
                     achievementSnapshot.forEach((achievementChild) => {
                         const achievement = achievementChild.val();
                         const achievementId = achievementChild.key;
-                        
+
+                        // Log achievement details
+                        console.log("Evaluating achievement:", achievement.title, achievement);
+
                         // Check if the achievement allows using historical data
                         if (achievement.useHistoricalData) {
                             checkAchievementCriteria(match, achievement, achievementId);
@@ -1203,17 +1211,25 @@ function analyzeAchievements() {
 }
 
 function checkAchievementCriteria(match, achievement, achievementId) {
-    // Check the criteria for the specific achievement
+    console.log("Checking criteria for achievement:", achievement.title);
+
+    // Check specific achievement criteria - Example: STARMAN's Rampage
     if (achievement.title === "STARMAN's Rampage") {
         if (match.kills && match.kills.STARMAN >= 10) {
+            console.log(`STARMAN's Rampage criteria met in match:`, match);
             updateAchievementProgress(achievementId);
+        } else {
+            console.log(`STARMAN's Rampage criteria not met. STARMAN kills:`, match.kills ? match.kills.STARMAN : 0);
         }
     }
 
-    // Add other achievement checks here as needed
+    // Add other achievement checks as needed
 }
 
+
 function updateAchievementProgress(achievementId) {
+    console.log("Updating achievement progress for:", achievementId);
+
     const achievementRef = ref(database, `achievements/${achievementId}`);
 
     get(achievementRef).then((snapshot) => {
@@ -1232,6 +1248,8 @@ function updateAchievementProgress(achievementId) {
                 }).catch((error) => {
                     console.error("Error updating achievement:", error);
                 });
+            } else {
+                console.log("Achievement already completed:", achievementId);
             }
         } else {
             console.error("Achievement not found:", achievementId);

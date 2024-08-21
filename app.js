@@ -876,7 +876,7 @@ function showAbout() {
     <div class="about-us">
       <!-- Team Logo -->
       <div class="team-logo-about" style="text-align: center;">
-        <img src="2022-group-logo.png" alt="Mongoose Omelette Team Logo" width="300" height="300" style="display: block; margin: 0 auto;">
+       <img src="2022-group-logo.png" alt="Mongoose Omelette Team Logo" width="300" height="300" style="display: block; margin: 0 auto;">
       </div>
 
       <!-- About Us Header -->

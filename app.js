@@ -421,7 +421,7 @@ window.showAddMatchModal = function(sessionId) {
         <form id="addMatchForm">
             <div class="form-group">
                 <label for="gameType">Game Type</label>
-                <select id="gameType" required onchange="window.updateGameModeAndMapOptions()">
+                <select id="gameType" required>
                     <option value="">Select Game Type</option>
                     <option value="warzone">Warzone</option>
                     <option value="multiplayer">Multiplayer</option>
@@ -457,6 +457,11 @@ window.showAddMatchModal = function(sessionId) {
         </form>
     `;
     
+    // Attach event listener for the game type dropdown
+    const gameTypeElement = document.getElementById('gameType');
+    gameTypeElement.removeEventListener('change', window.updateGameModeAndMapOptions); // Prevent multiple listeners
+    gameTypeElement.addEventListener('change', window.updateGameModeAndMapOptions);
+
     // Total kills slider
     const totalKillsSlider = document.getElementById('totalKills');
     const totalKillsValue = document.getElementById('totalKillsValue');
@@ -465,9 +470,13 @@ window.showAddMatchModal = function(sessionId) {
         totalKillsValue.textContent = totalKillsSlider.value;
     });
     
+    // Attach event listener for form submission
     document.getElementById('addMatchForm').addEventListener('submit', (e) => addMatch(e, sessionId));
-    document.getElementById('gameType').addEventListener('change', updateGameModeAndMapOptions);
+
+    // Initial setup for player kill inputs
     updatePlayerKillInputs();
+
+    // Show the modal
     modal.style.display = 'block';
 }
 

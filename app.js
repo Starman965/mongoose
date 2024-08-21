@@ -20,10 +20,10 @@ window.onclick = (event) => {
 // Navigation setup (keep only these)
 document.getElementById('statsNav').addEventListener('click', () => showSection('stats'));
 document.getElementById('sessionsNav').addEventListener('click', () => showSection('sessions'));
-document.getElementById('achievementsNav').addEventListener('click', () => showAchievementsPage());
+// document.getElementById('achievementsNav').addEventListener('click', () => showAchievementsPage());
 document.getElementById('highlightsNav').addEventListener('click', () => showSection('highlights'));
 document.getElementById('teamNav').addEventListener('click', () => showSection('team'));
-document.getElementById('adminNav').addEventListener('click', () => showSection('admin'));
+// document.getElementById('adminNav').addEventListener('click', () => showSection('admin'));
 document.getElementById('helpNav').addEventListener('click', () => showSection('help'));
 document.getElementById('aboutNav').addEventListener('click', () => showSection('about'));
 
@@ -34,7 +34,7 @@ function showSection(section) {
     case 'sessions': showGameSessions(); break;
     case 'highlights': showHighlightsPage(); break;
     case 'team': showTeamMembers(); break;
-    case 'admin': showAdmin(); break;
+    // case 'admin': showAdmin(); break;
     case 'help': showHelp(); break;
     case 'about': showAbout(); break;
     default: 

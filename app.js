@@ -9,6 +9,32 @@ const modal = document.getElementById('modal');
 const modalContent = document.getElementById('modalContent');
 const closeModal = document.getElementsByClassName('close')[0];
 
+// Define these functions in the global scope, and I commented out the lower ones of these
+function showAddGameSessionModal() {
+    // Implementation will be moved here
+    console.log("showAddGameSessionModal called");
+}
+
+function toggleMatches(sessionId) {
+    // Implementation will be moved here
+    console.log("toggleMatches called with sessionId:", sessionId);
+}
+
+function showAddMatchModal(sessionId) {
+    // Implementation will be moved here
+    console.log("showAddMatchModal called with sessionId:", sessionId);
+}
+
+function showEditGameSessionModal(sessionId) {
+    // Implementation will be moved here
+    console.log("showEditGameSessionModal called with sessionId:", sessionId);
+}
+
+function deleteGameSession(sessionId) {
+    // Implementation will be moved here
+    console.log("deleteGameSession called with sessionId:", sessionId);
+}
+
 // Close modal when clicking on 'x' or outside of it
 closeModal.onclick = () => modal.style.display = "none";
 window.onclick = (event) => {
@@ -255,7 +281,7 @@ function loadGameSessions() {
 }
 
 // Function to toggle match visibility
-function toggleMatches(sessionId) {
+/*function toggleMatches(sessionId) {
     const matchesContainer = document.getElementById(`matches-${sessionId}`);
     if (matchesContainer.style.display === 'none') {
         loadMatches(sessionId);
@@ -264,7 +290,7 @@ function toggleMatches(sessionId) {
         matchesContainer.style.display = 'none';
     }
 }
-
+*/
 // Function to load matches for a session
 function loadMatches(sessionId) {
     const matchesContainer = document.getElementById(`matches-${sessionId}`);
@@ -305,7 +331,7 @@ function loadMatches(sessionId) {
 }
 
 // Function to delete a game session
-function deleteGameSession(sessionId) {
+/* function deleteGameSession(sessionId) {
     if (confirm('Are you sure you want to delete this game session? This action cannot be undone.')) {
         remove(ref(database, `gameSessions/${sessionId}`))
             .then(() => {
@@ -317,7 +343,7 @@ function deleteGameSession(sessionId) {
             });
     }
 }
-
+*/
 // Function to delete a match
 function deleteMatch(sessionId, matchId) {
     if (confirm('Are you sure you want to delete this match? This action cannot be undone.')) {
@@ -333,7 +359,7 @@ function deleteMatch(sessionId, matchId) {
 }
 // Functions for Game Session Inputs
 // Show modal for adding a new game session
-function showAddGameSessionModal() {
+/* function showAddGameSessionModal() {
     const modal = document.getElementById('modal');
     const modalContent = document.getElementById('modalContent');
     
@@ -351,7 +377,7 @@ function showAddGameSessionModal() {
     document.getElementById('addSessionForm').addEventListener('submit', addGameSession);
     modal.style.display = 'block';
 }
-
+*/
 // Function to add a new game session
 function addGameSession(e) {
     e.preventDefault();
@@ -370,7 +396,7 @@ function addGameSession(e) {
 }
 
 // Show modal for editing a game session
-function showEditGameSessionModal(sessionId) {
+/* function showEditGameSessionModal(sessionId) {
     const modal = document.getElementById('modal');
     const modalContent = document.getElementById('modalContent');
     
@@ -393,7 +419,7 @@ function showEditGameSessionModal(sessionId) {
         }
     });
 }
-
+*/
 // Function to update a game session
 function updateGameSession(e, sessionId) {
     e.preventDefault();

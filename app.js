@@ -20,6 +20,7 @@ window.onclick = (event) => {
 // Navigation setup (keep only these)
 document.getElementById('statsNav').addEventListener('click', () => showSection('stats'));
 document.getElementById('sessionsNav').addEventListener('click', () => showSection('sessions'));
+document.getElementById('achievementsNav').addEventListener('click', () => showAchievementsPage());
 document.getElementById('highlightsNav').addEventListener('click', () => showSection('highlights'));
 document.getElementById('teamNav').addEventListener('click', () => showSection('team'));
 document.getElementById('adminNav').addEventListener('click', () => showSection('admin'));
@@ -1117,11 +1118,6 @@ function showAdminTeamMembersPage() {
     adminContent.innerHTML = '<h2>Manage Team Members</h2><p>Team member management UI will go here.</p>';
 }
 
-function showAchievementsPage() {
-    const adminContent = document.getElementById('adminContent');
-    adminContent.innerHTML = '<h2>Manage Achievements</h2><p>Achievements management UI will go here.</p>';
-}
-
 function showGameTypesPage() {
     const adminContent = document.getElementById('adminContent');
     adminContent.innerHTML = '<h2>Manage Game Types and Modes</h2><p>Game Types and Modes management UI will go here.</p>';
@@ -1137,3 +1133,110 @@ function showDatabaseUtilitiesPage() {
     adminContent.innerHTML = '<h2>Database Utilities</h2><p>Database utilities and tools will go here.</p>';
 }
 
+// Achievements Tab
+function showAchievementsPage() {
+    const mainContent = document.getElementById('mainContent');
+    
+    mainContent.innerHTML = `
+        <h2>Achievements</h2>
+        <div id="achievementsContainer" class="achievements-container">
+            <!-- Achievements will be dynamically loaded here -->
+        </div>
+    `;
+
+    loadAchievements();  // Load the achievements from the database
+}
+function loadAchievements() {
+    const achievementsContainer = document.getElementById('achievementsContainer');
+    achievementsContainer.innerHTML = 'Loading achievements...';
+
+    // Fetch achievements from the database
+    onValue(ref(database, 'achievements'), (snapshot) => {
+        achievementsContainer.innerHTML = '';
+        
+        snapshot.forEach((childSnapshot) => {
+            const achievement = childSnapshot.val();
+            const achievementId = childSnapshot.key;
+
+            // Display each achievement
+            achievementsContainer.innerHTML += `
+                <div class="achievement-card">
+                    <h3>${achievement.title}</h3>
+                    <p>${achievement.description}</p>
+                    <p><strong>Difficulty:</strong> ${achievement.difficulty}</p>
+                    <p><strong>Status:</strong> ${achievement.status}</p>
+                    <p><strong>Points:</strong> ${achievement.achievementPoints}</p>
+                    <p><strong>Award:</strong> ${achievement.award} (Sponsored by ${achievement.awardSponsor})</p>
+                </div>
+            `;
+        });
+
+        if (achievementsContainer.innerHTML === '') {
+            achievementsContainer.innerHTML = '<p>No achievements found.</p>';
+        }
+    });
+}
+function analyzeAchievements() {
+    onValue(ref(database, 'gameSessions'), (snapshot) => {
+        snapshot.forEach((sessionSnapshot) => {
+            const session = sessionSnapshot.val();
+            
+            session.matches && Object.keys(session.matches).forEach((matchId) => {
+                const match = session.matches[matchId];
+                
+                // Example condition: Check for a win
+                if (match.placement === 1) {
+                    updateAchievementProgress('winAchievementId');
+                }
+
+                // Example condition: Check for team kill streak achievement
+                if (match.totalKills >= 20) {
+                    updateAchievementProgress('killStreakAchievementId');
+                }
+            });
+        });
+    });
+}
+
+function updateAchievementProgress(achievementId) {
+    const achievementRef = ref(database, `achievements/${achievementId}`);
+
+    get(achievementRef).then((snapshot) => {
+        if (snapshot.exists()) {
+            const achievement = snapshot.val();
+
+            // Update the achievement's status to "Completed" and increment the completion count
+            if (achievement.status !== 'Completed') {
+                update(achievementRef, {
+                    status: 'Completed',
+                    completionCount: achievement.completionCount + 1
+                });
+            }
+        }
+    });
+}
+function displayAchievements() {
+    const achievementsContainer = document.getElementById('achievementsContainer');
+    achievementsContainer.innerHTML = '';
+
+    onValue(ref(database, 'achievements'), (snapshot) => {
+        snapshot.forEach((childSnapshot) => {
+            const achievement = childSnapshot.val();
+            const achievementId = childSnapshot.key;
+
+            // Add trophy icon if achievement is completed
+            const awardIcon = achievement.status === 'Completed' ? '<img src="trophy.png" alt="Trophy" />' : '';
+            
+            achievementsContainer.innerHTML += `
+                <div class="achievement-card">
+                    <h3>${achievement.title}</h3>
+                    <p>${achievement.description}</p>
+                    <p><strong>Difficulty:</strong> ${achievement.difficulty}</p>
+                    <p><strong>Status:</strong> ${achievement.status}</p>
+                    <p><strong>Award:</strong> ${achievement.award} ${awardIcon}</p>
+                    <p><strong>Points:</strong> ${achievement.achievementPoints}</p>
+                </div>
+            `;
+        });
+    });
+}

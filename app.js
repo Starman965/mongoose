@@ -32,9 +32,163 @@ function showSection(section) {
   }
 }
 
-// Placeholder functions for each section
+// Show Stats Functions for Team Statistics Page
 function showStats() {
-  mainContent.innerHTML = '<h2>Team Statistics</h2><p>Team statistics will be displayed here.</p>';
+    mainContent.innerHTML = `
+        <h2>Team Statistics</h2>
+        <div class="stats-controls">
+            <select id="statsPeriod">
+                <option value="all">All-Time</option>
+                <option value="10">Last 10 Sessions</option>
+                <option value="25">Last 25 Sessions</option>
+                <option value="50">Last 50 Sessions</option>
+            </select>
+        </div>
+        <div id="teamStats"></div>
+        <div id="playerStats"></div>
+    `;
+    
+    document.getElementById('statsPeriod').addEventListener('change', loadStats);
+    loadStats();
+}
+
+function loadStats() {
+    const statsContainer = document.getElementById('teamStats');
+    const playerStatsContainer = document.getElementById('playerStats');
+    const period = document.getElementById('statsPeriod').value;
+    
+    statsContainer.innerHTML = 'Loading statistics...';
+    playerStatsContainer.innerHTML = '';
+
+    get(ref(database, 'gameSessions')).then((snapshot) => {
+        let sessions = [];
+        snapshot.forEach((childSnapshot) => {
+            const session = childSnapshot.val();
+            session.id = childSnapshot.key;
+            sessions.push(session);
+        });
+
+        sessions.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+        if (period !== 'all') {
+            sessions = sessions.slice(0, parseInt(period));
+        }
+
+        const stats = calculateStats(sessions);
+        displayTeamStats(stats, statsContainer);
+        displayPlayerStats(stats, playerStatsContainer);
+    });
+}
+
+function calculateStats(sessions) {
+    let stats = {
+        warzone: { gamesPlayed: 0, wins: 0, top5: 0, kills: 0 },
+        multiplayer: { gamesPlayed: 0, wins: 0, kills: 0 },
+        gameModes: {},
+        players: {}
+    };
+
+    sessions.forEach(session => {
+        Object.values(session.matches || {}).forEach(match => {
+            const gameType = match.gameType;
+            stats[gameType].gamesPlayed++;
+            stats[gameType].kills += match.totalKills || 0;
+
+            // Game mode stats
+            if (!stats.gameModes[match.gameMode]) {
+                stats.gameModes[match.gameMode] = { gamesPlayed: 0, wins: 0, kills: 0 };
+            }
+            stats.gameModes[match.gameMode].gamesPlayed++;
+            stats.gameModes[match.gameMode].kills += match.totalKills || 0;
+
+            if (gameType === 'warzone') {
+                if (match.placement === 1) stats.warzone.wins++;
+                if (match.placement <= 5) stats.warzone.top5++;
+            } else if (gameType === 'multiplayer') {
+                if (match.placement === 'Won') {
+                    stats.multiplayer.wins++;
+                    stats.gameModes[match.gameMode].wins++;
+                }
+            }
+
+            // Player stats
+            Object.entries(match.kills || {}).forEach(([player, kills]) => {
+                if (!stats.players[player]) {
+                    stats.players[player] = { gamesPlayed: 0, kills: 0, avgKills: 0 };
+                }
+                stats.players[player].gamesPlayed++;
+                stats.players[player].kills += kills;
+            });
+        });
+    });
+
+    // Calculate averages
+    Object.values(stats.players).forEach(player => {
+        player.avgKills = player.gamesPlayed > 0 ? (player.kills / player.gamesPlayed).toFixed(2) : 0;
+    });
+
+    return stats;
+}
+
+function displayTeamStats(stats, container) {
+    const warzoneWinPercentage = (stats.warzone.wins / stats.warzone.gamesPlayed * 100).toFixed(2);
+    const warzoneTop5Percentage = (stats.warzone.top5 / stats.warzone.gamesPlayed * 100).toFixed(2);
+    const multiplayerWinPercentage = (stats.multiplayer.wins / stats.multiplayer.gamesPlayed * 100).toFixed(2);
+
+    let html = `
+        <h3>Warzone Stats</h3>
+        <table class="stats-table">
+            <tr><th>Games Played</th><td>${stats.warzone.gamesPlayed}</td></tr>
+            <tr><th>Wins</th><td>${stats.warzone.wins} (${warzoneWinPercentage}%)</td></tr>
+            <tr><th>Top 5 Finishes</th><td>${stats.warzone.top5} (${warzoneTop5Percentage}%)</td></tr>
+            <tr><th>Total Kills</th><td>${stats.warzone.kills}</td></tr>
+            <tr><th>Avg. Kills per Game</th><td>${(stats.warzone.kills / stats.warzone.gamesPlayed).toFixed(2)}</td></tr>
+        </table>
+
+        <h3>Multiplayer Stats</h3>
+        <table class="stats-table">
+            <tr><th>Games Played</th><td>${stats.multiplayer.gamesPlayed}</td></tr>
+            <tr><th>Wins</th><td>${stats.multiplayer.wins} (${multiplayerWinPercentage}%)</td></tr>
+            <tr><th>Total Kills</th><td>${stats.multiplayer.kills}</td></tr>
+            <tr><th>Avg. Kills per Game</th><td>${(stats.multiplayer.kills / stats.multiplayer.gamesPlayed).toFixed(2)}</td></tr>
+        </table>
+
+        <h3>Game Mode Stats</h3>
+        <table class="stats-table">
+            <tr><th>Game Mode</th><th>Games Played</th><th>Wins</th><th>Win %</th><th>Total Kills</th><th>Avg. Kills</th></tr>
+            ${Object.entries(stats.gameModes).map(([mode, modeStats]) => `
+                <tr>
+                    <td>${mode}</td>
+                    <td>${modeStats.gamesPlayed}</td>
+                    <td>${modeStats.wins}</td>
+                    <td>${(modeStats.wins / modeStats.gamesPlayed * 100).toFixed(2)}%</td>
+                    <td>${modeStats.kills}</td>
+                    <td>${(modeStats.kills / modeStats.gamesPlayed).toFixed(2)}</td>
+                </tr>
+            `).join('')}
+        </table>
+    `;
+
+    container.innerHTML = html;
+}
+
+function displayPlayerStats(stats, container) {
+    let html = `
+        <h3>Player Stats</h3>
+        <table class="stats-table">
+            <tr><th>Player</th><th>Games Played</th><th>Total Kills</th><th>Avg. Kills per Game</th></tr>
+            ${Object.entries(stats.players).map(([player, playerStats]) => `
+                <tr>
+                    <td>${player}</td>
+                    <td>${playerStats.gamesPlayed}</td>
+                    <td>${playerStats.kills}</td>
+                    <td>${playerStats.avgKills}</td>
+                </tr>
+            `).join('')}
+        </table>
+    `;
+
+    container.innerHTML = html;
 }
 
 function showGameSessions() {

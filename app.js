@@ -459,7 +459,6 @@ window.showAddMatchModal = function(sessionId) {
     updatePlayerKillInputs();
     modal.style.display = 'block';
 }
-*/
 // Function to add a new match
 async function addMatch(e, sessionId) {
     e.preventDefault();

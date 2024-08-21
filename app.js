@@ -16,8 +16,10 @@ window.onclick = (event) => {
     modal.style.display = "none";
   }
 }
-
+window.onlad = () => {showHomePage(); // load the home page when the app first loads
+};
 // Navigation setup (keep only these)
+document.getElementById('homeNav').addEventListener('click', () => showSection('home'));
 document.getElementById('statsNav').addEventListener('click', () => showSection('stats'));
 document.getElementById('sessionsNav').addEventListener('click', () => showSection('sessions'));
 // document.getElementById('achievementsNav').addEventListener('click', () => showAchievementsPage());
@@ -30,6 +32,7 @@ document.getElementById('aboutNav').addEventListener('click', () => showSection(
 // Centralized function to handle navigation
 function showSection(section) {
   switch(section) {
+    case 'home': showHomePage(); break;
     case 'stats': showStats(); break;
     case 'sessions': showGameSessions(); break;
     case 'highlights': showHighlightsPage(); break;
@@ -42,7 +45,45 @@ function showSection(section) {
       mainContent.innerHTML = '<h2>Page Not Found</h2>';
   }
 }
+// Load the Home Page
+function showHomePage() {
+    const mainContent = document.getElementById('mainContent');
+    mainContent.innerHTML = `
+        <h2>Welcome to MyCODSquad</h2>
+        <p>Your Call of Duty Squad manager for tracking game sessions, matches, achievements, stats, and more!</p>
 
+        <div class="home-sections">
+            <div class="section">
+                <h3>Recent Matches</h3>
+                <ul id="recentMatchesList">
+                    <!-- Dynamically load recent matches here -->
+                </ul>
+            </div>
+
+            <div class="section">
+                <h3>Recent Achievements</h3>
+                <ul id="topAchievementsList">
+                    <!-- Dynamically load top achievements here -->
+                </ul>
+            </div>
+        </div>
+    `;
+
+    loadRecentMatches();
+    loadTopAchievements();
+}
+
+function loadRecentMatches() {
+    const recentMatchesList = document.getElementById('recentMatchesList');
+    // Example logic to load recent matches from the database
+    recentMatchesList.innerHTML = '<li>No recent matches available.</li>';
+}
+
+function loadTopAchievements() {
+    const topAchievementsList = document.getElementById('topAchievementsList');
+    // Example logic to load top achievements from the database
+    topAchievementsList.innerHTML = '<li>No achievements completed yet.</li>';
+}
 // Show Stats Functions for Team Statistics Page
 function showStats() {
     mainContent.innerHTML = `

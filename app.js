@@ -1215,7 +1215,7 @@ function loadAdminTeamMembers() {
         }
     });
 }
-function openAdminMemberModal(member = null) {
+window.openAdminMemberModal = function(member = null) {
     const modal = document.getElementById('adminMemberModal');
     const modalTitle = document.getElementById('adminModalTitle');
     const form = document.getElementById('adminAddEditMemberForm');
@@ -1284,7 +1284,7 @@ document.getElementById('adminAddEditMemberForm').addEventListener('submit', asy
     }
 });
 
-function deleteAdminTeamMember(memberId) {
+window.deleteAdminTeamMember = function(memberId) {
     if (confirm('Are you sure you want to delete this member?')) {
         remove(ref(database, `teamMembers/${memberId}`))
             .then(() => {

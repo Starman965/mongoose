@@ -64,7 +64,7 @@ function showStats() {
     loadStats();
     statsTable(); // new line to test for more stats
 }
-// new function to test for more stats
+// Game Session Stats
 function statsTable() {
   const statsTable = document.getElementById('statsTable');
   statsTable.innerHTML = 'Loading statistics...';
@@ -80,7 +80,8 @@ function statsTable() {
     sessions.sort((a, b) => new Date(b.date) - new Date(a.date));
 
     let tableHTML = `
-      <table class="stats-table">
+        <h3>Team Session Stats</h3>
+        <table class="stats-table">
         <thead>
           <tr>
             <th>Date</th>

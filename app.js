@@ -1144,11 +1144,18 @@ function showAchievementsPage() {
         </div>
     `;
 
-    loadAchievements();  // Load the achievements from the database
+    console.log("Achievements page loaded");
+
+    // Load the achievements and analyze them
+    loadAchievements();  
+    analyzeAchievements();  // Call analyzeAchievements to check historical matches
 }
+
 function loadAchievements() {
     const achievementsContainer = document.getElementById('achievementsContainer');
     achievementsContainer.innerHTML = 'Loading achievements...';
+
+    console.log("Fetching achievements from Firebase");
 
     // Fetch achievements from the database
     onValue(ref(database, 'achievements'), (snapshot) => {
@@ -1158,7 +1165,9 @@ function loadAchievements() {
             const achievement = childSnapshot.val();
             const achievementId = childSnapshot.key;
 
-            // Display each achievement
+            console.log("Loaded achievement:", achievement.title, achievement);
+
+            // Display the achievement in the UI
             achievementsContainer.innerHTML += `
                 <div class="achievement-card">
                     <h3>${achievement.title}</h3>
@@ -1176,8 +1185,9 @@ function loadAchievements() {
         }
     });
 }
+
 function analyzeAchievements() {
-    console.log("Starting to analyze achievements...");
+    console.log("Starting achievement analysis...");
 
     // Fetch all matches from the database
     onValue(ref(database, 'gameSessions'), (snapshot) => {
@@ -1196,7 +1206,6 @@ function analyzeAchievements() {
                         const achievement = achievementChild.val();
                         const achievementId = achievementChild.key;
 
-                        // Log achievement details
                         console.log("Evaluating achievement:", achievement.title, achievement);
 
                         // Check if the achievement allows using historical data

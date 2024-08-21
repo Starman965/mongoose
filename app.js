@@ -409,7 +409,7 @@ function updateGameSession(e, sessionId) {
 }
 
 // Show modal for adding a new match
-function window.showAddMatchModal = function(sessionId) {
+window.showAddMatchModal = function(sessionId) {
     const modal = document.getElementById('modal');
     const modalContent = document.getElementById('modalContent');
     

@@ -875,12 +875,21 @@ function showAbout() {
   mainContent.innerHTML = `
     <div class="about-us">
       <!-- Team Logo -->
-      <div class="team-logo">
-        <img src="2022-group-logo.png" alt="Team Logo" style="max-width: 100px;">
+      <div class="team-logo-about" style="text-align: center;">
+        <img src="team-logo.png" alt="Team Logo">
       </div>
 
-      <h2>About Us: The Story of Mongoose Omelet</h2>
+      <!-- About Us Header -->
+      <h1 style="text-align: center; color: #FFD700; font-size: 2em; margin-bottom: 20px;">
+        About Us: The Story of Mongoose Omelet
+      </h1>
 
+      <!-- Pull Quote -->
+      <blockquote style="border-left: 4px solid #FFD700; padding-left: 15px; font-style: italic; color: #FFD700; margin: 20px 0; font-size: 1.2em;">
+        "Winning isn’t everything. It’s the joy of playing together, pushing each other to be better, and celebrating our ridiculous achievements along the way."
+      </blockquote>
+
+      <!-- Story Content -->
       <p>Our story begins over a decade ago, when fate brought David Lewis and Ron Scrofano together at a company called DemandGen. They were colleagues, yes—but more importantly, they were kindred spirits. Between the meetings, deadlines, and corporate hustle, they discovered a mutual love for video gaming, particularly Call of Duty. Though life moved on, and years passed without so much as a virtual bullet fired between them, their friendship endured.</p>
 
       <p>And then the world stopped. The global pandemic hit, and like so many others, we found ourselves locked away, searching for ways to reconnect and pass the time. Call of Duty became our answer. What began as a casual reunion soon transformed into something more—a weekly ritual of strategy, camaraderie, and plenty of laughs.</p>
@@ -898,13 +907,14 @@ function showAbout() {
       <p>Welcome to the world of <em>Mongoose Omelet</em>. Grab your controller, and let’s get to work.</p>
 
       <!-- Centered Wedding Photo -->
-      <div class="wedding-photo" style="text-align: center;">
-        <img src="wedding-photo.png" alt="Wedding Photo" style="max-width: 500px;">
+      <div class="wedding-photo" style="text-align: center; margin: 30px 0;">
+        <img src="wedding-photo.jpg" alt="Wedding Photo" style="max-width: 500px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
+        <figcaption style="color: #FFD700; font-style: italic; margin-top: 10px;">The first time we met in person at Usman’s wedding in Disney World</figcaption>
       </div>
 
       <!-- Embedded Team Trailer -->
       <div class="team-trailer" style="text-align: center; margin-top: 20px;">
-        <video controls style="max-width: 500px;">
+        <video controls style="max-width: 100%; border-radius: 8px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
           <source src="trailer.mp4" type="video/mp4">
           Your browser does not support the video tag.
         </video>
@@ -912,4 +922,5 @@ function showAbout() {
     </div>
   `;
 }
+
 

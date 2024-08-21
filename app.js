@@ -735,13 +735,6 @@ function viewHighlight(url) {
     window.open(url, '_blank');
 }
 
-// Utility function to format date
-function formatDate(dateString) {
-    const date = new Date(dateString);
-    const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-    return date.toLocaleDateString(undefined, options);
-}
-
 // Function to show Team Members page
 function showTeamMembers() {
     mainContent.innerHTML = `

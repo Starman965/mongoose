@@ -700,26 +700,32 @@ function getPlacementText(value) {
 // Function to update player kill inputs
 function updatePlayerKillInputs(currentKills = {}) {
     const playerKillsContainer = document.getElementById('playerKillsContainer');
-    playerKillsContainer.innerHTML = '';
-
+    playerKillsContainer.innerHTML = ''; // Clear the container before adding sliders
+    
     ['STARMAN', 'RSKILLA', 'SWFTSWORD', 'VAIDED', 'MOWGLI'].forEach(player => {
         const playerKills = currentKills[player] || 0;
+        const playerId = `kills-${player}`; // Unique ID for each player's slider and value display
+
         playerKillsContainer.innerHTML += `
             <div class="form-group">
-                <label for="kills-${player}">${player} Kills <span id="killsValue-${player}">${playerKills}</span></label>
-                <input type="range" id="kills-${player}" min="0" max="30" value="${playerKills}" class="slider" required>
+                <label for="${playerId}">${player} Kills <span id="killsValue-${player}">${playerKills}</span></label>
+                <input type="range" id="${playerId}" min="0" max="30" value="${playerKills}" class="slider" required>
             </div>
         `;
-        
-        const killsSlider = document.getElementById(`kills-${player}`);
+    });
+    
+    // After rendering all sliders, attach event listeners
+    ['STARMAN', 'RSKILLA', 'SWFTSWORD', 'VAIDED', 'MOWGLI'].forEach(player => {
+        const playerId = `kills-${player}`;
+        const killsSlider = document.getElementById(playerId);
         const killsValue = document.getElementById(`killsValue-${player}`);
         
+        // Attach event listener to update the corresponding kills value display
         killsSlider.addEventListener('input', () => {
             killsValue.textContent = killsSlider.value;
         });
     });
 }
-
 
 // Function to get game modes for a given game type
 async function getGameModes(gameType) {

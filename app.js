@@ -16,8 +16,10 @@ window.onclick = (event) => {
     modal.style.display = "none";
   }
 }
-window.onload = () => {showHomePage(); // load the home page when the app first loads
+window.onload = () => {
+    showHomePage(); // Load the Home page when the app first loads
 };
+
 // Navigation setup (keep only these)
 document.getElementById('homeNav').addEventListener('click', () => showSection('home'));
 document.getElementById('statsNav').addEventListener('click', () => showSection('stats'));
@@ -46,7 +48,7 @@ function showSection(section) {
   }
 }
 // Load the Home Page
-function showHomePage() {
+window.showHomePage = function() {
     const mainContent = document.getElementById('mainContent');
     mainContent.innerHTML = `
         <h2>Welcome to MyCODSquad</h2>

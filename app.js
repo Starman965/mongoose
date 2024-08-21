@@ -452,7 +452,7 @@ window.showAddMatchModal = function(sessionId) {
             </div>
             <div class="form-group">
                 <label for="totalKills">Total Kills <span id="totalKillsValue">0</span></label>
-                <input type="range" id="totalKills" min="0" max="100" value="0" class="slider" required>
+                <input type="range" id="totalKills" min="0" max="50" value="0" class="slider" required>
             </div>
             <div id="playerKillsContainer">
                 <!-- Player kill inputs will be dynamically added here -->
@@ -570,8 +570,8 @@ async function addMatch(e, sessionId) {
                         <!-- Placement input will be dynamically added here -->
                     </div>
                     <div class="form-group">
-                        <label for="totalKills">Total Kills</label>
-                        <input type="number" id="totalKills" min="0" value="${match.totalKills || 0}">
+                        <label for="totalKills">Total Kills <span id="totalKillsValue">0</span></label>
+                        <input type="range" id="totalKills" min="0" max="50" value="${match.totalKills || 0}  class="slider" required>">
                     </div>
                     <div id="playerKillsContainer">
                         <!-- Player kill inputs will be dynamically added here -->

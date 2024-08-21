@@ -1236,9 +1236,7 @@ function checkAchievementCriteria(match, achievement, achievementId) {
 }
 
 
-function updateAchievementProgress(achievementId) {
-    console.log("Updating achievement progress for:", achievementId);
-
+function updateAchievementProgress(achievementId, matchId) {
     const achievementRef = ref(database, `achievements/${achievementId}`);
 
     get(achievementRef).then((snapshot) => {
@@ -1246,19 +1244,32 @@ function updateAchievementProgress(achievementId) {
             const achievement = snapshot.val();
             console.log("Achievement data before update:", achievement);
 
-            // Update the achievement's status to "Completed" if it's not already completed
-            if (achievement.status !== 'Completed') {
-                console.log(`Updating achievement ${achievementId} to Completed.`);
+            // Increment the completion count if the achievement allows multiple completions
+            if (achievement.canCompleteMultipleTimes) {
+                const newCompletionCount = achievement.completionCount + 1;
                 update(achievementRef, {
-                    status: 'Completed',
-                    completionCount: achievement.completionCount + 1
+                    completionCount: newCompletionCount,
+                    lastCompletedMatchId: matchId
                 }).then(() => {
-                    console.log("Achievement successfully updated.");
+                    console.log(`Achievement ${achievementId} successfully updated. Completion count: ${newCompletionCount}`);
                 }).catch((error) => {
                     console.error("Error updating achievement:", error);
                 });
             } else {
-                console.log("Achievement already completed:", achievementId);
+                // Update achievement to Completed if it's a single-time achievement
+                if (achievement.status !== 'Completed') {
+                    console.log(`Updating achievement ${achievementId} to Completed.`);
+                    update(achievementRef, {
+                        status: 'Completed',
+                        completionCount: achievement.completionCount + 1
+                    }).then(() => {
+                        console.log("Achievement successfully updated.");
+                    }).catch((error) => {
+                        console.error("Error updating achievement:", error);
+                    });
+                } else {
+                    console.log("Achievement already completed:", achievementId);
+                }
             }
         } else {
             console.error("Achievement not found:", achievementId);

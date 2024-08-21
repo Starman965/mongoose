@@ -1193,25 +1193,6 @@ function analyzeAchievements() {
         });
     });
 }
-
-function updateAchievementProgress(achievementId) {
-    const achievementRef = ref(database, `achievements/${achievementId}`);
-
-    get(achievementRef).then((snapshot) => {
-        if (snapshot.exists()) {
-            const achievement = snapshot.val();
-
-            // Update the achievement's status to "Completed" if it's not already completed
-            if (achievement.status !== 'Completed') {
-                update(achievementRef, {
-                    status: 'Completed',
-                    completionCount: achievement.completionCount + 1
-                });
-            }
-        }
-    });
-}
-
 function updateAchievementProgress(achievementId) {
     const achievementRef = ref(database, `achievements/${achievementId}`);
 

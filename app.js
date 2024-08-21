@@ -23,7 +23,7 @@ document.getElementById('sessionsNav').addEventListener('click', () => showSecti
 // achievements page will go here
 document.getElementById('highlightsNav').addEventListener('click', () => showHighlightsPage());
 document.getElementById('teamNav').addEventListener('click', () => showSection('team'));
-// admin page will go here
+document.getElementById('adminNav').addEventListener('click', () => showSection('admin'));
 document.getElementById('helpNav').addEventListener('click', () => showHelp());
 document.getElementById('aboutNav').addEventListener('click', () => showAbout());
 
@@ -32,6 +32,7 @@ function showSection(section) {
     case 'stats': showStats(); break;
     case 'sessions': showGameSessions(); break;
     case 'team': showTeamMembers(); break;
+    case 'admin': showAdmin(); break;
   }
 }
 
@@ -1081,5 +1082,42 @@ function showAbout() {
     </div>
   `;
 }
+function showAdmin() {
+    mainContent.innerHTML = `
+        <h2>Administration</h2>
+        <div class="admin-options">
+            <button id="achievementsAdminNav" class="admin-button">Achievements</button>
+            <button id="teamMembersAdminNav" class="admin-button">Team Members</button>
+            <button id="gameTypesAdminNav" class="admin-button">Game Types and Modes</button>
+            <button id="mapsAdminNav" class="admin-button">Maps</button>
+            <button id="dbUtilitiesAdminNav" class="admin-button">Database Utilities</button>
+        </div>
+    `;
+    
+    // Attach event listeners for the Admin buttons
+    document.getElementById('achievementsAdminNav').addEventListener('click', () => showAchievementsPage());
+    document.getElementById('teamMembersAdminNav').addEventListener('click', () => showTeamMembersPage());
+    document.getElementById('gameTypesAdminNav').addEventListener('click', () => showGameTypesPage());
+    document.getElementById('mapsAdminNav').addEventListener('click', () => showMapsPage());
+    document.getElementById('dbUtilitiesAdminNav').addEventListener('click', () => showDatabaseUtilitiesPage());
+}
+function showAchievementsPage() {
+    mainContent.innerHTML = '<h2>Manage Achievements</h2><p>Achievements management UI will go here.</p>';
+}
 
+function showTeamMembersPage() {
+    mainContent.innerHTML = '<h2>Manage Team Members</h2><p>Team Members management UI will go here.</p>';
+}
+
+function showGameTypesPage() {
+    mainContent.innerHTML = '<h2>Manage Game Types and Modes</h2><p>Game Types and Modes management UI will go here.</p>';
+}
+
+function showMapsPage() {
+    mainContent.innerHTML = '<h2>Manage Maps</h2><p>Maps management UI will go here.</p>';
+}
+
+function showDatabaseUtilitiesPage() {
+    mainContent.innerHTML = '<h2>Database Utilities</h2><p>Database utilities and tools will go here.</p>';
+}
 

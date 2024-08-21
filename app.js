@@ -886,25 +886,28 @@ function showAbout() {
 
       <!-- Pull Quote -->
       <blockquote style="border-left: 4px solid #FFD700; padding-left: 15px; font-style: italic; color: #FFD700; margin: 20px 0; font-size: 1.2em;">
-        "Winning isn’t everything. It’s the joy of playing together, pushing each other to be better, and celebrating our ridiculous achievements along the way."
+        "Winning isn’t everything. It’s the joy of playing together, pushing each other to be better, and celebrating our ridiculous achievements along the way."  -- Said No One
       </blockquote>
 
       <!-- Story Content -->
-      <p>Our story begins over a decade ago, when fate brought David Lewis and Ron Scrofano together at a company called DemandGen. They were colleagues, yes—but more importantly, they were kindred spirits. Between the meetings, deadlines, and corporate hustle, they discovered a mutual love for video gaming, particularly Call of Duty. Though life moved on, and years passed without so much as a virtual bullet fired between them, their friendship endured.</p>
+      <p>Our story begins over a decade ago, when fate brought David (STARMAN) and Ron (RSKILLA) together at a company called DemandGen. They were colleagues, yes—but more importantly, they were kindred spirits. Between the client meetings, company offsites, and work-at-home culture, they discovered a mutual love for video gaming, particularly Call of Duty. Though life moved on, and years passed without so much as a virtual bullet fired between them, their friendship endured.</p>
 
-      <p>And then the world stopped. The global pandemic hit, and like so many others, we found ourselves locked away, searching for ways to reconnect and pass the time. Call of Duty became our answer. What began as a casual reunion soon transformed into something more—a weekly ritual of strategy, camaraderie, and plenty of laughs.</p>
+      <p>And then the world stopped. The global pandemic hit, and like so many others, we found ourselves locked away, searching for ways to reconnect and pass the time. Call of Duty nights became our answer. What began as a casual reunion soon transformed into something more—a weekly ritual of strategy, camaraderie, late night snacks, and plenty of laughs.</p>
 
-      <p>By this time, Ron had met the love of his life, Megan, and the two had married, bringing two beautiful daughters into the world. Along with his new family, Ron also gained two awesome brother-in-laws: Dan and Brad. Like us, Dan and Brad were passionate gamers. Naturally, it didn’t take long before we roped them into the squad. And thus, the core of what would become <em>Mongoose Omelet</em> was formed—named after Dan and Brad’s legendary high school band.</p>
+      <p>By this time, Ron had met the love of his life, Megan, and the two had married, bringing two beautiful daughters into the world. Along with his new family, Ron also gained two awesome brother-in-laws: Dan (VAIDED) and Brad (SWFTSWORD). Like David and Ron, Dan and Brad were also passionate gamers. Naturally, it didn’t take long before they roped them into the squad. And thus, the core of what would become <em>Mongoose Omelet</em> was formed—named after Dan and Brad’s legendary high school band.</p>
 
-      <p>But the team wouldn’t stop there. Ron soon reached out to Usman, a childhood friend from the days of pickup basketball games and hijinks, asking if he’d be interested in joining our Call of Duty crew. We knew that life often got in the way—work, family, and other commitments sometimes meant we needed an alternate player to keep the team full. Usman jumped in, and the five of us began a new tradition: every Thursday night, without fail, we would squad up and dive into the battlefield together.</p>
+      <p>But the team wouldn’t stop there. Ron soon reached out to Usman (MOWGLI), a childhood friend from the days of pickup basketball games and hijinks, asking if he’d be interested in joining our Call of Duty crew. We knew that life often got in the way—work, family, and other commitments sometimes meant we needed an alternate player to keep the team full. Usman jumped in, and the five of us began a new tradition: every Thursday night, without fail, we would squad up and dive into the virtual battlefield together.</p>
 
-      <p>For the last four years, this tradition has endured. And then, one year ago, something magical happened. Usman got engaged to his wonderful partner, and they decided to host their wedding at none other than Disney World—The Happiest Place on Earth. As the date approached, we realized this wedding wasn’t just about celebrating love (though it certainly was that). It would also be the first time the five of us met in person. After years of Thursday night gaming, the <em>Mongoose Omelet</em> squad was finally face-to-face, united in both real life and in the game.</p>
+      <p>Since 2019, this tradition has endured. And in April 2024, something magical happened. Usman got engaged to his wonderful wife Amber, and they decided to host their wedding at none other than Disney World—The Happiest Place on Earth. As the date approached, we realized this wedding wasn’t just about celebrating love (though it certainly was that). It would also be the first time the five of us met in person. After years of Thursday night gaming, the <em>Mongoose Omelet</em> squad was finally face-to-face, united in both real life and in the game.</p>
 
-      <p>That meeting sparked something new. We realized that what we loved most about Call of Duty wasn’t just the thrill of victory—it was the joy of playing together, pushing each other to be better, and celebrating our small, ridiculous achievements along the way. That’s when the idea for the COD Squad app was born. We wanted to create a space where our team’s stats, wins, and achievements could live—a virtual trophy case, if you will. And so, COD Squad was created.</p>
+      <p>That meeting sparked something new. We realized that what we loved most about Call of Duty wasn’t just the thrill of victory—it was the joy of playing together, pushing each other to be better, and celebrating our small, ridiculous achievements along the way. That’s when the idea for the COD Squad app was born. We wanted to create a way to tally our team’s stats, wins, and deliver team achievements — a virtual trophy case, if you will. And so, My COD Squad was created for us, and one day for you.</p>
 
       <p>Today, we continue to play every Thursday night, not just for the wins, but for the moments in between—the jokes, the strategies, the hilarious defeats, and the glorious victories.</p>
 
       <p>Welcome to the world of <em>Mongoose Omelet</em>. Grab your controller, and let’s get to work.</p>
+      
+      <p>You can watch us weekly on Dan's <a href="https://www.twitch.tv/tubecrazed" target="_blank">Twitch Channel</a>.</p>
+
 
       <!-- Centered Wedding Photo -->
       <div class="wedding-photo" style="text-align: center; margin: 30px 0;">

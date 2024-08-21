@@ -17,22 +17,28 @@ window.onclick = (event) => {
   }
 }
 
-// Navigation setup
+// Navigation setup (keep only these)
 document.getElementById('statsNav').addEventListener('click', () => showSection('stats'));
 document.getElementById('sessionsNav').addEventListener('click', () => showSection('sessions'));
-// achievements page will go here
-document.getElementById('highlightsNav').addEventListener('click', () => showHighlightsPage());
+document.getElementById('highlightsNav').addEventListener('click', () => showSection('highlights'));
 document.getElementById('teamNav').addEventListener('click', () => showSection('team'));
 document.getElementById('adminNav').addEventListener('click', () => showSection('admin'));
-document.getElementById('helpNav').addEventListener('click', () => showHelp());
-document.getElementById('aboutNav').addEventListener('click', () => showAbout());
+document.getElementById('helpNav').addEventListener('click', () => showSection('help'));
+document.getElementById('aboutNav').addEventListener('click', () => showSection('about'));
 
+// Centralized function to handle navigation
 function showSection(section) {
   switch(section) {
     case 'stats': showStats(); break;
     case 'sessions': showGameSessions(); break;
+    case 'highlights': showHighlightsPage(); break;
     case 'team': showTeamMembers(); break;
     case 'admin': showAdmin(); break;
+    case 'help': showHelp(); break;
+    case 'about': showAbout(); break;
+    default: 
+      const mainContent = document.getElementById('mainContent');
+      mainContent.innerHTML = '<h2>Page Not Found</h2>';
   }
 }
 

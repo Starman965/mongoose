@@ -421,7 +421,7 @@ window.showAddMatchModal = function(sessionId) {
         <form id="addMatchForm">
             <div class="form-group">
                 <label for="gameType">Game Type</label>
-                <select id="gameType" required onchange="updateGameModeOptions()">
+                <select id="gameType" required onchange="window.updateGameModeAndMapOptions()">
                     <option value="">Select Game Type</option>
                     <option value="warzone">Warzone</option>
                     <option value="multiplayer">Multiplayer</option>

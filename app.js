@@ -1543,3 +1543,86 @@ async function getMaps(gameType) {
     throw error;
   }
 }
+// New Show Modal Functions
+window.showGameSessionModal = async function(action, id = null, subId = null) {
+  const modalContent = document.getElementById('modalContent');
+  modalContent.innerHTML = '';
+  let match = null;
+
+  switch(action) {
+    case 'addGameSession':
+    case 'editGameSession':
+      const session = action === 'editGameSession' ? await getGameSession(id) : null;
+      modalContent.innerHTML = `
+        <h3>${action === 'addGameSession' ? 'Add' : 'Edit'} Game Session</h3>
+        <form id="gameSessionForm" data-id="${id || ''}">
+          <div class="form-group">
+            <label for="date">Session Date</label>
+            <input type="date" id="date" name="date" required value="${session ? formatDateForInput(session.date) : ''}">
+          </div>
+          <button type="submit" class="button">${action === 'addGameSession' ? 'Add' : 'Update'} Game Session</button>
+        </form>
+      `;
+      document.getElementById('gameSessionForm').addEventListener('submit', addOrUpdateGameSession);
+      break;
+
+    case 'addMatch':
+    case 'editMatch':
+      if (action === 'editMatch') {
+        match = await getMatch(id, subId);
+      }
+      modalContent.innerHTML = `
+        <h3>${action === 'addMatch' ? 'Add' : 'Edit'} Match</h3>
+        <form id="matchForm" data-session-id="${id}" ${action === 'editMatch' ? `data-match-id="${subId}"` : ''}>
+          <div class="form-group">
+            <label for="gameType">Game Type</label>
+            <select id="gameType" name="gameType" required onchange="updateGameModeOptions(); updateMapOptions(); updatePlacementInput();">
+              <option value="">Select Game Type</option>
+              <option value="warzone" ${match && match.gameType === 'warzone' ? 'selected' : ''}>Warzone</option>
+              <option value="multiplayer" ${match && match.gameType === 'multiplayer' ? 'selected' : ''}>Multiplayer</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="gameMode">Game Mode</label>
+            <select id="gameMode" name="gameMode" required>
+              <option value="">Select Game Mode</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="map">Map</label>
+            <select id="map" name="map" required>
+              <option value="">Select Map</option>
+            </select>
+          </div>
+          <div id="placementContainer" class="form-group">
+            <!-- Placement input will be dynamically added here -->
+          </div>
+          <div class="form-group">
+            <label for="totalKills">Total Kills</label>
+            <input type="number" id="totalKills" name="totalKills" min="0" value="${match ? match.totalKills : '0'}">
+          </div>
+          <button type="submit" class="button">${action === 'addMatch' ? 'Add' : 'Update'} Match</button>
+        </form>
+      `;
+      document.getElementById('matchForm').addEventListener('submit', addOrUpdateMatch);
+      
+      if (match) {
+        document.getElementById('gameType').value = match.gameType;
+        await updateGameModeOptions();
+        document.getElementById('gameMode').value = match.gameMode;
+        await updateMapOptions();
+        document.getElementById('map').value = match.map;
+        await updatePlacementInput();
+        if (match.gameType === 'warzone') {
+          document.getElementById('placement').value = match.placement;
+        } else {
+          document.getElementById('placement').checked = match.placement === 'Won';
+        }
+      } else {
+        updatePlacementInput();
+      }
+      break;
+  }
+  
+  modal.style.display = "block";
+}

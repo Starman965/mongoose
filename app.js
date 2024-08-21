@@ -1117,7 +1117,6 @@ function showAchievementsPage() {
     adminContent.innerHTML = '<h2>Manage Achievements</h2><p>Achievements management UI will go here.</p>';
 }
 
-
 function showAdminTeamMembersPage() {
     const adminContent = document.getElementById('adminContent');
     
@@ -1178,19 +1177,21 @@ function showAdminTeamMembersPage() {
         </div>
     `;
 
-    // Attach event listener for the "Add New Member" button
+    // Event listeners for the Add Member button and the modal close
     document.getElementById('addAdminMemberBtn').addEventListener('click', () => openAdminMemberModal());
     document.getElementById('closeAdminMemberModal').addEventListener('click', closeAdminMemberModal);
 
-    // Load team members in the admin view
+    // Load team members into the table
     loadAdminTeamMembers();
 }
+
 function loadAdminTeamMembers() {
     const adminTeamMembersTableBody = document.querySelector('#adminTeamMembersTable tbody');
     adminTeamMembersTableBody.innerHTML = 'Loading team members...';
 
     onValue(ref(database, 'teamMembers'), (snapshot) => {
-        adminTeamMembersTableBody.innerHTML = '';
+        adminTeamMembersTableBody.innerHTML = ''; // Clear the table body
+
         snapshot.forEach((childSnapshot) => {
             const member = childSnapshot.val();
             const memberId = childSnapshot.key;
@@ -1203,8 +1204,8 @@ function loadAdminTeamMembers() {
                     <td>${member.birthdate}</td>
                     <td>${member.favoriteSnack}</td>
                     <td>
-                        <button class="button" onclick="editAdminTeamMember('${memberId}')">Edit</button>
-                        <button class="button" onclick="deleteAdminTeamMember('${memberId}')">Delete</button>
+                        <button class="button" onclick="window.editAdminTeamMember('${memberId}')">Edit</button>
+                        <button class="button" onclick="window.deleteAdminTeamMember('${memberId}')">Delete</button>
                     </td>
                 </tr>
             `;
@@ -1239,10 +1240,10 @@ window.openAdminMemberModal = function(member = null) {
     modal.style.display = 'block';
 }
 
-function closeAdminMemberModal() {
+window.closeAdminMemberModal = function() {
     document.getElementById('adminMemberModal').style.display = 'none';
 }
-document.getElementById('adminAddEditMemberForm').addEventListener('submit', async function (e) {
+document.getElementById('adminAddEditMemberForm').addEventListener('submit', async function(e) {
     e.preventDefault();
 
     const form = e.target;
@@ -1283,12 +1284,11 @@ document.getElementById('adminAddEditMemberForm').addEventListener('submit', asy
         alert('Error saving team member.');
     }
 });
-
 window.deleteAdminTeamMember = function(memberId) {
     if (confirm('Are you sure you want to delete this member?')) {
         remove(ref(database, `teamMembers/${memberId}`))
             .then(() => {
-                loadAdminTeamMembers(); // Refresh the list
+                loadAdminTeamMembers(); // Refresh the list after deletion
             })
             .catch((error) => {
                 console.error('Error deleting team member:', error);
@@ -1296,7 +1296,6 @@ window.deleteAdminTeamMember = function(memberId) {
             });
     }
 }
-
 
 function showGameTypesPage() {
     const adminContent = document.getElementById('adminContent');

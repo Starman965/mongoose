@@ -16,7 +16,7 @@ window.onclick = (event) => {
     modal.style.display = "none";
   }
 }
-window.onlad = () => {showHomePage(); // load the home page when the app first loads
+window.onload = () => {showHomePage(); // load the home page when the app first loads
 };
 // Navigation setup (keep only these)
 document.getElementById('homeNav').addEventListener('click', () => showSection('home'));

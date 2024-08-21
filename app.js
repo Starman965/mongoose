@@ -305,7 +305,7 @@ function loadMatches(sessionId) {
 }
 
 // Function to delete a game session
-function window.deleteGameSession = function(sessionId) {
+window.deleteGameSession = function(sessionId) {
     if (confirm('Are you sure you want to delete this game session? This action cannot be undone.')) {
         remove(ref(database, `gameSessions/${sessionId}`))
             .then(() => {

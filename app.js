@@ -88,29 +88,39 @@ function calculateStats(sessions) {
         players: {}
     };
 
-    sessions.forEach(session => {
+   sessions.forEach(session => {
         Object.values(session.matches || {}).forEach(match => {
             const gameType = match.gameType;
+            const gameMode = match.gameMode;
+            
+            if (!stats.gameModes[gameMode]) {
+                stats.gameModes[gameMode] = { gamesPlayed: 0, wins: 0, top3: 0, top5: 0, kills: 0 };
+            }
+            
             stats[gameType].gamesPlayed++;
             stats[gameType].kills += match.totalKills || 0;
-
-            // Game mode stats
-            if (!stats.gameModes[match.gameMode]) {
-                stats.gameModes[match.gameMode] = { gamesPlayed: 0, wins: 0, kills: 0 };
-            }
-            stats.gameModes[match.gameMode].gamesPlayed++;
-            stats.gameModes[match.gameMode].kills += match.totalKills || 0;
+            stats.gameModes[gameMode].gamesPlayed++;
+            stats.gameModes[gameMode].kills += match.totalKills || 0;
 
             if (gameType === 'warzone') {
-                if (match.placement === 1) stats.warzone.wins++;
-                if (match.placement <= 5) stats.warzone.top5++;
+                if (match.placement === 1) {
+                    stats.warzone.wins++;
+                    stats.gameModes[gameMode].wins++;
+                }
+                if (match.placement <= 3) {
+                    stats.warzone.top3++;
+                    stats.gameModes[gameMode].top3++;
+                }
+                if (match.placement <= 5) {
+                    stats.warzone.top5++;
+                    stats.gameModes[gameMode].top5++;
+                }
             } else if (gameType === 'multiplayer') {
                 if (match.placement === 'Won') {
                     stats.multiplayer.wins++;
-                    stats.gameModes[match.gameMode].wins++;
+                    stats.gameModes[gameMode].wins++;
                 }
             }
-
             // Player stats
             Object.entries(match.kills || {}).forEach(([player, kills]) => {
                 if (!stats.players[player]) {

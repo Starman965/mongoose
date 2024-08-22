@@ -1392,7 +1392,7 @@ function showAchievementsPage() {
     console.log("Achievements page loaded");
 
     // Load the achievements and analyze them
-    loadAchievements();  
+    loadAchievementsPage();  
     analyzeAchievements();  // Call analyzeAchievements to check historical matches
 }
 

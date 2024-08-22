@@ -1362,7 +1362,7 @@ function showDatabaseUtilitiesPage() {
     adminContent.innerHTML = '<h2>Database Utilities</h2><p>Database utilities and tools will go here.</p>';
 }
 
-// Achievements Tab
+// Achievements Tab Display and Related Functions
 function showAchievementsPage() {
     const mainContent = document.getElementById('mainContent');
     

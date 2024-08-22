@@ -81,11 +81,44 @@ function loadRecentMatches() {
     // Example logic to load recent matches from the database
     recentMatchesList.innerHTML = '<li>No recent matches available.</li>';
 }
-
+// Function to Display the honeymoon fund on the homepage. Is not actual achievement
 function loadTopAchievements() {
     const topAchievementsList = document.getElementById('topAchievementsList');
-    // Example logic to load top achievements from the database
-    topAchievementsList.innerHTML = '<li>No achievements completed yet.</li>';
+    
+    // Example data for the achievement
+    const achievementTitle = "Honey Moon Fund";
+    const achievementDescription = "Get 30 Wins by April 1, 2025";
+    const currentProgress = 18;  // Example current progress
+    const totalProgress = 30;    // Example total required progress
+    const badgeURL = "https://mongoose.mycodsquad.com/letsfuckinggo.png"; // URL for the achievement badge
+
+    // Ensure the container exists before proceeding
+    if (!topAchievementsList) {
+        console.error("Element with ID 'topAchievementsList' not found in the DOM.");
+        return;
+    }
+
+    // Clear any existing content
+    topAchievementsList.innerHTML = '';
+
+    // Create a new list item to display the achievement details
+    const achievementItem = document.createElement('li');
+    achievementItem.classList.add('achievement-item');
+
+    // Populate the content of the achievement item
+    achievementItem.innerHTML = `
+        <div class="achievement-content">
+            <img src="${badgeURL}" alt="${achievementTitle} Badge" style="width:100px;height:100px;">
+            <div class="achievement-details">
+                <h3>${achievementTitle}</h3>
+                <p><strong>Description:</strong> ${achievementDescription}</p>
+                <p><strong>Progress:</strong> ${currentProgress} of ${totalProgress} Completed</p>
+            </div>
+        </div>
+    `;
+
+    // Append the achievement item to the list
+    topAchievementsList.appendChild(achievementItem);
 }
 // Show Stats Functions for Team Statistics Page
 function showStats() {

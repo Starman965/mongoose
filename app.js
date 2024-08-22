@@ -998,13 +998,6 @@ async function getMaps(gameType) {
     return [];
 }
 
-// Utility function to format date for input fields
-function formatDate(dateString) {
-    const date = new Date(dateString + 'T00:00:00'); // Force the date to be treated as a local date by adding a time.
-    const options = { year: 'numeric', month: 'long', day: 'numeric' };
-    return date.toLocaleDateString(undefined, options);
-}
-
 // Highlights Page Functions
 // Function to show Highlights page
 function showHighlightsPage() {
@@ -1186,10 +1179,9 @@ function calculateAge(birthdate) {
     }
     return age;
 }
-
-// Utility function to format date
+// Utility function to format date for input fields
 function formatDate(dateString) {
-    const date = new Date(dateString);
+    const date = new Date(dateString + 'T00:00:00'); // Force the date to be treated as a local date by adding a time.
     const options = { year: 'numeric', month: 'long', day: 'numeric' };
     return date.toLocaleDateString(undefined, options);
 }

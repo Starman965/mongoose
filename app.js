@@ -1390,40 +1390,52 @@ function showAchievementsPage() {
     analyzeAchievements();  // Call analyzeAchievements to check historical matches
 }
 
-function loadAchievements() {
-    const achievementsContainer = document.getElementById('achievementsContainer');
-    achievementsContainer.innerHTML = 'Loading achievements...';
+function loadAchievementsPage() {
+    const mainContent = document.getElementById('mainContent');
+    mainContent.innerHTML = `
+        <h2>Your Achievements</h2>
+        <div id="achievementsList">Loading achievements...</div>
+    `;
 
-    console.log("Fetching achievements from Firebase");
+    // Fetch achievements from Firebase
+    get(ref(database, 'achievements')).then((snapshot) => {
+        const achievements = snapshot.val();
+        const achievementsList = document.getElementById('achievementsList');
+        achievementsList.innerHTML = ''; // Clear loading message
 
-    // Fetch achievements from the database
-    onValue(ref(database, 'achievements'), (snapshot) => {
-        achievementsContainer.innerHTML = '';
-        
-        snapshot.forEach((childSnapshot) => {
-            const achievement = childSnapshot.val();
-            const achievementId = childSnapshot.key;
+        if (achievements) {
+            Object.keys(achievements).forEach((achievementId) => {
+                const achievement = achievements[achievementId];
+                
+                // Create a div for each achievement
+                const achievementDiv = document.createElement('div');
+                achievementDiv.classList.add('achievement');
 
-            console.log("Loaded achievement:", achievement.title, achievement);
-
-            // Display the achievement in the UI
-            achievementsContainer.innerHTML += `
-                <div class="achievement-card">
+                // Populate the achievement details
+                achievementDiv.innerHTML = `
                     <h3>${achievement.title}</h3>
-                    <p>${achievement.description}</p>
-                    <p><strong>Difficulty:</strong> ${achievement.difficulty}</p>
+                    <p><strong>Description:</strong> ${achievement.description}</p>
+                    <p><strong>Progress:</strong> ${achievement.progress}/${achievement.goal}</p>
                     <p><strong>Status:</strong> ${achievement.status}</p>
-                    <p><strong>Points:</strong> ${achievement.achievementPoints}</p>
-                    <p><strong>Award:</strong> ${achievement.award} (Sponsored by ${achievement.awardSponsor})</p>
-                </div>
-            `;
-        });
+                    ${achievement.mostRecentWinDate ? `<p><strong>Most Recent Win Date:</strong> ${new Date(achievement.mostRecentWinDate).toLocaleDateString()}</p>` : ''}
+                    ${achievement.lastProgressDate ? `<p><strong>Last Progress Date:</strong> ${new Date(achievement.lastProgressDate).toLocaleDateString()}</p>` : ''}
+                    ${achievement.completionDate ? `<p><strong>Completion Date:</strong> ${new Date(achievement.completionDate).toLocaleDateString()}</p>` : ''}
+                    ${achievement.rewardPoints ? `<p><strong>Reward Points:</strong> ${achievement.rewardPoints}</p>` : ''}
+                `;
 
-        if (achievementsContainer.innerHTML === '') {
-            achievementsContainer.innerHTML = '<p>No achievements found.</p>';
+                // Append the achievement div to the list
+                achievementsList.appendChild(achievementDiv);
+            });
+        } else {
+            achievementsList.innerHTML = '<p>No achievements found.</p>';
         }
+    }).catch((error) => {
+        console.error('Error loading achievements:', error);
+        const achievementsList = document.getElementById('achievementsList');
+        achievementsList.innerHTML = '<p>Error loading achievements.</p>';
     });
 }
+
 
 function analyzeAchievements(match) {
     // Fetch all achievements from Firebase

@@ -65,15 +65,22 @@ window.showHomePage = function() {
 
             <div class="section">
                 <h3>Top Achievement Progress</h3>
-                <ul id="topAchievementsList">
-                    <!-- Dynamically load top achievements here -->
-                </ul>
+               <div class="achievement-card-wide">
+    <div class="achievement-badge-wide">
+        <img src="https://mongoose.mycodsquad.com/letsfuckinggo.png" alt="Honey Moon Fund Badge" class="achievement-badge-image-wide">
+    </div>
+    <div class="achievement-details-wide">
+        <h3>Honey Moon Fund</h3>
+        <p><strong>Description:</strong> Get 30 Wins by April 1, 2025</p>
+        <p><strong>Progress:</strong> 18 of 30 Completed</p>
+    </div>
+</div>
+
             </div>
         </div>
     `;
 
     loadRecentMatches();
-    loadTopAchievements();
 }
 
 function loadRecentMatches() {

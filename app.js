@@ -64,7 +64,7 @@ window.showHomePage = function() {
             </div>
 
             <div class="section">
-                <h3>Recent Achievements</h3>
+                <h3>Top Achievement Progress</h3>
                 <ul id="topAchievementsList">
                     <!-- Dynamically load top achievements here -->
                 </ul>
@@ -101,17 +101,17 @@ function loadTopAchievements() {
     // Clear any existing content
     topAchievementsList.innerHTML = '';
 
-    // Create a new card container
+    // Create a new wide card container
     const achievementCard = document.createElement('div');
-    achievementCard.classList.add('achievement-card');
+    achievementCard.classList.add('achievement-card-wide');
 
-    // Populate the card content with a similar layout as the team member cards
+    // Populate the card content similar to the team member card but in wide layout
     achievementCard.innerHTML = `
-        <div class="achievement-card-content">
-            <div class="achievement-badge">
-                <img src="${badgeURL}" alt="${achievementTitle} Badge" class="achievement-badge-image">
+        <div class="achievement-card-content-wide">
+            <div class="achievement-badge-wide">
+                <img src="${badgeURL}" alt="${achievementTitle} Badge" class="achievement-badge-image-wide">
             </div>
-            <div class="achievement-details">
+            <div class="achievement-details-wide">
                 <h3>${achievementTitle}</h3>
                 <p><strong>Description:</strong> ${achievementDescription}</p>
                 <p><strong>Progress:</strong> ${currentProgress} of ${totalProgress} Completed</p>

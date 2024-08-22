@@ -1398,6 +1398,13 @@ function showAchievementsPage() {
 
 function loadAchievementsPage() {
     const achievementsList = document.getElementById('achievementsList');
+    
+    // Ensure the element exists before proceeding
+    if (!achievementsList) {
+        console.error("Element with ID 'achievementsList' not found in the DOM.");
+        return;  // Exit the function early if the element doesn't exist
+    }
+
     achievementsList.innerHTML = 'Loading achievements...'; // Set initial loading state
 
     // Fetch achievements from Firebase

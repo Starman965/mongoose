@@ -24,7 +24,7 @@ window.onload = () => {
 document.getElementById('homeNav').addEventListener('click', () => showSection('home'));
 document.getElementById('statsNav').addEventListener('click', () => showSection('stats'));
 document.getElementById('sessionsNav').addEventListener('click', () => showSection('sessions'));
-// document.getElementById('achievementsNav').addEventListener('click', () => showAchievementsPage());
+document.getElementById('achievementsNav').addEventListener('click', () => showAchievementsPage());
 document.getElementById('highlightsNav').addEventListener('click', () => showSection('highlights'));
 document.getElementById('teamNav').addEventListener('click', () => showSection('team'));
 // document.getElementById('adminNav').addEventListener('click', () => showSection('admin'));
@@ -37,6 +37,7 @@ function showSection(section) {
     case 'home': showHomePage(); break;
     case 'stats': showStats(); break;
     case 'sessions': showGameSessions(); break;
+     case 'highlights': showAchievementsPage(); break;
     case 'highlights': showHighlightsPage(); break;
     case 'team': showTeamMembers(); break;
     // case 'admin': showAdmin(); break;

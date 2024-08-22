@@ -1521,16 +1521,17 @@ function checkAchievementCriteria(match, achievement) {
     }
 }
 
-// Function to update achievement data in Firebase
+// Function to update the achievement in Firebase
 function updateAchievementInFirebase(achievement) {
-    const achievementRef = ref(database, `achievements/${achievement.id}`);
+    const achievementRef = ref(database, `achievements/${achievement.id}`); // Use the correct achievement ID
     update(achievementRef, achievement)
         .then(() => {
-            console.log("Achievement successfully updated.");
+            console.log('Achievement progress updated successfully.');
         })
         .catch((error) => {
-            console.error("Error updating a
-
+            console.error('Error updating achievement progress:', error);
+        });
+}
 
 function updateAchievementProgress(achievement, match) {
     // Check if the achievement is "Let's F'ing Go"

@@ -101,14 +101,16 @@ function loadTopAchievements() {
     // Clear any existing content
     topAchievementsList.innerHTML = '';
 
-    // Create a new list item to display the achievement details
-    const achievementItem = document.createElement('li');
-    achievementItem.classList.add('achievement-item');
+    // Create a new card container
+    const achievementCard = document.createElement('div');
+    achievementCard.classList.add('achievement-card');
 
-    // Populate the content of the achievement item
-    achievementItem.innerHTML = `
-        <div class="achievement-content">
-            <img src="${badgeURL}" alt="${achievementTitle} Badge" style="width:100px;height:100px;">
+    // Populate the card content with a similar layout as the team member cards
+    achievementCard.innerHTML = `
+        <div class="achievement-card-content">
+            <div class="achievement-badge">
+                <img src="${badgeURL}" alt="${achievementTitle} Badge" class="achievement-badge-image">
+            </div>
             <div class="achievement-details">
                 <h3>${achievementTitle}</h3>
                 <p><strong>Description:</strong> ${achievementDescription}</p>
@@ -117,9 +119,10 @@ function loadTopAchievements() {
         </div>
     `;
 
-    // Append the achievement item to the list
-    topAchievementsList.appendChild(achievementItem);
+    // Append the achievement card to the list
+    topAchievementsList.appendChild(achievementCard);
 }
+
 // Show Stats Functions for Team Statistics Page
 function showStats() {
     mainContent.innerHTML = `

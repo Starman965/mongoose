@@ -769,6 +769,9 @@ async function addMatch(e, sessionId) {
     set(newMatchRef, matchData).then(() => {
         document.getElementById('modal').style.display = 'none';
         loadMatches(sessionId);
+
+        // Analyze achievements after match is saved
+        analyzeAchievements(matchData);
     }).catch((error) => {
         console.error("Error adding match:", error);
         alert('Error adding match. Please try again.');
@@ -875,6 +878,9 @@ async function updateMatch(e, sessionId, matchId) {
     update(ref(database, `gameSessions/${sessionId}/matches/${matchId}`), matchData).then(() => {
         document.getElementById('modal').style.display = 'none';
         loadMatches(sessionId);
+
+        // Analyze achievements after match is updated
+        analyzeAchievements(matchData);
     }).catch((error) => {
         console.error("Error updating match:", error);
         alert('Error updating match. Please try again.');

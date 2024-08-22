@@ -1403,63 +1403,55 @@ function showAchievementsPage() {
 
 function loadAchievementsPage() {
     const achievementsList = document.getElementById('achievementsList');
-    
+
     // Ensure the element exists before proceeding
     if (!achievementsList) {
         console.error("Element with ID 'achievementsList' not found in the DOM.");
-        return;  // Exit the function early if the element doesn't exist
+        return;
     }
 
     achievementsList.innerHTML = 'Loading achievements...'; // Set initial loading state
 
-    // Fetch achievements from Firebase
-    get(ref(database, 'achievements')).then((snapshot) => {
+    // Fetch the specific achievement node from Firebase
+    get(ref(database, 'achievements/-O4glCiXjyx5typt2yMp')).then((snapshot) => {
         if (!snapshot.exists()) {
             achievementsList.innerHTML = '<p>No achievements available.</p>';
             return;
         }
 
-        const achievementsData = snapshot.val();
-        console.log("Achievements Data:", achievementsData);  // Log the data to check structure
+        const achievement = snapshot.val();
+        console.log("Achievement Data:", achievement);  // Log the specific achievement data
         
         achievementsList.innerHTML = ''; // Clear loading message
 
-        // Assuming we now have a single object with one achievement
-        Object.keys(achievementsData).forEach((achievementId) => {
-            const achievement = achievementsData[achievementId];
+        // Ensure the achievement has necessary fields or provide defaults
+        const title = achievement.title || 'Untitled Achievement';
+        const description = achievement.description || 'No description available';
+        const progress = achievement.progress !== undefined ? achievement.progress : 'Unknown';
+        const goal = achievement.goal || 'Unknown goal';
+        const status = achievement.status || 'Unknown status';
+        const badgeURL = achievement.badgeURL || '';  // Default to empty if no URL is provided
 
-            console.log("Processing Achievement:", achievement);  // Log each achievement to debug
+        // Create a div for the achievement
+        const achievementDiv = document.createElement('div');
+        achievementDiv.classList.add('achievement');
 
-            // Ensure all necessary fields exist or provide defaults
-            const title = achievement.title || 'Untitled Achievement';
-            const description = achievement.description || 'No description available';
-            const progress = achievement.progress !== undefined ? achievement.progress : 'Unknown';
-            const goal = achievement.goal || 'Unknown goal';
-            const status = achievement.status || 'Unknown status';
-            const badgeURL = achievement.badgeURL || '';  // Default to empty if no URL is provided
+        // Populate the achievement details
+        achievementDiv.innerHTML = `
+            <h3>${title}</h3>
+            <p><strong>Description:</strong> ${description}</p>
+            <p><strong>Progress:</strong> ${progress}/${goal}</p>
+            <p><strong>Status:</strong> ${status}</p>
+            ${badgeURL ? `<img src="${badgeURL}" alt="Achievement Badge" style="width:100px;height:100px;">` : ''}
+        `;
 
-            // Create a div for each achievement
-            const achievementDiv = document.createElement('div');
-            achievementDiv.classList.add('achievement');
-
-            // Populate the achievement details
-            achievementDiv.innerHTML = `
-                <h3>${title}</h3>
-                <p><strong>Description:</strong> ${description}</p>
-                <p><strong>Progress:</strong> ${progress}/${goal}</p>
-                <p><strong>Status:</strong> ${status}</p>
-                ${badgeURL ? `<img src="${badgeURL}" alt="Achievement Badge" style="width:100px;height:100px;">` : ''}
-            `;
-
-            // Append the achievement div to the list
-            achievementsList.appendChild(achievementDiv);
-        });
+        // Append the achievement div to the list
+        achievementsList.appendChild(achievementDiv);
     }).catch((error) => {
-        console.error('Error loading achievements:', error);
-        achievementsList.innerHTML = '<p>Error loading achievements.</p>';
+        console.error('Error loading achievement:', error);
+        achievementsList.innerHTML = '<p>Error loading achievement.</p>';
     });
 }
-
 
 function analyzeAchievements(match) {
     // Fetch all achievements from Firebase

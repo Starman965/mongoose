@@ -56,22 +56,26 @@ window.showHomePage = function() {
         <p>Your Call of Duty Squad manager for tracking game sessions, matches, achievements, stats, and more!</p>
 
         <div class="home-sections">
-            <div class="section" id="recentWinSection">
-                <h3>Most Recent Match with a Win</h3>
-                <p>Loading most recent win...</p>
+            <div class="section">
+                <h3>Recent Win</h3>
+                <ul id="recentMatchesList">
+                    <!-- Dynamically load recent matches here -->
+                </ul>
             </div>
 
-            <div class="section" id="recentAchievementSection">
-                <h3>Most Recent Achievement</h3>
-                <p>Loading most recent achievement...</p>
+            <div class="section">
+                <h3>Recent Achievements</h3>
+                <ul id="topAchievementsList">
+                    <!-- Dynamically load top achievements here -->
+                </ul>
             </div>
         </div>
     `;
 
-    // Fetch and display the most recent win and most recent achievement
-    loadMostRecentWin();
-    loadMostRecentAchievement();
+    loadRecentMatches();
+    loadTopAchievements();
 }
+
 
 function loadMostRecentWin() {
     const recentWinSection = document.getElementById('recentWinSection');

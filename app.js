@@ -753,7 +753,7 @@ async function addMatch(e, sessionId) {
         loadMatches(sessionId);
 
         // Analyze achievements after match is saved
-        analyzeAchievements(matchData);
+        // analyzeAchievements(matchData);
     }).catch((error) => {
         console.error("Error adding match:", error);
         alert('Error adding match. Please try again.');

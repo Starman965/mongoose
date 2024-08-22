@@ -465,20 +465,20 @@ function loadGameSessions() {
         } else {
             sessionList.innerHTML = '';
             sessions.forEach((session) => {
-                sessionList.innerHTML += `
-                    <div class="card">
-                        <h3>${formatDate(session.date, session.userTimezoneOffset)}</h3>
-                        <p>Number of matches: ${session.matches ? Object.keys(session.matches).length : 0}</p>
-                        <div class="button-group">
-                            <button class="button" onclick="toggleMatches('${session.id}')">View Matches</button>
-                            <button class="button" onclick="showAddMatchModal('${session.id}')">Add Match</button>
-                            <button class="button" onclick="showEditGameSessionModal('${session.id}')">Edit Session</button>
-                            <button class="button" onclick="deleteGameSession('${session.id}')">Delete Session</button>
-                        </div>
-                        <div id="matches-${session.id}" class="matches-container" style="display: none;"></div>
-                    </div>
-                `;
-            });
+    sessionList.innerHTML += `
+        <div class="card">
+            <h3>${formatDate(session.date)}</h3>
+            <p>Number of matches: ${session.matches ? Object.keys(session.matches).length : 0}</p>
+            <div class="button-group">
+                <button class="button" onclick="toggleMatches('${session.id}')">View Matches</button>
+                <button class="button" onclick="showAddMatchModal('${session.id}')">Add Match</button>
+                <button class="button" onclick="showEditGameSessionModal('${session.id}')">Edit Session</button>
+                <button class="button" onclick="deleteGameSession('${session.id}')">Delete Session</button>
+            </div>
+            <div id="matches-${session.id}" class="matches-container" style="display: none;"></div>
+        </div>
+    `;
+});
         }
     }).catch(error => {
         console.error("Error loading game sessions:", error);
@@ -999,9 +999,10 @@ async function getMaps(gameType) {
 }
 
 // Utility function to format date for input fields
-function formatDateForInput(dateString) {
-    const date = new Date(dateString);
-    return date.toISOString().split('T')[0];
+function formatDate(dateString) {
+    const date = new Date(dateString + 'T00:00:00'); // Force the date to be treated as a local date by adding a time.
+    const options = { year: 'numeric', month: 'long', day: 'numeric' };
+    return date.toLocaleDateString(undefined, options);
 }
 
 // Highlights Page Functions

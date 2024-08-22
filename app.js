@@ -1442,7 +1442,6 @@ function loadAchievementsPage() {
     });
 }
 
-
 function analyzeAchievements(match) {
     // Fetch all achievements from Firebase
     get(ref(database, 'achievements')).then((snapshot) => {
@@ -1521,18 +1520,6 @@ function checkAchievementCriteria(match, achievement) {
     }
 }
 
-// Function to update the achievement in Firebase
-function updateAchievementInFirebase(achievement) {
-    const achievementRef = ref(database, `achievements/${achievement.id}`); // Use the correct achievement ID
-    update(achievementRef, achievement)
-        .then(() => {
-            console.log('Achievement progress updated successfully.');
-        })
-        .catch((error) => {
-            console.error('Error updating achievement progress:', error);
-        });
-}
-
 function updateAchievementProgress(achievement, match) {
     // Check if the achievement is "Let's F'ing Go"
     if (achievement.title === "Let's F'ing Go") {
@@ -1566,13 +1553,13 @@ function updateAchievementProgress(achievement, match) {
 
 // Function to update the achievement in Firebase
 function updateAchievementInFirebase(achievement) {
-    const achievementRef = ref(database, `achievements/${achievement.id}`);
+    const achievementRef = ref(database, `achievements/${achievement.id}`); // Use the correct achievement ID
     update(achievementRef, achievement)
         .then(() => {
-            console.log("Achievement successfully updated.");
+            console.log('Achievement progress updated successfully.');
         })
         .catch((error) => {
-            console.error("Error updating achievement:", error);
+            console.error('Error updating achievement progress:', error);
         });
 }
 

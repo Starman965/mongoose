@@ -553,39 +553,6 @@ footer {
   background-color: #2a2a2a;
 }
 
-#achievementForm,
-#challengeForm {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-#achievementForm input,
-#achievementForm select,
-#achievementForm textarea,
-#challengeForm input,
-#challengeForm select,
-#challengeForm textarea {
-  padding: 5px;
-  background-color: #333;
-  color: #fff;
-  border: 1px solid #555;
-}
-
-#achievementForm button,
-#challengeForm button {
-  padding: 10px;
-  background-color: #4CAF50;
-  color: white;
-  border: none;
-  cursor: pointer;
-  transition: background-color 0.3s;
-}
-
-#achievementForm button:hover,
-#challengeForm button:hover {
-  background-color: #45a049;
-}
 .admin-actions {
   margin-top: 20px;
   padding: 10px;
@@ -616,39 +583,6 @@ footer {
 
 #prizePatrolTable .stats-table td {
   vertical-align: middle;
-
-    /* Achievement Notification Styles */
-.achievement-notification {
-  position: fixed;
-  bottom: 20px;
-  right: 20px;
-  background-color: #4CAF50;
-  color: white;
-  padding: 15px;
-  border-radius: 5px;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-  opacity: 0;
-  transform: translateY(20px);
-  transition: opacity 0.3s, transform 0.3s;
-}
-
-.achievement-notification.show {
-  opacity: 1;
-  transform: translateY(0);
-}
-}
-
-#prizePatrolTable .stats-table input[type="checkbox"] {
-  transform: scale(1.5);
-}
-
-.achievement-form {
-  display: grid;
-  gap: 15px;
-  max-width: 800px;
-  margin: 0 auto;
-}
-
 
 .input-group {
   display: flex;
@@ -693,4 +627,43 @@ textarea {
 textarea {
   height: 100px;
   resize: vertical;
+}
+/* Achievement Card Container */
+.achievement-card {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    background-color: #444;
+    border-radius: 10px;
+    padding: 20px;
+    margin: 20px 0;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    max-width: 100%;
+}
+
+/* Badge Image Section */
+.achievement-badge {
+    margin-right: 20px;
+}
+
+.achievement-badge-image {
+    width: 120px;
+    height: 120px;
+    border-radius: 8px;
+    object-fit: cover;
+}
+
+/* Details Section */
+.achievement-details {
+    color: white;
+}
+
+.achievement-details h3 {
+    margin-top: 0;
+    font-size: 1.8rem;
+}
+
+.achievement-details p {
+    margin: 5px 0;
+    font-size: 1.1rem;
 }

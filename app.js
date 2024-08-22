@@ -1397,47 +1397,48 @@ function showAchievementsPage() {
 }
 
 function loadAchievementsPage() {
-    const mainContent = document.getElementById('mainContent');
-    mainContent.innerHTML = `
-        <h2>Your Achievements</h2>
-        <div id="achievementsList">Loading achievements...</div>
-    `;
+    const achievementsList = document.getElementById('achievementsList');
+    achievementsList.innerHTML = 'Loading achievements...'; // Set initial loading state
 
     // Fetch achievements from Firebase
     get(ref(database, 'achievements')).then((snapshot) => {
+        if (!snapshot.exists()) {
+            achievementsList.innerHTML = '<p>No achievements available.</p>';
+            return;
+        }
+
         const achievements = snapshot.val();
-        const achievementsList = document.getElementById('achievementsList');
         achievementsList.innerHTML = ''; // Clear loading message
 
-        if (achievements) {
-            Object.keys(achievements).forEach((achievementId) => {
-                const achievement = achievements[achievementId];
-                
-                // Create a div for each achievement
-                const achievementDiv = document.createElement('div');
-                achievementDiv.classList.add('achievement');
+        Object.keys(achievements).forEach((achievementId) => {
+            const achievement = achievements[achievementId];
 
-                // Populate the achievement details
-                achievementDiv.innerHTML = `
-                    <h3>${achievement.title}</h3>
-                    <p><strong>Description:</strong> ${achievement.description}</p>
-                    <p><strong>Progress:</strong> ${achievement.progress}/${achievement.goal}</p>
-                    <p><strong>Status:</strong> ${achievement.status}</p>
-                    ${achievement.mostRecentWinDate ? `<p><strong>Most Recent Win Date:</strong> ${new Date(achievement.mostRecentWinDate).toLocaleDateString()}</p>` : ''}
-                    ${achievement.lastProgressDate ? `<p><strong>Last Progress Date:</strong> ${new Date(achievement.lastProgressDate).toLocaleDateString()}</p>` : ''}
-                    ${achievement.completionDate ? `<p><strong>Completion Date:</strong> ${new Date(achievement.completionDate).toLocaleDateString()}</p>` : ''}
-                    ${achievement.rewardPoints ? `<p><strong>Reward Points:</strong> ${achievement.rewardPoints}</p>` : ''}
-                `;
+            // Ensure all necessary fields exist or provide defaults
+            const title = achievement.title || 'Untitled Achievement';
+            const description = achievement.description || 'No description available';
+            const progress = achievement.progress !== undefined ? achievement.progress : 'Unknown';
+            const goal = achievement.goal || 'Unknown goal';
+            const status = achievement.status || 'Unknown status';
+            const badgeURL = achievement.badgeURL || '';  // Default to empty if no URL is provided
 
-                // Append the achievement div to the list
-                achievementsList.appendChild(achievementDiv);
-            });
-        } else {
-            achievementsList.innerHTML = '<p>No achievements found.</p>';
-        }
+            // Create a div for each achievement
+            const achievementDiv = document.createElement('div');
+            achievementDiv.classList.add('achievement');
+
+            // Populate the achievement details
+            achievementDiv.innerHTML = `
+                <h3>${title}</h3>
+                <p><strong>Description:</strong> ${description}</p>
+                <p><strong>Progress:</strong> ${progress}/${goal}</p>
+                <p><strong>Status:</strong> ${status}</p>
+                ${badgeURL ? `<img src="${badgeURL}" alt="Achievement Badge" style="width:100px;height:100px;">` : ''}
+            `;
+
+            // Append the achievement div to the list
+            achievementsList.appendChild(achievementDiv);
+        });
     }).catch((error) => {
         console.error('Error loading achievements:', error);
-        const achievementsList = document.getElementById('achievementsList');
         achievementsList.innerHTML = '<p>Error loading achievements.</p>';
     });
 }

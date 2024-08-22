@@ -1419,11 +1419,16 @@ function loadAchievementsPage() {
             return;
         }
 
-        const achievements = snapshot.val();
+        const achievementsData = snapshot.val();
+        console.log("Achievements Data:", achievementsData);  // Log the data to check structure
+        
         achievementsList.innerHTML = ''; // Clear loading message
 
-        Object.keys(achievements).forEach((achievementId) => {
-            const achievement = achievements[achievementId];
+        // Assuming we now have a single object with one achievement
+        Object.keys(achievementsData).forEach((achievementId) => {
+            const achievement = achievementsData[achievementId];
+
+            console.log("Processing Achievement:", achievement);  // Log each achievement to debug
 
             // Ensure all necessary fields exist or provide defaults
             const title = achievement.title || 'Untitled Achievement';
@@ -1454,6 +1459,7 @@ function loadAchievementsPage() {
         achievementsList.innerHTML = '<p>Error loading achievements.</p>';
     });
 }
+
 
 function analyzeAchievements(match) {
     // Fetch all achievements from Firebase

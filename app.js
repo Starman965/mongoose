@@ -1425,106 +1425,137 @@ function loadAchievements() {
     });
 }
 
-function analyzeAchievements() {
-    console.log("Starting achievement analysis...");
+function analyzeAchievements(match) {
+    // Fetch all achievements from Firebase
+    get(ref(database, 'achievements')).then((snapshot) => {
+        const achievements = snapshot.val();
 
-    // Fetch all matches from the database once
-    get(ref(database, 'gameSessions')).then((snapshot) => {
-        snapshot.forEach((sessionSnapshot) => {
-            const session = sessionSnapshot.val();
-            console.log("Analyzing session:", session);
+        // Loop through all achievements
+        Object.keys(achievements).forEach((achievementId) => {
+            const achievement = achievements[achievementId];
 
-            // Loop through matches in each session
-            session.matches && Object.keys(session.matches).forEach((matchId) => {
-                const match = session.matches[matchId];
-                console.log("Analyzing match:", match);
+            // Check if the achievement is "Let's F'ing Go"
+            if (achievement.title === "Let's F'ing Go") {
+                
+                // Only check if the achievement is still in progress
+                if (achievement.status === "In Progress") {
+                    
+                    // Check if this is a Warzone match with a placement of 1 (a win)
+                    if (match.gameType === 'warzone' && match.placement === 1) {
+                        achievement.progress += 1;
+                        achievement.mostRecentWinDate = new Date().toISOString();
+                        achievement.lastProgressDate = new Date().toISOString();
 
-                // Fetch achievements from the database once
-                get(ref(database, 'achievements')).then((achievementSnapshot) => {
-                    achievementSnapshot.forEach((achievementChild) => {
-                        const achievement = achievementChild.val();
-                        const achievementId = achievementChild.key;
-
-                        // Check if the achievement allows using historical data
-                        if (achievement.useHistoricalData) {
-                            console.log(`Evaluating achievement with historical data: ${achievement.title}`);
-                            checkAchievementCriteria(match, achievement, achievementId, matchId); // Pass matchId here
+                        // Check if the achievement goal has been met
+                        if (achievement.progress >= achievement.goal) {
+                            achievement.status = 'Completed';
+                            achievement.completionDate = new Date().toISOString();
+                            achievement.awarded = true;
+                            achievement.rewardPoints += 10;
+                            alert("Congratulations! You've completed the 'Let's F'ing Go' achievement!");
                         }
-                    });
-                }).catch((error) => {
-                    console.error("Error fetching achievements:", error);
-                });
-            });
-        });
-    }).catch((error) => {
-        console.error("Error fetching game sessions:", error);
-    });
-}
 
-function checkAchievementCriteria(match, achievement, achievementId, matchId) {
-    console.log("Checking criteria for achievement:", achievement.title);
-
-    // Example: Check specific achievement criteria like STARMAN's Rampage
-    if (achievement.title === "STARMAN's Rampage") {
-        if (match.kills && match.kills.STARMAN >= 10) {
-            console.log(`STARMAN's Rampage criteria met in match:`, match);
-            
-            // Update the achievement progress once
-            updateAchievementProgress(achievementId, matchId);
-        } else {
-            console.log(`STARMAN's Rampage criteria not met. STARMAN kills:`, match.kills ? match.kills.STARMAN : 0);
-        }
-    }
-
-    // Add other achievement checks here as needed
-}
-
-function updateAchievementProgress(achievementId, matchId) {
-    const achievementRef = ref(database, `achievements/${achievementId}`);
-
-    get(achievementRef).then((snapshot) => {
-        if (snapshot.exists()) {
-            const achievement = snapshot.val();
-            console.log("Achievement data before update:", achievement);
-
-            let newCompletionCount = achievement.completionCount || 0; // Default to 0 if not set
-
-            // Increment the completion count
-            newCompletionCount += 1;
-
-            // If the achievement can be completed multiple times, update the completion count
-            if (achievement.canCompleteMultipleTimes) {
-                update(achievementRef, {
-                    completionCount: newCompletionCount,
-                    lastCompletedMatchId: matchId
-                }).then(() => {
-                    console.log(`Achievement ${achievementId} successfully updated. Completion count: ${newCompletionCount}`);
-                }).catch((error) => {
-                    console.error("Error updating achievement:", error);
-                });
-            } else {
-                // If the achievement can only be completed once, ensure it's marked as completed
-                if (achievement.status !== 'Completed') {
-                    update(achievementRef, {
-                        status: 'Completed',
-                        completionCount: newCompletionCount
-                    }).then(() => {
-                        console.log("Achievement successfully updated.");
-                    }).catch((error) => {
-                        console.error("Error updating achievement:", error);
-                    });
-                } else {
-                    console.log("Achievement already completed:", achievementId);
+                        // Update Firebase with the new achievement progress
+                        update(ref(database, `achievements/${achievementId}`), achievement)
+                            .then(() => {
+                                console.log('Achievement progress updated successfully.');
+                            })
+                            .catch((error) => {
+                                console.error('Error updating achievement progress:', error);
+                            });
+                    }
                 }
             }
-        } else {
-            console.error("Achievement not found:", achievementId);
-        }
+        });
     }).catch((error) => {
-        console.error("Error fetching achievement:", error);
+        console.error("Error fetching achievements:", error);
     });
 }
 
+function checkAchievementCriteria(match, achievement) {
+    // Check if the achievement is "Let's F'ing Go"
+    if (achievement.title === "Let's F'ing Go") {
+
+        // Only check if the achievement is still in progress
+        if (achievement.status === "In Progress") {
+
+            // Check if this is a Warzone match with a placement of 1 (a win)
+            if (match.gameType === 'warzone' && match.placement === 1) {
+                achievement.progress += 1;
+                achievement.mostRecentWinDate = new Date().toISOString();
+                achievement.lastProgressDate = new Date().toISOString();
+
+                // Check if the achievement goal has been met (30 wins)
+                if (achievement.progress >= achievement.goal) {
+                    achievement.status = 'Completed';
+                    achievement.completionDate = new Date().toISOString();
+                    achievement.awarded = true;
+                    achievement.rewardPoints += 10;
+
+                    // Notify the player that the achievement is completed
+                    alert("Congratulations! You've completed the 'Let's F'ing Go' achievement!");
+                }
+
+                // Update Firebase with the new achievement progress
+                updateAchievementInFirebase(achievement);
+            }
+        }
+    }
+}
+
+// Function to update achievement data in Firebase
+function updateAchievementInFirebase(achievement) {
+    const achievementRef = ref(database, `achievements/${achievement.id}`);
+    update(achievementRef, achievement)
+        .then(() => {
+            console.log("Achievement successfully updated.");
+        })
+        .catch((error) => {
+            console.error("Error updating a
+
+
+function updateAchievementProgress(achievement, match) {
+    // Check if the achievement is "Let's F'ing Go"
+    if (achievement.title === "Let's F'ing Go") {
+
+        // Only update progress if the achievement is still in progress
+        if (achievement.status === "In Progress") {
+
+            // Check if this is a Warzone match with a placement of 1 (a win)
+            if (match.gameType === 'warzone' && match.placement === 1) {
+                achievement.progress += 1;
+                achievement.mostRecentWinDate = new Date().toISOString();
+                achievement.lastProgressDate = new Date().toISOString();
+
+                // Check if the achievement goal has been met (30 wins)
+                if (achievement.progress >= achievement.goal) {
+                    achievement.status = 'Completed';
+                    achievement.completionDate = new Date().toISOString();
+                    achievement.awarded = true;
+                    achievement.rewardPoints += 10;
+
+                    // Notify the player about the completion
+                    alert("Congratulations! You've completed the 'Let's F'ing Go' achievement!");
+                }
+
+                // Update the achievement data in Firebase
+                updateAchievementInFirebase(achievement);
+            }
+        }
+    }
+}
+
+// Function to update the achievement in Firebase
+function updateAchievementInFirebase(achievement) {
+    const achievementRef = ref(database, `achievements/${achievement.id}`);
+    update(achievementRef, achievement)
+        .then(() => {
+            console.log("Achievement successfully updated.");
+        })
+        .catch((error) => {
+            console.error("Error updating achievement:", error);
+        });
+}
 
 function displayAchievements() {
     const achievementsContainer = document.getElementById('achievementsContainer');

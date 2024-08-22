@@ -1382,9 +1382,10 @@ function showDatabaseUtilitiesPage() {
 function showAchievementsPage() {
     const mainContent = document.getElementById('mainContent');
     
+    // Ensure we're creating the expected `achievementsList` ID
     mainContent.innerHTML = `
         <h2>Achievements</h2>
-        <div id="achievementsContainer" class="achievements-container">
+        <div id="achievementsList" class="achievements-list">
             <!-- Achievements will be dynamically loaded here -->
         </div>
     `;

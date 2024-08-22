@@ -624,6 +624,15 @@ function addGameSession(e) {
         }
     });
 }
+function formatDateForInput(dateString) {
+    const date = new Date(dateString); // Convert the input to a JavaScript Date object
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0'); // Add leading zero if necessary
+    const day = String(date.getDate()).padStart(2, '0'); // Add leading zero if necessary
+    
+    return `${year}-${month}-${day}`; // Return the formatted date as YYYY-MM-DD
+}
+
 // Function to update a game session
 function updateGameSession(e, sessionId) {
     e.preventDefault();

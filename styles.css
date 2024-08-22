@@ -628,42 +628,46 @@ textarea {
   height: 100px;
   resize: vertical;
 }
-/* Achievement Card Container */
-.achievement-card {
+/* Wide Achievement Card */
+.achievement-card-wide {
     display: flex;
     align-items: center;
     justify-content: flex-start;
-    background-color: #444;
-    border-radius: 10px;
+    background-color: #333;  /* Dark background similar to team card */
+    border-radius: 15px;     /* Rounded corners */
     padding: 20px;
     margin: 20px 0;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-    max-width: 100%;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);  /* Shadow for depth */
+    width: 100%;             /* Full width card */
+    max-width: 800px;        /* Limit max width for wide layout */
 }
 
 /* Badge Image Section */
-.achievement-badge {
-    margin-right: 20px;
+.achievement-badge-wide {
+    flex-shrink: 0;          /* Prevent badge from shrinking */
+    margin-right: 20px;      /* Space between badge and details */
 }
 
-.achievement-badge-image {
-    width: 120px;
-    height: 120px;
-    border-radius: 8px;
+.achievement-badge-image-wide {
+    width: 150px;            /* Fixed width for badge */
+    height: 150px;           /* Fixed height for badge */
+    border-radius: 10px;     /* Rounded edges for image */
     object-fit: cover;
 }
 
 /* Details Section */
-.achievement-details {
-    color: white;
+.achievement-details-wide {
+    color: #f9f9f9;          /* Light text for readability */
+    flex-grow: 1;            /* Allow details to grow to fill space */
 }
 
-.achievement-details h3 {
+.achievement-details-wide h3 {
     margin-top: 0;
-    font-size: 1.8rem;
+    font-size: 2rem;         /* Larger font for title */
+    color: #ffd700;          /* Gold color for title */
 }
 
-.achievement-details p {
+.achievement-details-wide p {
     margin: 5px 0;
-    font-size: 1.1rem;
+    font-size: 1.2rem;       /* Slightly larger font for description */
 }

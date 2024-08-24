@@ -1347,42 +1347,30 @@ function showAchievementsPage() {
             `;
 
             // Display the achievements
-           achievementsList.innerHTML += `
-    <div class="achievement-card-wide">
-        <div class="achievement-badge-wide">
-            <img src="${achievement.badgeURL}" alt="${achievement.title} Badge" class="achievement-badge-image-wide">
-        </div>
-        <div class="achievement-details-wide">
-            <h3>${achievement.title}</h3>
-            <p>${achievement.description}</p>
-            ${isProgressBased ? `
-                <p><strong>Progress:</strong> ${achievement.progress} / ${achievement.criteria.goal}</p>
-                <p><strong>Last Progress Date:</strong> ${achievement.lastProgressDate ? new Date(achievement.lastProgressDate).toLocaleDateString() : 'N/A'}</p>
-            ` : `
-                <p><strong>Completed:</strong> ${achievement.completionCount} times</p>
-                <p><strong>Last Completed On:</strong> ${achievement.completionDate ? new Date(achievement.completionDate).toLocaleDateString() : 'N/A'}</p>
-            `}
-            <p><strong>Achievement Points Earned:</strong> ${pointsEarned}</p>
-        </div>
-    </div>
-`;
+            achievementsList.innerHTML = ''; // Clear previous content
+            Object.keys(updatedAchievements).forEach(achievementId => {
+                const achievement = updatedAchievements[achievementId];
+                const isProgressBased = achievement.isProgressBased;
 
-                if (isProgressBased) {
-                    // Progress-based display (e.g., Honey Moon Fund)
-                    achievementsList.innerHTML += `
-                            <p><strong>Progress:</strong> ${achievement.progress} / ${achievement.criteria.goal}</p>
-                            <p><strong>Last Progress Date:</strong> ${achievement.lastProgressDate ? new Date(achievement.lastProgressDate).toLocaleDateString() : 'N/A'}</p>
-                    `;
-                } else {
-                    // Completion-based display (e.g., 5 Bomb)
-                    achievementsList.innerHTML += `
-                            <p><strong>Completed:</strong> ${achievement.completionCount} times</p>
-                            <p><strong>Last Completed On:</strong> ${achievement.completionDate ? new Date(achievement.completionDate).toLocaleDateString() : 'N/A'}</p>
-                    `;
-                }
+                // Calculate the points earned for this achievement
+                const pointsEarned = achievement.rewardPoints * achievement.completionCount;
 
-                // Display points earned for the achievement
+                // Basic display info for each achievement in a wide card format
                 achievementsList.innerHTML += `
+                    <div class="achievement-card-wide">
+                        <div class="achievement-badge-wide">
+                            <img src="${achievement.badgeURL}" alt="${achievement.title} Badge" class="achievement-badge-image-wide">
+                        </div>
+                        <div class="achievement-details-wide">
+                            <h3>${achievement.title}</h3>
+                            <p>${achievement.description}</p>
+                            ${isProgressBased ? `
+                                <p><strong>Progress:</strong> ${achievement.progress} / ${achievement.criteria.goal}</p>
+                                <p><strong>Last Progress Date:</strong> ${achievement.lastProgressDate ? new Date(achievement.lastProgressDate).toLocaleDateString() : 'N/A'}</p>
+                            ` : `
+                                <p><strong>Completed:</strong> ${achievement.completionCount} times</p>
+                                <p><strong>Last Completed On:</strong> ${achievement.completionDate ? new Date(achievement.completionDate).toLocaleDateString() : 'N/A'}</p>
+                            `}
                             <p><strong>Achievement Points Earned:</strong> ${pointsEarned}</p>
                         </div>
                     </div>
@@ -1410,6 +1398,7 @@ function showAchievementsPage() {
         achievementsList.innerHTML = '<p>Error loading achievements. Please try again later.</p>';
     });
 }
+
 function batchProcessAchievements(matches, achievements) {
     const updatedAchievements = { ...achievements };
 

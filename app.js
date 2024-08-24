@@ -1437,24 +1437,25 @@ function showAchievementsPage() {
             `;
 
             // Display the achievements
-            achievementsList.innerHTML = ''; // Clear previous content
-            Object.keys(updatedAchievements).forEach(achievementId => {
-                const achievement = updatedAchievements[achievementId];
-                const isProgressBased = achievement.isProgressBased;
-
-                // Calculate the points earned for this achievement
-                const pointsEarned = achievement.rewardPoints * achievement.completionCount;
-
-                // Basic display info
-                achievementsList.innerHTML += `
-                    <div class="achievement-card-wide">
-                        <div class="achievement-badge-wide">
-                            <img src="${achievement.badgeURL}" alt="${achievement.title} Badge" class="achievement-badge-image-wide">
-                        </div>
-                        <div class="achievement-details-wide">
-                            <h3>${achievement.title}</h3>
-                            <p>${achievement.description}</p>
-                `;
+          achievementsList.innerHTML += `
+    <div class="achievement-card-wide">
+        <div class="achievement-badge-wide">
+            <img src="${achievement.badgeURL}" alt="${achievement.title} Badge" class="achievement-badge-image-wide">
+        </div>
+        <div class="achievement-details-wide">
+            <h3>${achievement.title}</h3>
+            <p>${achievement.description}</p>
+            ${isProgressBased ? `
+                <p><strong>Progress:</strong> ${achievement.progress} / ${achievement.criteria.goal}</p>
+                <p><strong>Last Progress Date:</strong> ${achievement.lastProgressDate ? new Date(achievement.lastProgressDate).toLocaleDateString() : 'N/A'}</p>
+            ` : `
+                <p><strong>Completed:</strong> ${achievement.completionCount} times</p>
+                <p><strong>Last Completed On:</strong> ${achievement.completionDate ? new Date(achievement.completionDate).toLocaleDateString() : 'N/A'}</p>
+            `}
+            <p><strong>Achievement Points Earned:</strong> ${pointsEarned}</p>
+        </div>
+    </div>
+`;
 
                 if (isProgressBased) {
                     // Progress-based display (e.g., Honey Moon Fund)

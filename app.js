@@ -1385,19 +1385,20 @@ function showAchievementsPage() {
         achievementsList.innerHTML = '<p>Error loading achievements. Please try again later.</p>';
     });
 }
-
-/*
-// Old Achievements Tab Display and Related Functions
 function showAchievementsPage() {
     const mainContent = document.getElementById('mainContent');
 
     mainContent.innerHTML = `
         <h2>Achievements</h2>
+        <div id="totalTeamPoints" class="achievement-summary">
+            <!-- Total team points will be dynamically loaded here -->
+        </div>
         <div id="achievementsList" class="achievements-list">
             <!-- Achievements will be dynamically loaded here -->
         </div>
     `;
 
+    const totalTeamPointsElement = document.getElementById('totalTeamPoints');
     const achievementsList = document.getElementById('achievementsList');
 
     // Load achievements and match data from Firebase
@@ -1423,19 +1424,56 @@ function showAchievementsPage() {
             // Process the achievements based on the match data
             const updatedAchievements = batchProcessAchievements(matches, achievements);
 
+            // Calculate total team reward points
+            let totalTeamPoints = 0;
+            Object.keys(updatedAchievements).forEach(achievementId => {
+                const achievement = updatedAchievements[achievementId];
+                totalTeamPoints += achievement.rewardPoints * achievement.completionCount;
+            });
+
+            // Display the total team points
+            totalTeamPointsElement.innerHTML = `
+                <h3>Total Team Reward Points: <span class="total-points">${totalTeamPoints}</span></h3>
+            `;
+
             // Display the achievements
             achievementsList.innerHTML = ''; // Clear previous content
             Object.keys(updatedAchievements).forEach(achievementId => {
                 const achievement = updatedAchievements[achievementId];
+                const isProgressBased = achievement.isProgressBased;
+
+                // Calculate the points earned for this achievement
+                const pointsEarned = achievement.rewardPoints * achievement.completionCount;
+
+                // Basic display info
                 achievementsList.innerHTML += `
-                    <div class="achievement-card">
-                        <img src="${achievement.badgeURL}" alt="${achievement.title} Badge" class="achievement-badge">
-                        <h3>${achievement.title}</h3>
-                        <p><strong>Description:</strong> ${achievement.description}</p>
-                        <p><strong>Status:</strong> ${achievement.status}</p>
-                        <p><strong>Progress:</strong> ${achievement.progress} / ${achievement.criteria.goal}</p>
-                        <p><strong>Last Progress Date:</strong> ${new Date(achievement.lastProgressDate).toLocaleDateString()}</p>
-                        ${achievement.completionDate ? `<p><strong>Completed On:</strong> ${new Date(achievement.completionDate).toLocaleDateString()}</p>` : ''}
+                    <div class="achievement-card-wide">
+                        <div class="achievement-badge-wide">
+                            <img src="${achievement.badgeURL}" alt="${achievement.title} Badge" class="achievement-badge-image-wide">
+                        </div>
+                        <div class="achievement-details-wide">
+                            <h3>${achievement.title}</h3>
+                            <p>${achievement.description}</p>
+                `;
+
+                if (isProgressBased) {
+                    // Progress-based display (e.g., Honey Moon Fund)
+                    achievementsList.innerHTML += `
+                            <p><strong>Progress:</strong> ${achievement.progress} / ${achievement.criteria.goal}</p>
+                            <p><strong>Last Progress Date:</strong> ${achievement.lastProgressDate ? new Date(achievement.lastProgressDate).toLocaleDateString() : 'N/A'}</p>
+                    `;
+                } else {
+                    // Completion-based display (e.g., 5 Bomb)
+                    achievementsList.innerHTML += `
+                            <p><strong>Completed:</strong> ${achievement.completionCount} times</p>
+                            <p><strong>Last Completed On:</strong> ${achievement.completionDate ? new Date(achievement.completionDate).toLocaleDateString() : 'N/A'}</p>
+                    `;
+                }
+
+                // Display points earned for the achievement
+                achievementsList.innerHTML += `
+                            <p><strong>Achievement Points Earned:</strong> ${pointsEarned}</p>
+                        </div>
                     </div>
                 `;
             });
@@ -1461,141 +1499,3 @@ function showAchievementsPage() {
         achievementsList.innerHTML = '<p>Error loading achievements. Please try again later.</p>';
     });
 }
-*/
-function batchProcessAchievements(matches, achievements) {
-    const updatedAchievements = { ...achievements };
-
-    // Reset all achievements to start recalculation
-    Object.keys(updatedAchievements).forEach(achievementId => {
-        const achievement = updatedAchievements[achievementId];
-        achievement.progress = 0;
-        achievement.completionCount = 0;
-        achievement.lastProgressDate = null;
-        achievement.completionDate = null;
-    });
-
-    // Loop through matches and process achievements based on match data
-    matches.forEach(match => {
-        Object.keys(updatedAchievements).forEach(achievementId => {
-            const achievement = updatedAchievements[achievementId];
-            const criteria = achievement.criteria;
-
-            // For placement-based achievements (e.g., finish 1st place in Warzone)
-            if (criteria.type === 'placement' && match.gameType === criteria.gameType && match.placement === criteria.goal) {
-                if (!criteria.map || match.map === criteria.map) {
-                    achievement.completionCount += 1;
-                    achievement.completionDate = new Date().toISOString();
-                }
-            }
-            // For win-based achievements (e.g., get 30 Warzone wins)
-            else if (criteria.type === 'wins' && match.gameType === 'warzone' && match.placement === 1) {
-                achievement.progress += 1;
-                achievement.lastProgressDate = new Date().toISOString();
-
-                // Check if the progress goal has been met
-                if (achievement.progress >= criteria.goal) {
-                    achievement.completionCount = 1;
-                    achievement.completionDate = new Date().toISOString();
-                }
-            }
-            // For kill-based achievements (e.g., get 5, 10, 15 kills in a single match)
-            else if (criteria.type === 'singleMatchKills' && match.gameType === criteria.gameType && match.totalKills >= criteria.goal) {
-                achievement.completionCount += 1;
-                achievement.completionDate = new Date().toISOString();
-            }
-        });
-    });
-
-    return updatedAchievements;
-}
-
-// Batch before progress removed
-/*
-function batchProcessAchievements(matches, achievements) {
-    const updatedAchievements = { ...achievements };
-    const currentDate = new Date().toISOString().split('T')[0];  // Get the current date in "YYYY-MM-DD" format
-
-    Object.keys(updatedAchievements).forEach(achievementId => {
-        const achievement = updatedAchievements[achievementId];
-        const criteria = achievement.criteria;
-        let progress = 0;
-
-        // Check if the achievement is expired
-        if (achievement.expiryDate && currentDate > achievement.expiryDate) {
-            return; // Skip expired achievements
-        }
-
-        matches.forEach(match => {
-            // Placement-based achievement with a specific map
-            if (criteria.type === 'placement' && match.gameType === criteria.gameType && match.placement === criteria.goal && (!criteria.map || match.map === criteria.map)) {
-                progress++;
-            }
-            // Track Warzone wins for Let's F'ing Go and general win-based achievements
-            else if (criteria.type === 'wins' && match.gameType === 'warzone' && match.placement === 1) {
-                progress++;
-            }
-            // Single match kills-based achievements (e.g., 5 Bomb, 10 Bomb, 20 Bomb)
-            else if (criteria.type === 'singleMatchKills' && match.gameType === criteria.gameType && match.totalKills >= criteria.goal) {
-                progress++;
-            }
-        });
-
-        // Update achievement progress and completion
-        if (progress > 0) {
-            achievement.progress += progress;
-            achievement.lastProgressDate = currentDate;  // Use the correct date format
-
-            // Handle Let's F'ing Go special case
-            if (achievement.id === 'lets_fing_go' && achievement.progress >= criteria.goal) {
-                achievement.progress = criteria.goal;  // Lock progress at 30
-                achievement.completionCount = 1;       // Only completed once
-                achievement.completionDate = currentDate;
-                achievement.status = "Completed";
-            } else if (achievement.id !== 'lets_fing_go') {
-                // For other achievements
-                achievement.completionCount += progress; // Increment completion count
-                achievement.completionDate = currentDate;
-                achievement.status = "Completed";
-            }
-        }
-    });
-
-    return updatedAchievements;
-}
-*/
-// Original Batch that worked with honeymoon
-/* function batchProcessAchievements(matches, achievements) {
-    const updatedAchievements = { ...achievements };  // Clone the achievements object for modification
-
-    // Loop through each achievement
-    Object.keys(updatedAchievements).forEach(achievementId => {
-        const achievement = updatedAchievements[achievementId];
-        const criteria = achievement.criteria;
-
-        // Reset progress for this achievement
-        let progress = 0;
-
-        // Loop through each match to calculate progress
-        matches.forEach(match => {
-            // Check if the achievement is based on Warzone wins
-            if (criteria.type === 'wins' && match.gameType === criteria.gameType && match.placement === 1) {
-                progress++;
-            }
-        });
-
-        // Update progress and status
-        achievement.progress = progress;
-        achievement.status = progress >= criteria.goal ? 'Completed' : 'In Progress';
-        achievement.completionCount = achievement.status === 'Completed' ? (achievement.completionCount + 1 || 1) : achievement.completionCount;
-
-        // Set dates
-        if (achievement.status === 'Completed' && !achievement.completionDate) {
-            achievement.completionDate = new Date().toISOString();
-        }
-        achievement.lastProgressDate = new Date().toISOString();
-    });
-
-    return updatedAchievements;  // Return the updated achievements object
-}
-*/
-

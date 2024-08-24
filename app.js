@@ -1338,27 +1338,30 @@ function showAchievementsPage() {
 
                 // Basic display info
                 achievementsList.innerHTML += `
-                    <div class="achievement-card">
-                        <img src="${achievement.badgeURL}" alt="${achievement.title} Badge" class="achievement-badge">
-                        <h3>${achievement.title}</h3>
-                        <p><strong>Description:</strong> ${achievement.description}</p>
+                    <div class="achievement-card-wide">
+                        <div class="achievement-badge-wide">
+                            <img src="${achievement.badgeURL}" alt="${achievement.title} Badge" class="achievement-badge-image-wide">
+                        </div>
+                        <div class="achievement-details-wide">
+                            <h3>${achievement.title}</h3>
+                            <p>${achievement.description}</p>
                 `;
 
                 if (isProgressBased) {
                     // Progress-based display (e.g., Honey Moon Fund)
                     achievementsList.innerHTML += `
-                        <p><strong>Progress:</strong> ${achievement.progress} / ${achievement.criteria.goal}</p>
-                        <p><strong>Last Progress Date:</strong> ${achievement.lastProgressDate ? new Date(achievement.lastProgressDate).toLocaleDateString() : 'N/A'}</p>
+                            <p><strong>Progress:</strong> ${achievement.progress} / ${achievement.criteria.goal}</p>
+                            <p><strong>Last Progress Date:</strong> ${achievement.lastProgressDate ? new Date(achievement.lastProgressDate).toLocaleDateString() : 'N/A'}</p>
                     `;
                 } else {
                     // Completion-based display (e.g., 5 Bomb)
                     achievementsList.innerHTML += `
-                        <p><strong>Completed:</strong> ${achievement.completionCount} times</p>
-                        <p><strong>Last Completed On:</strong> ${achievement.completionDate ? new Date(achievement.completionDate).toLocaleDateString() : 'N/A'}</p>
+                            <p><strong>Completed:</strong> ${achievement.completionCount} times</p>
+                            <p><strong>Last Completed On:</strong> ${achievement.completionDate ? new Date(achievement.completionDate).toLocaleDateString() : 'N/A'}</p>
                     `;
                 }
 
-                achievementsList.innerHTML += `</div>`;
+                achievementsList.innerHTML += `</div></div>`;
             });
 
             // Update Firebase with the new achievement data
@@ -1382,7 +1385,6 @@ function showAchievementsPage() {
         achievementsList.innerHTML = '<p>Error loading achievements. Please try again later.</p>';
     });
 }
-
 
 /*
 // Old Achievements Tab Display and Related Functions

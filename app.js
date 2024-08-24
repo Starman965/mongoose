@@ -760,9 +760,6 @@ async function addMatch(e, sessionId) {
     set(newMatchRef, matchData).then(() => {
         document.getElementById('modal').style.display = 'none';
         loadMatches(sessionId);
-
-        // Analyze achievements after match is saved
-        // analyzeAchievements(matchData);
     }).catch((error) => {
         console.error("Error adding match:", error);
         alert('Error adding match. Please try again.');
@@ -869,9 +866,6 @@ async function updateMatch(e, sessionId, matchId) {
     update(ref(database, `gameSessions/${sessionId}/matches/${matchId}`), matchData).then(() => {
         document.getElementById('modal').style.display = 'none';
         loadMatches(sessionId);
-
-        // Analyze achievements after match is updated
-        analyzeAchievements(matchData);
     }).catch((error) => {
         console.error("Error updating match:", error);
         alert('Error updating match. Please try again.');
@@ -1365,8 +1359,7 @@ function showDatabaseUtilitiesPage() {
 // Achievements Tab Display and Related Functions
 function showAchievementsPage() {
     const mainContent = document.getElementById('mainContent');
-    
-    // Ensure we're creating the expected `achievementsList` ID
+
     mainContent.innerHTML = `
         <h2>Achievements</h2>
         <div id="achievementsList" class="achievements-list">
@@ -1374,212 +1367,101 @@ function showAchievementsPage() {
         </div>
     `;
 
-    console.log("Achievements page loaded");
-
-    // Load the achievements and analyze them
-    loadAchievementsPage();  
-    analyzeAchievements();  // Call analyzeAchievements to check historical matches
-}
-
-function loadAchievementsPage() {
     const achievementsList = document.getElementById('achievementsList');
 
-    // Ensure the element exists before proceeding
-    if (!achievementsList) {
-        console.error("Element with ID 'achievementsList' not found in the DOM.");
-        return;
-    }
+    // Load achievements and match data from Firebase
+    Promise.all([
+        get(ref(database, 'achievements')), // Load achievements
+        get(ref(database, 'gameSessions'))   // Load match data
+    ])
+    .then(([achievementsSnapshot, matchesSnapshot]) => {
+        if (achievementsSnapshot.exists() && matchesSnapshot.exists()) {
+            const achievements = achievementsSnapshot.val();
+            const matches = [];
 
-    achievementsList.innerHTML = 'Loading achievements...'; // Set initial loading state
+            // Loop through game sessions and extract matches
+            matchesSnapshot.forEach(sessionSnapshot => {
+                const session = sessionSnapshot.val();
+                if (session.matches) {
+                    Object.values(session.matches).forEach(match => {
+                        matches.push(match);
+                    });
+                }
+            });
 
-    // Fetch the specific achievement node from Firebase
-    get(ref(database, 'achievements/-O4glCiXjyx5typt2yMp')).then((snapshot) => {
-        if (!snapshot.exists()) {
-            achievementsList.innerHTML = '<p>No achievements available.</p>';
-            return;
+            // Process the achievements based on the match data
+            const updatedAchievements = batchProcessAchievements(matches, achievements);
+
+            // Display the achievements
+            achievementsList.innerHTML = ''; // Clear previous content
+            Object.keys(updatedAchievements).forEach(achievementId => {
+                const achievement = updatedAchievements[achievementId];
+                achievementsList.innerHTML += `
+                    <div class="achievement-card">
+                        <img src="${achievement.badgeURL}" alt="${achievement.title} Badge" class="achievement-badge">
+                        <h3>${achievement.title}</h3>
+                        <p><strong>Description:</strong> ${achievement.description}</p>
+                        <p><strong>Status:</strong> ${achievement.status}</p>
+                        <p><strong>Progress:</strong> ${achievement.progress} / ${achievement.criteria.goal}</p>
+                        <p><strong>Last Progress Date:</strong> ${new Date(achievement.lastProgressDate).toLocaleDateString()}</p>
+                        ${achievement.completionDate ? `<p><strong>Completed On:</strong> ${new Date(achievement.completionDate).toLocaleDateString()}</p>` : ''}
+                    </div>
+                `;
+            });
+
+            // Update Firebase with the new achievement data
+            Object.keys(updatedAchievements).forEach(achievementId => {
+                const achievement = updatedAchievements[achievementId];
+                update(ref(database, `achievements/${achievementId}`), achievement)
+                    .then(() => {
+                        console.log(`Achievement ${achievement.title} updated successfully.`);
+                    })
+                    .catch(error => {
+                        console.error(`Error updating achievement ${achievement.title}:`, error);
+                    });
+            });
+
+        } else {
+            achievementsList.innerHTML = '<p>No achievements or matches found.</p>';
         }
-
-        const achievement = snapshot.val();
-        console.log("Achievement Data:", achievement);  // Log the specific achievement data
-        
-        achievementsList.innerHTML = ''; // Clear loading message
-
-        // Ensure the achievement has necessary fields or provide defaults
-        const title = achievement.title || 'Untitled Achievement';
-        const description = achievement.description || 'No description available';
-        const progress = achievement.progress !== undefined ? achievement.progress : 'Unknown';
-        const goal = achievement.goal || 'Unknown goal';
-        const status = achievement.status || 'Unknown status';
-        const badgeURL = achievement.badgeURL || '';  // Default to empty if no URL is provided
-
-        // Create a div for the achievement
-        const achievementDiv = document.createElement('div');
-        achievementDiv.classList.add('achievement');
-
-        // Populate the achievement details
-        achievementDiv.innerHTML = `
-            <h3>${title}</h3>
-            <p><strong>Description:</strong> ${description}</p>
-            <p><strong>Progress:</strong> ${progress}/${goal}</p>
-            <p><strong>Status:</strong> ${status}</p>
-            ${badgeURL ? `<img src="${badgeURL}" alt="Achievement Badge" style="width:100px;height:100px;">` : ''}
-        `;
-
-        // Append the achievement div to the list
-        achievementsList.appendChild(achievementDiv);
-    }).catch((error) => {
-        console.error('Error loading achievement:', error);
-        achievementsList.innerHTML = '<p>Error loading achievement.</p>';
+    })
+    .catch(error => {
+        console.error("Error loading achievements or match data:", error);
+        achievementsList.innerHTML = '<p>Error loading achievements. Please try again later.</p>';
     });
 }
+function batchProcessAchievements(matches, achievements) {
+    const updatedAchievements = { ...achievements };  // Clone the achievements object for modification
 
-function analyzeAchievements(match) {
-    // Fetch all achievements from Firebase
-    get(ref(database, 'achievements')).then((snapshot) => {
-        const achievements = snapshot.val();
+    // Loop through each achievement
+    Object.keys(updatedAchievements).forEach(achievementId => {
+        const achievement = updatedAchievements[achievementId];
+        const criteria = achievement.criteria;
 
-        // Loop through all achievements
-        Object.keys(achievements).forEach((achievementId) => {
-            const achievement = achievements[achievementId];
+        // Reset progress for this achievement
+        let progress = 0;
 
-            // Check if the achievement is "Let's F'ing Go"
-            if (achievement.title === "Let's F'ing Go") {
-                
-                // Only check if the achievement is still in progress
-                if (achievement.status === "In Progress") {
-                    
-                    // Check if this is a Warzone match with a placement of 1 (a win)
-                    if (match.gameType === 'warzone' && match.placement === 1) {
-                        achievement.progress += 1;
-                        achievement.mostRecentWinDate = new Date().toISOString();
-                        achievement.lastProgressDate = new Date().toISOString();
-
-                        // Check if the achievement goal has been met
-                        if (achievement.progress >= achievement.goal) {
-                            achievement.status = 'Completed';
-                            achievement.completionDate = new Date().toISOString();
-                            achievement.awarded = true;
-                            achievement.rewardPoints += 10;
-                            alert("Congratulations! You've completed the 'Let's F'ing Go' achievement!");
-                        }
-
-                        // Update Firebase with the new achievement progress
-                        update(ref(database, `achievements/${achievementId}`), achievement)
-                            .then(() => {
-                                console.log('Achievement progress updated successfully.');
-                            })
-                            .catch((error) => {
-                                console.error('Error updating achievement progress:', error);
-                            });
-                    }
-                }
+        // Loop through each match to calculate progress
+        matches.forEach(match => {
+            // Check if the achievement is based on Warzone wins
+            if (criteria.type === 'wins' && match.gameType === criteria.gameType && match.placement === 1) {
+                progress++;
             }
         });
-    }).catch((error) => {
-        console.error("Error fetching achievements:", error);
-    });
-}
 
-function checkAchievementCriteria(match, achievement) {
-    // Check if the achievement is "Let's F'ing Go"
-    if (achievement.title === "Let's F'ing Go") {
+        // Update progress and status
+        achievement.progress = progress;
+        achievement.status = progress >= criteria.goal ? 'Completed' : 'In Progress';
+        achievement.completionCount = achievement.status === 'Completed' ? (achievement.completionCount + 1 || 1) : achievement.completionCount;
 
-        // Only check if the achievement is still in progress
-        if (achievement.status === "In Progress") {
-
-            // Check if this is a Warzone match with a placement of 1 (a win)
-            if (match.gameType === 'warzone' && match.placement === 1) {
-                achievement.progress += 1;
-                achievement.mostRecentWinDate = new Date().toISOString();
-                achievement.lastProgressDate = new Date().toISOString();
-
-                // Check if the achievement goal has been met (30 wins)
-                if (achievement.progress >= achievement.goal) {
-                    achievement.status = 'Completed';
-                    achievement.completionDate = new Date().toISOString();
-                    achievement.awarded = true;
-                    achievement.rewardPoints += 10;
-
-                    // Notify the player that the achievement is completed
-                    alert("Congratulations! You've completed the 'Let's F'ing Go' achievement!");
-                }
-
-                // Update Firebase with the new achievement progress
-                updateAchievementInFirebase(achievement);
-            }
+        // Set dates
+        if (achievement.status === 'Completed' && !achievement.completionDate) {
+            achievement.completionDate = new Date().toISOString();
         }
-    }
-}
-
-function updateAchievementProgress(achievement, match) {
-    // Check if the achievement is "Let's F'ing Go"
-    if (achievement.title === "Let's F'ing Go") {
-
-        // Only update progress if the achievement is still in progress
-        if (achievement.status === "In Progress") {
-
-            // Check if this is a Warzone match with a placement of 1 (a win)
-            if (match.gameType === 'warzone' && match.placement === 1) {
-                achievement.progress += 1;
-                achievement.mostRecentWinDate = new Date().toISOString();
-                achievement.lastProgressDate = new Date().toISOString();
-
-                // Check if the achievement goal has been met (30 wins)
-                if (achievement.progress >= achievement.goal) {
-                    achievement.status = 'Completed';
-                    achievement.completionDate = new Date().toISOString();
-                    achievement.awarded = true;
-                    achievement.rewardPoints += 10;
-
-                    // Notify the player about the completion
-                    alert("Congratulations! You've completed the 'Let's F'ing Go' achievement!");
-                }
-
-                // Update the achievement data in Firebase
-                updateAchievementInFirebase(achievement);
-            }
-        }
-    }
-}
-
-// Function to update the achievement in Firebase
-function updateAchievementInFirebase(achievement) {
-    const achievementRef = ref(database, `achievements/${achievement.id}`); // Use the correct achievement ID
-    update(achievementRef, achievement)
-        .then(() => {
-            console.log('Achievement progress updated successfully.');
-        })
-        .catch((error) => {
-            console.error('Error updating achievement progress:', error);
-        });
-}
-
-function displayAchievements() {
-    const achievementsContainer = document.getElementById('achievementsContainer');
-    achievementsContainer.innerHTML = '';
-
-    onValue(ref(database, 'achievements'), (snapshot) => {
-        snapshot.forEach((childSnapshot) => {
-            const achievement = childSnapshot.val();
-            const achievementId = childSnapshot.key;
-
-            // Add trophy icon if achievement is completed
-            const awardIcon = achievement.status === 'Completed' ? '<img src="achievementbadgedefault.png" alt="Trophy" />' : '';
-
-            // Log whether the trophy icon is being added
-            console.log(`${achievement.title} status: ${achievement.status}, Trophy Icon Added: ${awardIcon !== ''}`);
-
-            achievementsContainer.innerHTML += `
-                <div class="achievement-card">
-                    <h3>${achievement.title}</h3>
-                    <p>${achievement.description}</p>
-                    <p><strong>Difficulty:</strong> ${achievement.difficulty}</p>
-                    <p><strong>Status:</strong> ${achievement.status}</p>
-                    <p><strong>Award:</strong> ${achievement.award} ${awardIcon}</p>
-                    <p><strong>Points:</strong> ${achievement.achievementPoints}</p>
-                </div>
-            `;
-        });
+        achievement.lastProgressDate = new Date().toISOString();
     });
+
+    return updatedAchievements;  // Return the updated achievements object
 }
+
 

@@ -1294,8 +1294,98 @@ function showDatabaseUtilitiesPage() {
     const adminContent = document.getElementById('adminContent');
     adminContent.innerHTML = '<h2>Database Utilities</h2><p>Database utilities and tools will go here.</p>';
 }
+// New Achievements Tab Display and Related Functions
+function showAchievementsPage() {
+    const mainContent = document.getElementById('mainContent');
 
-// Achievements Tab Display and Related Functions
+    mainContent.innerHTML = `
+        <h2>Achievements</h2>
+        <div id="achievementsList" class="achievements-list">
+            <!-- Achievements will be dynamically loaded here -->
+        </div>
+    `;
+
+    const achievementsList = document.getElementById('achievementsList');
+
+    // Load achievements and match data from Firebase
+    Promise.all([
+        get(ref(database, 'achievements')), // Load achievements
+        get(ref(database, 'gameSessions'))   // Load match data
+    ])
+    .then(([achievementsSnapshot, matchesSnapshot]) => {
+        if (achievementsSnapshot.exists() && matchesSnapshot.exists()) {
+            const achievements = achievementsSnapshot.val();
+            const matches = [];
+
+            // Loop through game sessions and extract matches
+            matchesSnapshot.forEach(sessionSnapshot => {
+                const session = sessionSnapshot.val();
+                if (session.matches) {
+                    Object.values(session.matches).forEach(match => {
+                        matches.push(match);
+                    });
+                }
+            });
+
+            // Process the achievements based on the match data
+            const updatedAchievements = batchProcessAchievements(matches, achievements);
+
+            // Display the achievements
+            achievementsList.innerHTML = ''; // Clear previous content
+            Object.keys(updatedAchievements).forEach(achievementId => {
+                const achievement = updatedAchievements[achievementId];
+                const isProgressBased = achievement.isProgressBased;
+
+                // Basic display info
+                achievementsList.innerHTML += `
+                    <div class="achievement-card">
+                        <img src="${achievement.badgeURL}" alt="${achievement.title} Badge" class="achievement-badge">
+                        <h3>${achievement.title}</h3>
+                        <p><strong>Description:</strong> ${achievement.description}</p>
+                `;
+
+                if (isProgressBased) {
+                    // Progress-based display (e.g., Honey Moon Fund)
+                    achievementsList.innerHTML += `
+                        <p><strong>Progress:</strong> ${achievement.progress} / ${achievement.criteria.goal}</p>
+                        <p><strong>Last Progress Date:</strong> ${achievement.lastProgressDate ? new Date(achievement.lastProgressDate).toLocaleDateString() : 'N/A'}</p>
+                    `;
+                } else {
+                    // Completion-based display (e.g., 5 Bomb)
+                    achievementsList.innerHTML += `
+                        <p><strong>Completed:</strong> ${achievement.completionCount} times</p>
+                        <p><strong>Last Completed On:</strong> ${achievement.completionDate ? new Date(achievement.completionDate).toLocaleDateString() : 'N/A'}</p>
+                    `;
+                }
+
+                achievementsList.innerHTML += `</div>`;
+            });
+
+            // Update Firebase with the new achievement data
+            Object.keys(updatedAchievements).forEach(achievementId => {
+                const achievement = updatedAchievements[achievementId];
+                update(ref(database, `achievements/${achievementId}`), achievement)
+                    .then(() => {
+                        console.log(`Achievement ${achievement.title} updated successfully.`);
+                    })
+                    .catch(error => {
+                        console.error(`Error updating achievement ${achievement.title}:`, error);
+                    });
+            });
+
+        } else {
+            achievementsList.innerHTML = '<p>No achievements or matches found.</p>';
+        }
+    })
+    .catch(error => {
+        console.error("Error loading achievements or match data:", error);
+        achievementsList.innerHTML = '<p>Error loading achievements. Please try again later.</p>';
+    });
+}
+
+
+/*
+// Old Achievements Tab Display and Related Functions
 function showAchievementsPage() {
     const mainContent = document.getElementById('mainContent');
 
@@ -1369,6 +1459,7 @@ function showAchievementsPage() {
         achievementsList.innerHTML = '<p>Error loading achievements. Please try again later.</p>';
     });
 }
+*/
 function batchProcessAchievements(matches, achievements) {
     const updatedAchievements = { ...achievements };
     const currentDate = new Date().toISOString().split('T')[0];  // Get the current date in "YYYY-MM-DD" format

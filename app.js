@@ -1398,6 +1398,66 @@ function batchProcessAchievements(matches, achievements) {
             }
         });
 
+        // Handle progress-based achievements
+        if (achievement.isProgressBased) {
+            if (progress > 0) {
+                achievement.progress += progress;
+                achievement.lastProgressDate = currentDate;
+
+                // Check if progress is complete
+                if (achievement.progress >= criteria.goal) {
+                    achievement.progress = criteria.goal;  // Lock progress
+                    achievement.completionCount = 1;       // Only completed once
+                    achievement.completionDate = currentDate;
+                    achievement.status = "Completed";
+                } else {
+                    achievement.status = "In Progress";
+                }
+            }
+        } else {
+            // Handle completion-based achievements
+            if (progress > 0) {
+                achievement.completionCount += progress; // Increment completion count
+                achievement.completionDate = currentDate;
+                achievement.status = "Completed";
+            }
+        }
+    });
+
+    return updatedAchievements;
+}
+
+// Batch before progress removed
+/*
+function batchProcessAchievements(matches, achievements) {
+    const updatedAchievements = { ...achievements };
+    const currentDate = new Date().toISOString().split('T')[0];  // Get the current date in "YYYY-MM-DD" format
+
+    Object.keys(updatedAchievements).forEach(achievementId => {
+        const achievement = updatedAchievements[achievementId];
+        const criteria = achievement.criteria;
+        let progress = 0;
+
+        // Check if the achievement is expired
+        if (achievement.expiryDate && currentDate > achievement.expiryDate) {
+            return; // Skip expired achievements
+        }
+
+        matches.forEach(match => {
+            // Placement-based achievement with a specific map
+            if (criteria.type === 'placement' && match.gameType === criteria.gameType && match.placement === criteria.goal && (!criteria.map || match.map === criteria.map)) {
+                progress++;
+            }
+            // Track Warzone wins for Let's F'ing Go and general win-based achievements
+            else if (criteria.type === 'wins' && match.gameType === 'warzone' && match.placement === 1) {
+                progress++;
+            }
+            // Single match kills-based achievements (e.g., 5 Bomb, 10 Bomb, 20 Bomb)
+            else if (criteria.type === 'singleMatchKills' && match.gameType === criteria.gameType && match.totalKills >= criteria.goal) {
+                progress++;
+            }
+        });
+
         // Update achievement progress and completion
         if (progress > 0) {
             achievement.progress += progress;
@@ -1420,7 +1480,7 @@ function batchProcessAchievements(matches, achievements) {
 
     return updatedAchievements;
 }
-
+*/
 // Original Batch that worked with honeymoon
 /* function batchProcessAchievements(matches, achievements) {
     const updatedAchievements = { ...achievements };  // Clone the achievements object for modification

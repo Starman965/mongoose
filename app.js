@@ -57,10 +57,8 @@ window.showHomePage = function() {
 
         <div class="home-sections">
             <div class="section">
-                <h3>Recent Matches</h3>
-                <ul id="recentMatchesList">
-                    <!-- Dynamically load recent matches here -->
-                </ul>
+                <h3>Recent Updates</h3>
+                    <p>Achievement Section Now Active!</p>
             </div>
       </div>
 

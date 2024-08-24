@@ -62,72 +62,13 @@ window.showHomePage = function() {
                     <!-- Dynamically load recent matches here -->
                 </ul>
             </div>
-
-            <div class="section">
-                <h3>Top Achievement Progress</h3>
-               <div class="achievement-card-wide">
-    <div class="achievement-badge-wide">
-        <img src="https://mongoose.mycodsquad.com/letsfuckinggo.png" alt="Honey Moon Fund Badge" class="achievement-badge-image-wide">
-    </div>
-    <div class="achievement-details-wide">
-        <h3>Honey Moon Fund</h3>
-        <p><strong>Description:</strong> Get 30 Wins by April 1, 2025</p>
-        <p><strong>Progress:</strong> 18 of 30 Completed</p>
-    </div>
-</div>
+      </div>
 
             </div>
         </div>
     `;
 
-    loadRecentMatches();
-}
-
-function loadRecentMatches() {
-    const recentMatchesList = document.getElementById('recentMatchesList');
-    // Example logic to load recent matches from the database
-    recentMatchesList.innerHTML = '<li>No recent matches available.</li>';
-}
-// Function to Display the honeymoon fund on the homepage. Is not actual achievement
-function loadTopAchievements() {
-    const topAchievementsList = document.getElementById('topAchievementsList');
-    
-    // Example data for the achievement
-    const achievementTitle = "Honey Moon Fund";
-    const achievementDescription = "Get 30 Wins by April 1, 2025";
-    const currentProgress = 18;  // Example current progress
-    const totalProgress = 30;    // Example total required progress
-    const badgeURL = "https://mongoose.mycodsquad.com/letsfuckinggo.png"; // URL for the achievement badge
-
-    // Ensure the container exists before proceeding
-    if (!topAchievementsList) {
-        console.error("Element with ID 'topAchievementsList' not found in the DOM.");
-        return;
-    }
-
-    // Clear any existing content
-    topAchievementsList.innerHTML = '';
-
-    // Create a new wide card container
-    const achievementCard = document.createElement('div');
-    achievementCard.classList.add('achievement-card-wide');
-
-    // Populate the card content similar to the team member card but in wide layout
-    achievementCard.innerHTML = `
-        <div class="achievement-card-content-wide">
-            <div class="achievement-badge-wide">
-                <img src="${badgeURL}" alt="${achievementTitle} Badge" class="achievement-badge-image-wide">
-            </div>
-            <div class="achievement-details-wide">
-                <h3>${achievementTitle}</h3>
-                <p><strong>Description:</strong> ${achievementDescription}</p>
-                <p><strong>Progress:</strong> ${currentProgress} of ${totalProgress} Completed</p>
-            </div>
-        </div>
-    `;
-
-    // Append the achievement card to the list
-    topAchievementsList.appendChild(achievementCard);
+  //  loadRecentMatches();
 }
 
 // Show Stats Functions for Team Statistics Page

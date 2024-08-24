@@ -1300,11 +1300,15 @@ function showAchievementsPage() {
 
     mainContent.innerHTML = `
         <h2>Achievements</h2>
+        <div id="totalTeamPoints" class="achievement-summary">
+            <!-- Total team points will be dynamically loaded here -->
+        </div>
         <div id="achievementsList" class="achievements-list">
             <!-- Achievements will be dynamically loaded here -->
         </div>
     `;
 
+    const totalTeamPointsElement = document.getElementById('totalTeamPoints');
     const achievementsList = document.getElementById('achievementsList');
 
     // Load achievements and match data from Firebase
@@ -1330,11 +1334,26 @@ function showAchievementsPage() {
             // Process the achievements based on the match data
             const updatedAchievements = batchProcessAchievements(matches, achievements);
 
+            // Calculate total team reward points
+            let totalTeamPoints = 0;
+            Object.keys(updatedAchievements).forEach(achievementId => {
+                const achievement = updatedAchievements[achievementId];
+                totalTeamPoints += achievement.rewardPoints * achievement.completionCount;
+            });
+
+            // Display the total team points
+            totalTeamPointsElement.innerHTML = `
+                <h3>Total Team Reward Points: <span class="total-points">${totalTeamPoints}</span></h3>
+            `;
+
             // Display the achievements
             achievementsList.innerHTML = ''; // Clear previous content
             Object.keys(updatedAchievements).forEach(achievementId => {
                 const achievement = updatedAchievements[achievementId];
                 const isProgressBased = achievement.isProgressBased;
+
+                // Calculate the points earned for this achievement
+                const pointsEarned = achievement.rewardPoints * achievement.completionCount;
 
                 // Basic display info
                 achievementsList.innerHTML += `
@@ -1361,7 +1380,12 @@ function showAchievementsPage() {
                     `;
                 }
 
-                achievementsList.innerHTML += `</div></div>`;
+                // Display points earned for the achievement
+                achievementsList.innerHTML += `
+                            <p><strong>Achievement Points Earned:</strong> ${pointsEarned}</p>
+                        </div>
+                    </div>
+                `;
             });
 
             // Update Firebase with the new achievement data
@@ -1385,3 +1409,50 @@ function showAchievementsPage() {
         achievementsList.innerHTML = '<p>Error loading achievements. Please try again later.</p>';
     });
 }
+function batchProcessAchievements(matches, achievements) {
+    const updatedAchievements = { ...achievements };
+
+    // Reset all achievements to start recalculation
+    Object.keys(updatedAchievements).forEach(achievementId => {
+        const achievement = updatedAchievements[achievementId];
+        achievement.progress = 0;
+        achievement.completionCount = 0;
+        achievement.lastProgressDate = null;
+        achievement.completionDate = null;
+    });
+
+    // Loop through matches and process achievements based on match data
+    matches.forEach(match => {
+        Object.keys(updatedAchievements).forEach(achievementId => {
+            const achievement = updatedAchievements[achievementId];
+            const criteria = achievement.criteria;
+
+            // For placement-based achievements (e.g., finish 1st place in Warzone)
+            if (criteria.type === 'placement' && match.gameType === criteria.gameType && match.placement === criteria.goal) {
+                if (!criteria.map || match.map === criteria.map) {
+                    achievement.completionCount += 1;
+                    achievement.completionDate = new Date().toISOString();
+                }
+            }
+            // For win-based achievements (e.g., get 30 Warzone wins)
+            else if (criteria.type === 'wins' && match.gameType === 'warzone' && match.placement === 1) {
+                achievement.progress += 1;
+                achievement.lastProgressDate = new Date().toISOString();
+
+                // Check if the progress goal has been met
+                if (achievement.progress >= criteria.goal) {
+                    achievement.completionCount = 1;
+                    achievement.completionDate = new Date().toISOString();
+                }
+            }
+            // For kill-based achievements (e.g., get 5, 10, 15 kills in a single match)
+            else if (criteria.type === 'singleMatchKills' && match.gameType === criteria.gameType && match.totalKills >= criteria.goal) {
+                achievement.completionCount += 1;
+                achievement.completionDate = new Date().toISOString();
+            }
+        });
+    });
+
+    return updatedAchievements;
+}
+

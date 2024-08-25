@@ -21,12 +21,7 @@
             display: flex;
             flex: 1;
             flex-direction: column;
-        }
-
-        .container {
-            display: flex;
-            flex: 1;
-            flex-direction: column;
+            justify-content: space-between;
         }
 
         nav.sidebar {
@@ -60,52 +55,31 @@
             padding-bottom: 60px; /* to prevent content from being hidden behind the nav */
         }
 
-        /* Larger Screens */
+        /* Keep the nav fixed at the bottom for all screens */
         @media (min-width: 768px) {
-            body {
-                flex-direction: row;
-            }
-
-            .container {
-                flex-direction: row;
-            }
-
             nav.sidebar {
-                position: static;
-                flex-direction: column;
-                width: 200px;
-                height: 100vh;
-                bottom: auto;
-                padding: 20px;
-            }
-
-            nav.sidebar button {
-                margin: 10px 0;
-            }
-
-            main#mainContent {
-                flex: 1;
-                padding-bottom: 0;
+                justify-content: space-around;
+                position: fixed;
+                bottom: 0;
+                width: 100%;
             }
         }
     </style>
 </head>
 <body>
     <div id="app">
-        <div class="container">
-            <nav class="sidebar">
-                <button id="homeNav"><i class="fas fa-home"></i>Home</button>
-                <button id="statsNav"><i class="fas fa-chart-line"></i>Stats</button>
-                <button id="sessionsNav"><i class="fas fa-gamepad"></i>Sessions</button>
-                <button id="achievementsNav"><i class="fas fa-trophy"></i>Achievements</button>
-                <button id="highlightsNav"><i class="fas fa-video"></i>Highlights</button>
-                <button id="teamNav"><i class="fas fa-users"></i>Team</button>
-                <button id="aboutNav"><i class="fas fa-info-circle"></i>About</button>
-            </nav>
-            <main id="mainContent" role="main">
-                <!-- Content will be dynamically loaded here -->
-            </main>
-        </div>
+        <main id="mainContent" role="main">
+            <!-- Content will be dynamically loaded here -->
+        </main>
+        <nav class="sidebar">
+            <button id="homeNav"><i class="fas fa-home"></i>Home</button>
+            <button id="statsNav"><i class="fas fa-chart-line"></i>Stats</button>
+            <button id="sessionsNav"><i class="fas fa-gamepad"></i>Sessions</button>
+            <button id="achievementsNav"><i class="fas fa-trophy"></i>Achievements</button>
+            <button id="highlightsNav"><i class="fas fa-video"></i>Highlights</button>
+            <button id="teamNav"><i class="fas fa-users"></i>Team</button>
+            <button id="aboutNav"><i class="fas fa-info-circle"></i>About</button>
+        </nav>
     </div>
 </body>
 </html>

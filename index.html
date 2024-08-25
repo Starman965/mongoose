@@ -2,75 +2,106 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no">
     <title>MY COD SQUAD - The Ultimate Squad Manager for Call of Duty&copy;</title>
+    <link rel="stylesheet" href="styles.css">
     <link rel="icon" href="favicon.ico" type="image/x-icon">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"> <!-- Font Awesome -->
     <script type="module" src="firebaseConfig.js"></script>
     <script type="module" src="app.js"></script>
-    
+</head>
+<body>
+    <div id="app">
+        <div class="container">
+            <nav class="sidebar">
+                <img src="codsquad_logo.png" alt="Application Logo" class="team-logo">
+                <button id="homeNav" class="sidebar-button"><i class="fas fa-home"></i><br>Home</button>
+                <button id="statsNav" class="sidebar-button"><i class="fas fa-chart-line"></i><br>Statistics</button>
+                <button id="sessionsNav" class="sidebar-button"><i class="fas fa-gamepad"></i><br>Sessions</button>
+                <button id="achievementsNav" class="sidebar-button"><i class="fas fa-trophy"></i><br>Achievements</button>
+                <button id="highlightsNav" class="sidebar-button"><i class="fas fa-video"></i><br>Highlights</button>
+                <button id="teamNav" class="sidebar-button"><i class="fas fa-users"></i><br>Team</button>
+                <button id="adminNav" class="sidebar-button"><i class="fas fa-cogs"></i><br>Admin</button>
+                <button id="helpNav" class="sidebar-button"><i class="fas fa-question-circle"></i><br>Help</button>
+                <button id="aboutNav" class="sidebar-button"><i class="fas fa-info-circle"></i><br>About</button>
+            </nav>
+            <main id="mainContent" role="main">
+                <!-- Content will be dynamically loaded here -->
+            </main>
+        </div>
+
+        <div id="modal" class="modal">
+            <div class="modal-content">
+                <span class="close">&times;</span>
+                <div id="modalContent"></div>
+            </div>
+        </div>
+
+        <div id="videoModal" class="modal">
+            <div class="modal-content">
+                <span class="close" id="closeVideoModal">&times;</span>
+                <video id="highlightVideoPlayer" controls>
+                    <source id="highlightVideoSource" src="" type="video/mp4">
+                    Your browser does not support the video tag.
+                </video>
+            </div>
+        </div>
+    </div>
+
     <style>
-        body, html {
-            margin: 0;
-            padding: 0;
-            font-family: Arial, sans-serif;
+        @media (max-width: 600px) {
+            .container {
+                display: flex;
+                flex-direction: column;
+            }
+
+            nav.sidebar {
+                display: flex;
+                flex-wrap: wrap;
+                justify-content: space-around;
+                padding: 10px;
+                background-color: #333;
+            }
+
+            nav.sidebar button {
+                flex: 1 1 auto;
+                margin: 5px;
+                text-align: center;
+                font-size: 14px;
+            }
+
+            main#mainContent {
+                padding: 10px;
+                flex: 1;
+                overflow-y: auto;
+            }
         }
 
-        .container {
-            display: flex;
-            flex-direction: column;
-            height: 100vh;
-        }
+        @media (min-width: 601px) {
+            .container {
+                display: flex;
+                flex-direction: row;
+            }
 
-        nav.sidebar {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: space-around;
-            padding: 10px;
-            background-color: #333;
-        }
+            nav.sidebar {
+                display: block;
+                width: 200px;
+                background-color: #333;
+            }
 
-        nav.sidebar button {
-            background-color: #444;
-            color: white;
-            border: none;
-            padding: 15px;
-            margin: 5px;
-            text-align: center;
-            font-size: 14px;
-            cursor: pointer;
-            border-radius: 8px;
-            min-width: 80px;
-        }
+            nav.sidebar button {
+                width: 100%;
+                padding: 10px;
+                text-align: left;
+                font-size: 16px;
+                margin: 5px 0;
+            }
 
-        nav.sidebar button i {
-            display: block;
-            font-size: 24px;
-            margin-bottom: 5px;
-        }
-
-        nav.sidebar button:hover {
-            background-color: #555;
-        }
-
-        .team-logo {
-            width: 100px;
-            margin: 10px auto;
-            display: block;
-        }
-
-        main#mainContent {
-            flex: 1;
-            padding: 20px;
-            background-color: #f4f4f4;
-            overflow-y: auto;
-        }
-
-        footer {
-            text-align: center;
-            padding: 10px;
-            background-color: #333;
-            color: white;
+            main#mainContent {
+                padding: 20px;
+                flex: 1;
+                overflow-y: auto;
+            }
         }
 
         .modal {
@@ -108,58 +139,11 @@
         }
 
         @media (max-width: 600px) {
-            nav.sidebar {
-                flex-direction: column;
-                align-items: center;
-            }
-
-            nav.sidebar button {
-                width: 90%;
-                margin: 10px 0;
-            }
-
             .modal-content {
                 width: 90%;
                 margin: 10% auto;
             }
         }
     </style>
-</head>
-<body>
-    <div class="container">
-        <nav class="sidebar">
-            <img src="codsquad_logo.png" alt="Application Logo" class="team-logo">
-            <button id="homeNav"><i class="fas fa-home"></i>Home</button>
-            <button id="statsNav"><i class="fas fa-chart-line"></i>Statistics</button>
-            <button id="sessionsNav"><i class="fas fa-gamepad"></i>Sessions</button>
-            <button id="achievementsNav"><i class="fas fa-trophy"></i>Achievements</button>
-            <button id="highlightsNav"><i class="fas fa-video"></i>Highlights</button>
-            <button id="teamNav"><i class="fas fa-users"></i>Team</button>
-            <button id="adminNav"><i class="fas fa-cogs"></i>Admin</button>
-            <button id="helpNav"><i class="fas fa-question-circle"></i>Help</button>
-            <button id="aboutNav"><i class="fas fa-info-circle"></i>About</button>
-        </nav>
-
-        <main id="mainContent" role="main">
-            <!-- Content will be dynamically loaded here -->
-        </main>
-    </div>
-
-    <div id="modal" class="modal">
-        <div class="modal-content">
-            <span class="close">&times;</span>
-            <div id="modalContent"></div>
-        </div>
-    </div>
-
-    <div id="videoModal" class="modal">
-        <div class="modal-content">
-            <span class="close" id="closeVideoModal">&times;</span>
-            <video id="highlightVideoPlayer" controls>
-                <source id="highlightVideoSource" src="" type="video/mp4">
-                Your browser does not support the video tag.
-            </video>
-        </div>
-    </div>
 </body>
 </html>

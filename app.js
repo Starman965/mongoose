@@ -706,19 +706,21 @@ async function addMatch(e, sessionId) {
 }
 
 // Show modal for editing a match
- window.showEditMatchModal =  function(sessionId, matchId) {
+window.showEditMatchModal = function(sessionId, matchId) {
     const modal = document.getElementById('modal');
     const modalContent = document.getElementById('modalContent');
     
     get(ref(database, `gameSessions/${sessionId}/matches/${matchId}`)).then((snapshot) => {
         if (snapshot.exists()) {
             const match = snapshot.val();
+            
+            // Populate the form with the fetched match data
             modalContent.innerHTML = `
                 <h3>Edit Match</h3>
                 <form id="editMatchForm">
                     <div class="form-group">
                         <label for="gameType">Game Type</label>
-                        <select id="gameType" required onchange="updateGameModeOptions()">
+                        <select id="gameType" required>
                             <option value="warzone" ${match.gameType === 'warzone' ? 'selected' : ''}>Warzone</option>
                             <option value="multiplayer" ${match.gameType === 'multiplayer' ? 'selected' : ''}>Multiplayer</option>
                         </select>
@@ -726,43 +728,31 @@ async function addMatch(e, sessionId) {
                     <div class="form-group">
                         <label for="gameMode">Game Mode</label>
                         <select id="gameMode" required>
-                            <option value="${match.gameMode}">${match.gameMode}</option>
+                            <!-- Game modes will be dynamically populated here -->
                         </select>
                     </div>
                     <div class="form-group">
                         <label for="map">Map</label>
                         <select id="map" required>
-                            <option value="${match.map}">${match.map}</option>
+                            <!-- Maps will be dynamically populated here -->
                         </select>
                     </div>
-                    <div id="placementContainer" class="form-group">
-                        <!-- Placement input will be dynamically added here -->
-                    </div>
-                    <div class="form-group">
-                        <label for="totalKills">Total Kills</label>
-                        <input type="number" id="totalKills" min="0" value="${match.totalKills || 0}">
-                    </div>
-                    <div id="playerKillsContainer">
-                        <!-- Player kill inputs will be dynamically added here -->
-                    </div>
-                    <div class="form-group">
-                        <label for="highlightVideo">Highlight Video</label>
-                        <input type="file" id="highlightVideo" accept="video/*">
-                        ${match.highlightURL ? `<p>Current video: <a href="${match.highlightURL}" target="_blank">View</a></p>` : ''}
-                    </div>
-                    <button type="submit" class="button">Update Match</button>
+                    <!-- Other form fields -->
                 </form>
             `;
             
-           document.getElementById('editMatchForm').addEventListener('submit', (e) => updateMatch(e, sessionId, matchId));
-            document.getElementById('gameType').addEventListener('change', updateGameModeAndMapOptions);
-            updateGameModeAndMapOptions();
-            updatePlacementInput(match.gameType, match.placement);
-            updatePlayerKillInputs(match.kills);
+            // Add the event listener for game type change
+            const gameTypeElement = document.getElementById('gameType');
+            gameTypeElement.addEventListener('change', () => updateGameModeAndMapOptions(match.gameType));
+            
+            // Manually trigger the update for game modes and maps based on preselected gameType
+            updateGameModeAndMapOptions(match.gameType, match.gameMode, match.map);
+
+            // Show the modal
             modal.style.display = 'block';
         }
     });
-}
+};
 
 // Function to update a match
 async function updateMatch(e, sessionId, matchId) {
@@ -812,8 +802,8 @@ async function updateMatch(e, sessionId, matchId) {
 }
 
 // Function to update game mode and map options based on selected game type
-window.updateGameModeAndMapOptions = async function() {
-    const gameType = document.getElementById('gameType').value;
+window.updateGameModeAndMapOptions = async function(preselectedGameType = null, preselectedGameMode = null, preselectedMap = null) {
+    const gameType = preselectedGameType || document.getElementById('gameType').value;
     const gameModeSelect = document.getElementById('gameMode');
     const mapSelect = document.getElementById('map');
 
@@ -823,31 +813,37 @@ window.updateGameModeAndMapOptions = async function() {
 
     if (gameType) {
         try {
-            // Fetch game modes
+            // Fetch game modes and maps based on the game type
             const gameModes = await getGameModes(gameType);
+            const maps = await getMaps(gameType);
+
+            // Populate the game modes dropdown
             gameModes.forEach(mode => {
                 const option = document.createElement('option');
                 option.value = mode.name;
                 option.textContent = mode.name;
+                if (preselectedGameMode === mode.name) {
+                    option.selected = true; // Preselect the game mode if applicable
+                }
                 gameModeSelect.appendChild(option);
             });
 
-            // Fetch maps
-            const maps = await getMaps(gameType);
+            // Populate the maps dropdown
             maps.forEach(map => {
                 const option = document.createElement('option');
                 option.value = map.name;
                 option.textContent = map.name;
+                if (preselectedMap === map.name) {
+                    option.selected = true; // Preselect the map if applicable
+                }
                 mapSelect.appendChild(option);
             });
 
-            // Update placement input
-            updatePlacementInput(gameType);
         } catch (error) {
             console.error('Error fetching game modes or maps:', error);
         }
     }
-}
+};
 
 // Function to update placement input based on game type
 function updatePlacementInput(gameType, currentPlacement = null) {

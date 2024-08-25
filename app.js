@@ -802,7 +802,8 @@ async function updateMatch(e, sessionId, matchId) {
 }
 
 // Function to update game mode and map options based on selected game type
-window.updateGameModeAndMapOptions = async function(gameType, preselectedGameMode = null, preselectedMap = null) {
+window.updateGameModeAndMapOptions = async function() {
+    const gameType = document.getElementById('gameType').value;
     const gameModeSelect = document.getElementById('gameMode');
     const mapSelect = document.getElementById('map');
 
@@ -812,37 +813,31 @@ window.updateGameModeAndMapOptions = async function(gameType, preselectedGameMod
 
     if (gameType) {
         try {
-            // Fetch game modes and maps based on the game type
+            // Fetch game modes
             const gameModes = await getGameModes(gameType);
-            const maps = await getMaps(gameType);
-
-            // Populate the game modes dropdown
             gameModes.forEach(mode => {
                 const option = document.createElement('option');
                 option.value = mode.name;
                 option.textContent = mode.name;
-                if (preselectedGameMode === mode.name) {
-                    option.selected = true; // Preselect the game mode if applicable
-                }
                 gameModeSelect.appendChild(option);
             });
 
-            // Populate the maps dropdown
+            // Fetch maps
+            const maps = await getMaps(gameType);
             maps.forEach(map => {
                 const option = document.createElement('option');
                 option.value = map.name;
                 option.textContent = map.name;
-                if (preselectedMap === map.name) {
-                    option.selected = true; // Preselect the map if applicable
-                }
                 mapSelect.appendChild(option);
             });
 
+            // Update placement input
+            updatePlacementInput(gameType);
         } catch (error) {
             console.error('Error fetching game modes or maps:', error);
         }
     }
-};
+}
 
 // Function to update placement input based on game type
 function updatePlacementInput(gameType, currentPlacement = null) {

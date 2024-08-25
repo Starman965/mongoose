@@ -10,18 +10,15 @@ const modalContent = document.getElementById('modalContent');
 const closeModal = document.getElementsByClassName('close')[0];
 
 // Close modal when clicking on 'x' or outside of it
-const closeModal = document.getElementById("closeModal");
-const modal = document.getElementById("modal");
-
-if (closeModal) {
-  closeModal.onclick = () => modal.style.display = "none";
-}
-
+closeModal.onclick = () => modal.style.display = "none";
 window.onclick = (event) => {
-  if (event.target === modal) {
+  if (event.target == modal) {
     modal.style.display = "none";
   }
 }
+window.onload = () => {
+    showHomePage(); // Load the Home page when the app first loads
+};
 
 // Load the Home page when the app first loads
 window.onload = () => {

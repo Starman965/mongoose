@@ -210,7 +210,7 @@ footer {
 }
 
 .team-list .card .team-photo {
-    width: 300px;
+    width: 100%;
     object-fit: contain;
 }
 

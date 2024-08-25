@@ -3,15 +3,11 @@ import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from "http
 import { database } from './firebaseConfig.js';
 const storage = getStorage();
 
-// DOM elements
-const mainContent = document.getElementById('mainContent');
-// const modal = document.getElementById('modal');
-// const modalContent = document.getElementById('modalContent');
-//const closeModal = document.getElementsByClassName('close')[0];
 
 // Ensure the DOM elements are correctly targeted after the page loads
 window.onload = () => {
-    // Make sure all the necessary elements are available
+    // Make sure all the necessary DOM elements are available
+    const mainContent = document.getElementById('mainContent');
     const closeModal = document.querySelector('.close');
     const modal = document.getElementById('modal');
     const modalContent = document.getElementById('modalContent');

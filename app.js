@@ -20,53 +20,41 @@ window.onload = () => {
     showHomePage(); // Load the Home page when the app first loads
 };
 
-// Navigation setup (keep only these)
-document.getElementById('homeNav').addEventListener('click', () => showSection('home'));
+// Navigation setup
+// document.getElementById('homeNav').addEventListener('click', () => showSection('home'));
 document.getElementById('statsNav').addEventListener('click', () => showSection('stats'));
 document.getElementById('sessionsNav').addEventListener('click', () => showSection('sessions'));
 document.getElementById('achievementsNav').addEventListener('click', () => showAchievementsPage('achievements'));
 document.getElementById('highlightsNav').addEventListener('click', () => showSection('highlights'));
 document.getElementById('teamNav').addEventListener('click', () => showSection('team'));
 // document.getElementById('adminNav').addEventListener('click', () => showSection('admin'));
-document.getElementById('helpNav').addEventListener('click', () => showSection('help'));
+// document.getElementById('helpNav').addEventListener('click', () => showSection('help'));
 document.getElementById('aboutNav').addEventListener('click', () => showSection('about'));
 
 // Centralized function to handle navigation
 function showSection(section) {
   switch(section) {
-    case 'home': showHomePage(); break;
+  //  case 'home': showHomePage(); break;
     case 'stats': showStats(); break;
     case 'sessions': showGameSessions(); break;
     case 'achievements': showAchievementsPage(); break;
     case 'highlights': showHighlightsPage(); break;
     case 'team': showTeamMembers(); break;
     // case 'admin': showAdmin(); break;
-    case 'help': showHelp(); break;
+  //  case 'help': showHelp(); break;
     case 'about': showAbout(); break;
     default: 
       const mainContent = document.getElementById('mainContent');
       mainContent.innerHTML = '<h2>Page Not Found</h2>';
   }
 }
+
 // Load the Home Page
 window.showHomePage = function() {
     const mainContent = document.getElementById('mainContent');
     mainContent.innerHTML = `
         <h2>Welcome to MyCODSquad, Beta Build v1</h2>
         <p>Your Call of Duty Squad manager for tracking game sessions, matches, achievements, stats, and more!</p>
-
-        <div class="home-sections">
-            <div class="section">
-                <h3>Recent Updates</h3>
-                    <p>Achievement Section Now Active!</p>
-            </div>
-      </div>
-
-            </div>
-        </div>
-    `;
-
-  //  loadRecentMatches();
 }
 
 // Show Stats Functions for Team Statistics Page

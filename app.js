@@ -1342,31 +1342,28 @@ function showAchievementsPage() {
                 <h3>Total Team Reward Points: <span class="total-points">${totalTeamPoints}</span></h3>
             `;
 
-            // Display the achievements
+            // Display the achievements as wide cards
             achievementsList.innerHTML = ''; // Clear previous content
             Object.keys(updatedAchievements).forEach(achievementId => {
                 const achievement = updatedAchievements[achievementId];
                 const isProgressBased = achievement.isProgressBased;
 
-                // Create achievement card element
+                // Create achievement card element (similar to your game sessions)
                 const cardDiv = document.createElement('div');
-                cardDiv.classList.add('achievement-card-wide');
+                cardDiv.classList.add('card'); // Use the same 'card' class from your sessions
 
-                // Badge section
+                // Create and append badge section
                 const badgeDiv = document.createElement('div');
-                badgeDiv.classList.add('achievement-badge-wide');
-
+                badgeDiv.classList.add('achievement-badge-wide'); // Use similar styling to 'card'
                 const badgeImg = document.createElement('img');
                 badgeImg.classList.add('achievement-badge-image-wide');
                 badgeImg.src = achievement.badgeURL;
                 badgeImg.alt = `${achievement.title} Badge`;
-
                 badgeDiv.appendChild(badgeImg);
 
-                // Details section
+                // Create and append details section
                 const detailsDiv = document.createElement('div');
                 detailsDiv.classList.add('achievement-details-wide');
-
                 const titleH3 = document.createElement('h3');
                 titleH3.textContent = achievement.title;
 
@@ -1377,44 +1374,33 @@ function showAchievementsPage() {
                 detailsDiv.appendChild(descriptionP);
 
                 if (isProgressBased) {
-                    // Progress-based achievements
                     const progressDiv = document.createElement('div');
                     progressDiv.classList.add('progress-info');
-
                     const progressP = document.createElement('p');
                     progressP.innerHTML = `Progress: <span>${achievement.progress} / ${achievement.criteria.goal}</span>`;
-
                     const lastProgressDateP = document.createElement('p');
                     lastProgressDateP.innerHTML = `Last Progress Date: <span>${achievement.lastProgressDate ? new Date(achievement.lastProgressDate).toLocaleDateString() : 'N/A'}</span>`;
-
                     progressDiv.appendChild(progressP);
                     progressDiv.appendChild(lastProgressDateP);
-
                     detailsDiv.appendChild(progressDiv);
-
                 } else {
-                    // Completion-based achievements
                     const completionDiv = document.createElement('div');
                     completionDiv.classList.add('completion-info');
-
                     const completedP = document.createElement('p');
                     completedP.innerHTML = `Completed: <span>${achievement.completionCount || 0} times</span>`;
-
                     const lastCompletedP = document.createElement('p');
                     lastCompletedP.innerHTML = `Last Completed On: <span>${achievement.completionDate ? new Date(achievement.completionDate).toLocaleDateString() : 'N/A'}</span>`;
-
                     completionDiv.appendChild(completedP);
                     completionDiv.appendChild(lastCompletedP);
-
                     detailsDiv.appendChild(completionDiv);
                 }
 
-                // Points earned for each achievement
+                // Points earned
                 const pointsEarnedP = document.createElement('p');
                 pointsEarnedP.innerHTML = `<strong>Achievement Points Earned:</strong> ${achievement.rewardPoints * achievement.completionCount}`;
                 detailsDiv.appendChild(pointsEarnedP);
 
-                // Combine badge and details into the card
+                // Append the badge and details to the card
                 cardDiv.appendChild(badgeDiv);
                 cardDiv.appendChild(detailsDiv);
 
@@ -1443,7 +1429,6 @@ function showAchievementsPage() {
         achievementsList.innerHTML = '<p>Error loading achievements. Please try again later.</p>';
     });
 }
-
 
 function batchProcessAchievements(matches, achievements) {
     const updatedAchievements = { ...achievements };

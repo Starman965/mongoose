@@ -5,10 +5,34 @@ const storage = getStorage();
 
 // DOM elements
 const mainContent = document.getElementById('mainContent');
-const modal = document.getElementById('modal');
-const modalContent = document.getElementById('modalContent');
-const closeModal = document.getElementsByClassName('close')[0];
+// const modal = document.getElementById('modal');
+// const modalContent = document.getElementById('modalContent');
+//const closeModal = document.getElementsByClassName('close')[0];
 
+// Ensure the DOM elements are correctly targeted after the page loads
+window.onload = () => {
+    // Make sure all the necessary elements are available
+    const closeModal = document.querySelector('.close');
+    const modal = document.getElementById('modal');
+    const modalContent = document.getElementById('modalContent');
+
+    if (closeModal && modal && modalContent) {
+        // Close modal when clicking on 'x' or outside of it
+        closeModal.onclick = () => modal.style.display = "none";
+        
+        window.onclick = (event) => {
+            if (event.target == modal) {
+                modal.style.display = "none";
+            }
+        };
+    } else {
+        console.error("Modal elements not found in the DOM.");
+    }
+
+    showHomePage(); // Load the Home page when the app first loads
+};
+
+/*
 // Close modal when clicking on 'x' or outside of it
 closeModal.onclick = () => modal.style.display = "none";
 window.onclick = (event) => {
@@ -19,6 +43,7 @@ window.onclick = (event) => {
 window.onload = () => {
     showHomePage(); // Load the Home page when the app first loads
 };
+*/
 
 // Navigation setup (keep only these)
 document.getElementById('homeNav').addEventListener('click', () => showSection('home'));

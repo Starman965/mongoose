@@ -706,21 +706,19 @@ async function addMatch(e, sessionId) {
 }
 
 // Show modal for editing a match
-window.showEditMatchModal = function(sessionId, matchId) {
+window.showEditMatchModal =  function(sessionId, matchId) {
     const modal = document.getElementById('modal');
     const modalContent = document.getElementById('modalContent');
     
     get(ref(database, `gameSessions/${sessionId}/matches/${matchId}`)).then((snapshot) => {
         if (snapshot.exists()) {
             const match = snapshot.val();
-            
-            // Populate the form with the fetched match data
             modalContent.innerHTML = `
                 <h3>Edit Match</h3>
                 <form id="editMatchForm">
                     <div class="form-group">
                         <label for="gameType">Game Type</label>
-                        <select id="gameType" required>
+                        <select id="gameType" required onchange="updateGameModeOptions()">
                             <option value="warzone" ${match.gameType === 'warzone' ? 'selected' : ''}>Warzone</option>
                             <option value="multiplayer" ${match.gameType === 'multiplayer' ? 'selected' : ''}>Multiplayer</option>
                         </select>
@@ -728,31 +726,43 @@ window.showEditMatchModal = function(sessionId, matchId) {
                     <div class="form-group">
                         <label for="gameMode">Game Mode</label>
                         <select id="gameMode" required>
-                            <!-- Game modes will be dynamically populated here -->
+                            <option value="${match.gameMode}">${match.gameMode}</option>
                         </select>
                     </div>
                     <div class="form-group">
                         <label for="map">Map</label>
                         <select id="map" required>
-                            <!-- Maps will be dynamically populated here -->
+                            <option value="${match.map}">${match.map}</option>
                         </select>
                     </div>
-                    <!-- Other form fields -->
+                    <div id="placementContainer" class="form-group">
+                        <!-- Placement input will be dynamically added here -->
+                    </div>
+                    <div class="form-group">
+                        <label for="totalKills">Total Kills</label>
+                        <input type="number" id="totalKills" min="0" value="${match.totalKills || 0}">
+                    </div>
+                    <div id="playerKillsContainer">
+                        <!-- Player kill inputs will be dynamically added here -->
+                    </div>
+                    <div class="form-group">
+                        <label for="highlightVideo">Highlight Video</label>
+                        <input type="file" id="highlightVideo" accept="video/*">
+                        ${match.highlightURL ? `<p>Current video: <a href="${match.highlightURL}" target="_blank">View</a></p>` : ''}
+                    </div>
+                    <button type="submit" class="button">Update Match</button>
                 </form>
             `;
             
-            // Add the event listener for game type change
-            const gameTypeElement = document.getElementById('gameType');
-            gameTypeElement.addEventListener('change', () => updateGameModeAndMapOptions(match.gameType));
-            
-            // Manually trigger the update for game modes and maps based on preselected gameType
-            updateGameModeAndMapOptions(match.gameType, match.gameMode, match.map);
-
-            // Show the modal
+           document.getElementById('editMatchForm').addEventListener('submit', (e) => updateMatch(e, sessionId, matchId));
+            document.getElementById('gameType').addEventListener('change', updateGameModeAndMapOptions);
+            updateGameModeAndMapOptions();
+            updatePlacementInput(match.gameType, match.placement);
+            updatePlayerKillInputs(match.kills);
             modal.style.display = 'block';
         }
     });
-};
+}
 
 // Function to update a match
 async function updateMatch(e, sessionId, matchId) {

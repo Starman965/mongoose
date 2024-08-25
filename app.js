@@ -26,7 +26,7 @@ window.onload = () => {
 };
 
 // Navigation setup
-// document.getElementById('homeNav').addEventListener('click', () => showSection('home'));
+document.getElementById('homeNav').addEventListener('click', () => showSection('home'));
 document.getElementById('statsNav').addEventListener('click', () => showSection('stats'));
 document.getElementById('sessionsNav').addEventListener('click', () => showSection('sessions'));
 document.getElementById('achievementsNav').addEventListener('click', () => showAchievementsPage('achievements'));

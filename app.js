@@ -1053,13 +1053,14 @@ window.viewHighlight = function(url) {
 }
 
 // Get the modal element and the close button
-const videoModal = document.getElementById('videoModal');
-const closeVideoModal = document.getElementById('closeVideoModal');
+// const videoModal = document.getElementById('videoModal');
+// const closeVideoModal = document.getElementById('closeVideoModal');
 
 // Close the modal when the 'x' is clicked
 closeVideoModal.onclick = function() {
     const videoPlayer = document.getElementById('highlightVideoPlayer');
-
+    const videoModal = document.getElementById('videoModal');
+    const closeVideoModal = document.getElementById('closeVideoModal');
     // Pause the video when the modal is closed
     videoPlayer.pause();
 

@@ -1088,7 +1088,7 @@ function loadTeamMembers() {
 
             teamList.innerHTML += `
                 <div class="card">
-                    <img src="${photoURL}" alt="${member.name}" class="team-photo" style="width: 150px;" onerror="this.src='path/to/fallback/profile.png';">
+                    <img src="${photoURL}" alt="${member.name}" class="team-photo" onerror="this.src='path/to/fallback/profile.png';">
                     <div class="member-details">
                         <h3>${member.name}</h3>
                         <p><strong>Gamertag:</strong> ${member.gamertag}</p>

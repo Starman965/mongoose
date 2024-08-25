@@ -9,6 +9,7 @@ const modal = document.getElementById('modal');
 const modalContent = document.getElementById('modalContent');
 const closeModal = document.getElementsByClassName('close')[0];
 
+
 // Close modal when clicking on 'x' or outside of it
 closeModal.onclick = () => modal.style.display = "none";
 window.onclick = (event) => {
@@ -16,9 +17,11 @@ window.onclick = (event) => {
     modal.style.display = "none";
   }
 }
+/*
 window.onload = () => {
     showHomePage(); // Load the Home page when the app first loads
 };
+*/
 
 // Navigation setup
 // document.getElementById('homeNav').addEventListener('click', () => showSection('home'));
@@ -48,7 +51,7 @@ function showSection(section) {
       mainContent.innerHTML = '<h2>Page Not Found</h2>';
   }
 }
-
+/*
 // Load the Home Page
 window.showHomePage = function() {
     const mainContent = document.getElementById('mainContent');
@@ -56,6 +59,7 @@ window.showHomePage = function() {
         <h2>Welcome to MyCODSquad, Beta Build v1</h2>
         <p>Your Call of Duty Squad manager for tracking game sessions, matches, achievements, stats, and more!</p>
 }
+*/
 
 // Show Stats Functions for Team Statistics Page
 function showStats() {

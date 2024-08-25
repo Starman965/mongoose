@@ -53,7 +53,7 @@ document.getElementById('teamNav').addEventListener('click', () => showSection('
 document.getElementById('aboutNav').addEventListener('click', () => showSection('about'));
 
 // Centralized function to handle navigation
-function showSection(section) {
+window.showSection = Function(section) {
   switch(section) {
     case 'home': showHomePage(); break;
     case 'stats': showStats(); break;
@@ -91,7 +91,7 @@ window.showHomePage = function() {
 }
 
 // Show Stats Functions for Team Statistics Page
-function showStats() {
+window.showStats = function() {
     mainContent.innerHTML = `
         <h2>Team Statistics</h2>
         <div class="stats-controls">
@@ -112,7 +112,7 @@ function showStats() {
     statsTable(); // new line to test for more stats
 }
 // Game Session Stats
-function statsTable() {
+window.statsTable = function() {
   const statsTable = document.getElementById('statsTable');
   statsTable.innerHTML = 'Loading statistics...';
 

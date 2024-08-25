@@ -643,43 +643,54 @@ textarea {
     display: flex;
     align-items: center;
     justify-content: flex-start;
-    background-color: #333;  /* Dark background similar to team card */
-    border-radius: 15px;     /* Rounded corners */
-    padding: 20px;
-    margin: 20px 0;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);  /* Shadow for depth */
-    width: 100%;             /* Full width card */
-    max-width: 800px;        /* Limit max width for wide layout */
+    background-color: #333; /* Dark background to fit theme */
+    border-radius: 10px;
+    padding: 15px;
+    margin: 20px 0; /* Consistent spacing between each card */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Subtle shadow for a lifted effect */
+    max-width: 100%; /* Make the card fill the available width */
 }
 
-/* Badge Image Section */
+/* Badge Section */
 .achievement-badge-wide {
-    flex-shrink: 0;          /* Prevent badge from shrinking */
-    margin-right: 20px;      /* Space between badge and details */
+    flex-shrink: 0;
+    margin-right: 20px; /* Space between badge and details */
 }
 
 .achievement-badge-image-wide {
-    width: 150px;            /* Fixed width for badge */
-    height: 150px;           /* Fixed height for badge */
-    border-radius: 10px;     /* Rounded edges for image */
+    width: 150px; /* Fixed width for the badge */
+    height: 150px; /* Fixed height for the badge */
+    border-radius: 8px;
     object-fit: cover;
 }
 
 /* Details Section */
 .achievement-details-wide {
-    color: #f9f9f9;          /* Light text for readability */
-    flex-grow: 1;            /* Allow details to grow to fill space */
+    color: #f9f9f9;
+    flex-grow: 1; /* Allow the details to take up the remaining space */
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
 }
 
 .achievement-details-wide h3 {
-    margin-top: 0;
-    font-size: 2rem;         /* Larger font for title */
-    color: #ffd700;          /* Gold color for title */
+    margin: 0;
+    font-size: 1.5rem;
+    color: #ffd700; /* Gold color for the title */
 }
 
 .achievement-details-wide p {
     margin: 5px 0;
-    font-size: 1.2rem;       /* Slightly larger font for description */
+    font-size: 1rem; /* Slightly smaller font for description */
+}
+
+.completion-info, .progress-info {
+    font-size: 1rem;
+    color: #cccccc;
+}
+
+.completion-info span, .progress-info span {
+    color: #ffd700; /* Gold for important text */
 }
 /* Total team points styling */
 .achievement-summary {

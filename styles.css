@@ -642,24 +642,23 @@ textarea {
 .achievement-card-wide {
     display: flex;
     align-items: center;
-    justify-content: flex-start;
     background-color: #333; /* Dark background to fit theme */
     border-radius: 10px;
     padding: 15px;
     margin: 20px 0; /* Consistent spacing between each card */
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Subtle shadow for a lifted effect */
-    max-width: 100%; /* Make the card fill the available width */
+    width: 100%; /* Make the card fill the available width */
+    max-width: 800px; /* Limit the width to create a strip-like appearance */
+    justify-content: flex-start;
 }
-
 /* Badge Section */
 .achievement-badge-wide {
-    flex-shrink: 0;
+    flex-shrink: 0; /* Prevent badge from shrinking */
     margin-right: 20px; /* Space between badge and details */
 }
-
 .achievement-badge-image-wide {
-    width: 150px; /* Fixed width for the badge */
-    height: 150px; /* Fixed height for the badge */
+    width: 100px; /* Adjusted width for badge */
+    height: 100px; /* Adjusted height for badge */
     border-radius: 8px;
     object-fit: cover;
 }
@@ -675,20 +674,21 @@ textarea {
 
 .achievement-details-wide h3 {
     margin: 0;
-    font-size: 1.5rem;
+    font-size: 1.2rem;
     color: #ffd700; /* Gold color for the title */
 }
-
-.achievement-details-wide p {
-    margin: 5px 0;
-    font-size: 1rem; /* Slightly smaller font for description */
+.achievement-details-wide {
+    color: #f9f9f9;
+    flex-grow: 1; /* Allow the details to take up the remaining space */
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
 }
 
 .completion-info, .progress-info {
     font-size: 1rem;
     color: #cccccc;
 }
-
 .completion-info span, .progress-info span {
     color: #ffd700; /* Gold for important text */
 }

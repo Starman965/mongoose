@@ -315,11 +315,21 @@ footer {
 
 .form-group input,
 .form-group select {
-    padding: 8px;
-    border-radius: 5px;
-    border: 1px solid #555; /* Border color for form fields */
-    background-color: #444; /* Background color for form fields */
-    color: #fff; /* Text color for form fields */
+  font-size: 1.2rem; /* Larger font size for better readability */
+    padding: 12px; /* Increase padding for a more comfortable selection area */
+    border-radius: 5px; /* Rounded corners for a smoother look */
+    background-color: #444; /* Matches existing form field background */
+    color: #ffffff; /* White text to align with the app's color scheme */
+    border: 1px solid #555; /* Matches the existing form field border */
+    width: 100%; /* Ensure the select boxes take the full available width */
+    box-sizing: border-box; /* Ensure padding and border don't affect width */
+    cursor: pointer; /* Pointer cursor to indicate clickable element */
+}
+/* Hover and focus state for select elements */
+.form-group select:hover,
+.form-group select:focus {
+    background-color: #555; /* Slightly lighter background on hover and focus */
+    border-color: #FFD700; /* Golden border on focus to match the existing theme */
 }
 
 .slider {

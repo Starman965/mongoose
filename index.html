@@ -73,5 +73,43 @@
             background-color: #555;
         }
     </style>
+
+    <script>
+        document.getElementById('homeNav').addEventListener('click', function() {
+            loadContent('home');
+        });
+
+        document.getElementById('statsNav').addEventListener('click', function() {
+            loadContent('stats');
+        });
+
+        document.getElementById('sessionsNav').addEventListener('click', function() {
+            loadContent('sessions');
+        });
+
+        document.getElementById('achievementsNav').addEventListener('click', function() {
+            loadContent('achievements');
+        });
+
+        document.getElementById('teamNav').addEventListener('click', function() {
+            loadContent('team');
+        });
+
+        function loadContent(page) {
+            const mainContent = document.getElementById('mainContent');
+            mainContent.innerHTML = '';  // Clear existing content
+            // Assuming app.js has a function to load the page content
+            if (typeof loadPageContent === 'function') {
+                loadPageContent(page);  // Load content through app.js
+            } else {
+                mainContent.innerHTML = `<h1>${page} Content</h1>`; // Placeholder content
+            }
+        }
+
+        // Optionally, load the home page by default on page load
+        window.onload = function() {
+            loadContent('home');
+        };
+    </script>
 </body>
 </html>

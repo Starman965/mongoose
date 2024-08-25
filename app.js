@@ -20,12 +20,7 @@ window.onload = () => {
     showHomePage(); // Load the Home page when the app first loads
 };
 
-// Load the Home page when the app first loads
-window.onload = () => {
-  showHomePage();
-};
-
-// Navigation setup
+// Navigation setup (keep only these)
 document.getElementById('homeNav').addEventListener('click', () => showSection('home'));
 document.getElementById('statsNav').addEventListener('click', () => showSection('stats'));
 document.getElementById('sessionsNav').addEventListener('click', () => showSection('sessions'));
@@ -39,21 +34,20 @@ document.getElementById('aboutNav').addEventListener('click', () => showSection(
 // Centralized function to handle navigation
 function showSection(section) {
   switch(section) {
-  //  case 'home': showHomePage(); break;
+    case 'home': showHomePage(); break;
     case 'stats': showStats(); break;
     case 'sessions': showGameSessions(); break;
     case 'achievements': showAchievementsPage(); break;
     case 'highlights': showHighlightsPage(); break;
     case 'team': showTeamMembers(); break;
     // case 'admin': showAdmin(); break;
-  //  case 'help': showHelp(); break;
+   // case 'help': showHelp(); break;
     case 'about': showAbout(); break;
     default: 
       const mainContent = document.getElementById('mainContent');
       mainContent.innerHTML = '<h2>Page Not Found</h2>';
   }
 }
-
 // Load the Home Page
 window.showHomePage = function() {
     const mainContent = document.getElementById('mainContent');
@@ -1486,4 +1480,3 @@ function batchProcessAchievements(matches, achievements) {
 
     return updatedAchievements;
 }
-

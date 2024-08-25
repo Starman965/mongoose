@@ -60,6 +60,19 @@ window.showHomePage = function() {
     mainContent.innerHTML = `
         <h2>Welcome to MyCODSquad, Beta Build v1</h2>
         <p>Your Call of Duty Squad manager for tracking game sessions, matches, achievements, stats, and more!</p>
+
+        <div class="home-sections">
+            <div class="section">
+                <h3>Recent Updates</h3>
+                    <p>Achievement Section Now Active!</p>
+            </div>
+      </div>
+
+            </div>
+        </div>
+    `;
+
+  //  loadRecentMatches();
 }
 
 // Show Stats Functions for Team Statistics Page

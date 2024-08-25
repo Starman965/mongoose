@@ -22,6 +22,7 @@
             <button id="sessionsNav" class="bottom-nav-button"><i class="fas fa-gamepad"></i><br>Sessions</button>
             <button id="achievementsNav" class="bottom-nav-button"><i class="fas fa-trophy"></i><br>Achievements</button>
             <button id="teamNav" class="bottom-nav-button"><i class="fas fa-users"></i><br>Team</button>
+            <button id="adminNav" class="bottom-nav-button"><i class="fas fa-cogs"></i><br>Admin</button>
             <button id="helpNav" class="bottom-nav-button"><i class="fas fa-question-circle"></i><br>Help</button>
             <button id="aboutNav" class="bottom-nav-button"><i class="fas fa-info-circle"></i><br>About</button>
         </nav>
@@ -33,8 +34,6 @@
             padding: 0;
             height: 100%;
             font-family: Arial, sans-serif;
-            display: flex;
-            flex-direction: column;
         }
 
         #app {
@@ -56,8 +55,9 @@
             justify-content: space-around;
             background-color: #333;
             padding: 10px 0;
-            position: sticky;
+            position: fixed;
             bottom: 0;
+            left: 0;
             width: 100%;
             z-index: 1000;
         }

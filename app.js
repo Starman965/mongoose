@@ -1331,7 +1331,7 @@ function showAchievementsPage() {
                 }
             });
 
-            // Process the achievements based on the match data
+            // Utilize the batch processing function to update achievements
             const updatedAchievements = batchProcessAchievements(matches, achievements);
 
             // Calculate total team reward points
@@ -1352,29 +1352,78 @@ function showAchievementsPage() {
                 const achievement = updatedAchievements[achievementId];
                 const isProgressBased = achievement.isProgressBased;
 
-                // Calculate the points earned for this achievement
-                const pointsEarned = achievement.rewardPoints * achievement.completionCount;
+                // Create achievement card element
+                const cardDiv = document.createElement('div');
+                cardDiv.classList.add('achievement-card-wide');
 
-                // Basic display info for each achievement in a wide card format
-                achievementsList.innerHTML += `
-                    <div class="achievement-card-wide">
-                        <div class="achievement-badge-wide">
-                            <img src="${achievement.badgeURL}" alt="${achievement.title} Badge" class="achievement-badge-image-wide">
-                        </div>
-                        <div class="achievement-details-wide">
-                            <h3>${achievement.title}</h3>
-                            <p>${achievement.description}</p>
-                            ${isProgressBased ? `
-                                <p><strong>Progress:</strong> ${achievement.progress} / ${achievement.criteria.goal}</p>
-                                <p><strong>Last Progress Date:</strong> ${achievement.lastProgressDate ? new Date(achievement.lastProgressDate).toLocaleDateString() : 'N/A'}</p>
-                            ` : `
-                                <p><strong>Completed:</strong> ${achievement.completionCount} times</p>
-                                <p><strong>Last Completed On:</strong> ${achievement.completionDate ? new Date(achievement.completionDate).toLocaleDateString() : 'N/A'}</p>
-                            `}
-                            <p><strong>Achievement Points Earned:</strong> ${pointsEarned}</p>
-                        </div>
-                    </div>
-                `;
+                // Badge section
+                const badgeDiv = document.createElement('div');
+                badgeDiv.classList.add('achievement-badge-wide');
+
+                const badgeImg = document.createElement('img');
+                badgeImg.classList.add('achievement-badge-image-wide');
+                badgeImg.src = achievement.badgeURL;
+                badgeImg.alt = `${achievement.title} Badge`;
+
+                badgeDiv.appendChild(badgeImg);
+
+                // Details section
+                const detailsDiv = document.createElement('div');
+                detailsDiv.classList.add('achievement-details-wide');
+
+                const titleH3 = document.createElement('h3');
+                titleH3.textContent = achievement.title;
+
+                const descriptionP = document.createElement('p');
+                descriptionP.textContent = achievement.description;
+
+                detailsDiv.appendChild(titleH3);
+                detailsDiv.appendChild(descriptionP);
+
+                if (isProgressBased) {
+                    // Progress-based achievements
+                    const progressDiv = document.createElement('div');
+                    progressDiv.classList.add('progress-info');
+
+                    const progressP = document.createElement('p');
+                    progressP.innerHTML = `Progress: <span>${achievement.progress} / ${achievement.criteria.goal}</span>`;
+
+                    const lastProgressDateP = document.createElement('p');
+                    lastProgressDateP.innerHTML = `Last Progress Date: <span>${achievement.lastProgressDate ? new Date(achievement.lastProgressDate).toLocaleDateString() : 'N/A'}</span>`;
+
+                    progressDiv.appendChild(progressP);
+                    progressDiv.appendChild(lastProgressDateP);
+
+                    detailsDiv.appendChild(progressDiv);
+
+                } else {
+                    // Completion-based achievements
+                    const completionDiv = document.createElement('div');
+                    completionDiv.classList.add('completion-info');
+
+                    const completedP = document.createElement('p');
+                    completedP.innerHTML = `Completed: <span>${achievement.completionCount || 0} times</span>`;
+
+                    const lastCompletedP = document.createElement('p');
+                    lastCompletedP.innerHTML = `Last Completed On: <span>${achievement.completionDate ? new Date(achievement.completionDate).toLocaleDateString() : 'N/A'}</span>`;
+
+                    completionDiv.appendChild(completedP);
+                    completionDiv.appendChild(lastCompletedP);
+
+                    detailsDiv.appendChild(completionDiv);
+                }
+
+                // Points earned for each achievement
+                const pointsEarnedP = document.createElement('p');
+                pointsEarnedP.innerHTML = `<strong>Achievement Points Earned:</strong> ${achievement.rewardPoints * achievement.completionCount}`;
+                detailsDiv.appendChild(pointsEarnedP);
+
+                // Combine badge and details into the card
+                cardDiv.appendChild(badgeDiv);
+                cardDiv.appendChild(detailsDiv);
+
+                // Append the card to the achievements list
+                achievementsList.appendChild(cardDiv);
             });
 
             // Update Firebase with the new achievement data
@@ -1398,6 +1447,7 @@ function showAchievementsPage() {
         achievementsList.innerHTML = '<p>Error loading achievements. Please try again later.</p>';
     });
 }
+
 
 function batchProcessAchievements(matches, achievements) {
     const updatedAchievements = { ...achievements };

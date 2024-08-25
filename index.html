@@ -13,7 +13,7 @@
 <body>
     <div id="app">
         <main id="mainContent" role="main">
-            <!-- Content will be dynamically loaded here -->
+            <!-- Content will be dynamically loaded here via app.js -->
         </main>
         
         <nav class="bottom-nav">
@@ -22,6 +22,8 @@
             <button id="sessionsNav" class="bottom-nav-button"><i class="fas fa-gamepad"></i><br>Sessions</button>
             <button id="achievementsNav" class="bottom-nav-button"><i class="fas fa-trophy"></i><br>Achievements</button>
             <button id="teamNav" class="bottom-nav-button"><i class="fas fa-users"></i><br>Team</button>
+            <button id="helpNav" class="bottom-nav-button"><i class="fas fa-question-circle"></i><br>Help</button>
+            <button id="aboutNav" class="bottom-nav-button"><i class="fas fa-info-circle"></i><br>About</button>
         </nav>
     </div>
 
@@ -31,12 +33,15 @@
             padding: 0;
             height: 100%;
             font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
         }
 
         #app {
             display: flex;
             flex-direction: column;
             height: 100%;
+            overflow: hidden;
         }
 
         main#mainContent {
@@ -51,6 +56,10 @@
             justify-content: space-around;
             background-color: #333;
             padding: 10px 0;
+            position: sticky;
+            bottom: 0;
+            width: 100%;
+            z-index: 1000;
         }
 
         nav.bottom-nav button {
@@ -73,19 +82,5 @@
             background-color: #555;
         }
     </style>
-
-    <script>
-        // These functions are defined in app.js, so we just wire them up here
-        document.getElementById('homeNav').addEventListener('click', showHomePage);
-        document.getElementById('statsNav').addEventListener('click', showStats);
-        document.getElementById('sessionsNav').addEventListener('click', showGameSessions);
-        document.getElementById('achievementsNav').addEventListener('click', showAchievementsPage);
-        document.getElementById('teamNav').addEventListener('click', showTeamMembers);
-
-        // Automatically load the home page when the page loads
-        window.onload = function() {
-            showHomePage();
-        };
-    </script>
 </body>
 </html>

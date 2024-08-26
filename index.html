@@ -9,80 +9,44 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"> <!-- Font Awesome -->
     <script type="module" src="firebaseConfig.js"></script>
     <script type="module" src="app.js"></script>
-    <style>
-        body {
-            display: flex;
-            flex-direction: column;
-            height: 100vh;
-            margin: 0;
-            background-color: #1c1c1c; /* Background color for contrast */
-        }
-
-        #app {
-            display: flex;
-            flex: 1;
-            flex-direction: column;
-            justify-content: space-between;
-        }
-
-        nav.sidebar {
-            display: flex;
-            flex-direction: row; /* Force horizontal layout */
-            justify-content: space-around;
-            background-color: #FFD700; /* Apply your app's yellow color */
-            padding: 10px 0;
-            position: fixed;
-            bottom: 0;
-            width: 100%;
-        }
-
-        nav.sidebar button {
-            background: none;
-            border: none;
-            color: black;
-            text-align: center;
-            flex: 1;
-            font-size: 14px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: color 0.3s ease;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-        }
-
-        nav.sidebar button i {
-            display: block;
-            font-size: 24px;
-        }
-
-        nav.sidebar button:hover {
-            color: #000; /* Hover effect */
-        }
-
-        main#mainContent {
-            flex: 1;
-            padding: 20px;
-            overflow-y: auto;
-            padding-bottom: 60px; /* Space for the nav */
-        }
-    </style>
+ 
 </head>
 <body>
     <div id="app">
-        <main id="mainContent" role="main">
-            <!-- Content will be dynamically loaded here -->
-        </main>
-        <nav class="sidebar">
-            <button id="homeNav"><i class="fas fa-home"></i>Home</button>
-            <button id="statsNav"><i class="fas fa-chart-line"></i>Stats</button>
-            <button id="sessionsNav"><i class="fas fa-gamepad"></i>Sessions</button>
-            <button id="achievementsNav"><i class="fas fa-trophy"></i>Achievements</button>
-            <button id="highlightsNav"><i class="fas fa-video"></i>Highlights</button>
-            <button id="teamNav"><i class="fas fa-users"></i>Team</button>
-            <button id="aboutNav"><i class="fas fa-info-circle"></i>About</button>
-        </nav>
+        <div class="container">
+            <nav class="sidebar">
+                <img src="codsquad_logo.png" alt="Application Logo" class="team-logo">
+                <button id="homeNav" class="sidebar-button">Home</button>
+                <button id="statsNav" class="sidebar-button">Team Statistics</button>
+                <button id="sessionsNav" class="sidebar-button">Game Sessions</button>
+                 <button id="achievementsNav" class="sidebar-button">Achievements</button>
+                <button id="highlightsNav" class="sidebar-button">Highlights</button>
+                <button id="teamNav" class="sidebar-button">Team Members</button>
+                <button id="aboutNav" class="sidebar-button">About Us</button>            
+            </nav>
+            <main id="mainContent" role="main">
+                <!-- Content will be dynamically loaded here -->
+            </main>
+        </div>
+        <div id="modal" class="modal">
+            <div class="modal-content">
+                <span class="close">&times;</span>
+                <div id="modalContent"></div>
+            </div>
+        </div>
+ <!-- New Video Modal for Highlight Playback -->
+    <div id="videoModal" class="modal">
+        <div class="modal-content">
+            <span class="close" id="closeVideoModal">&times;</span>
+            <video id="highlightVideoPlayer" width="560" height="315" controls>
+                <source id="highlightVideoSource" src="" type="video/mp4">
+                Your browser does not support the video tag.
+            </video>
+        </div>
     </div>
+</div>
+    <footer>
+        <p>&copy; My COD Squad, All rights reserved.</p>
+    </footer>
 </body>
 </html>

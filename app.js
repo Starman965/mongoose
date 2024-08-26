@@ -53,7 +53,7 @@ document.getElementById('teamNav').addEventListener('click', () => showSection('
 document.getElementById('aboutNav').addEventListener('click', () => showSection('about'));
 
 // Centralized function to handle navigation
-window.showSection = Function(section) {
+window.showSection = function(section) {
   switch(section) {
     case 'home': showHomePage(); break;
     case 'stats': showStats(); break;

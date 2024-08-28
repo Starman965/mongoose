@@ -710,6 +710,7 @@ textarea {
     font-weight: bold;
 }
 /* Bottom Navigation */
+/* Bottom Navigation */
 .bottom-nav {
     position: fixed;
     bottom: 0;
@@ -718,7 +719,7 @@ textarea {
     background-color: #444444; /* Match the sidebar background color */
     display: flex;
     justify-content: space-around;
-    padding: 15px 0;
+    padding: 10px 0; /* Slightly less padding to make more space for buttons */
     border-top: 2px solid #FFD700; /* Golden accent to match the app’s theme */
     box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.2);
 }
@@ -727,12 +728,12 @@ textarea {
     background-color: transparent;
     border: none;
     color: #FFD700; /* Matching text color of the app */
-    font-size: 28px; /* Larger font size for bigger icons */
+    font-size: 30px; /* Larger font size for bigger icons */
     cursor: pointer;
     outline: none;
     transition: color 0.3s ease;
     flex: 1; /* Ensure buttons are not too wide */
-    max-width: 60px; /* Restrict the maximum width */
+    max-width: 70px; /* Slightly increased max width */
     text-align: center;
 }
 
@@ -751,9 +752,8 @@ textarea {
 
 @media (max-width: 375px) { /* Specific for iPhone screen widths */
     .bottom-nav-button {
-        font-size: 24px; /* Adjust icon size for smaller screens */
-        max-width: 50px; /* Ensure it fits smaller screens */
+        font-size: 26px; /* Adjust icon size for smaller screens */
+        max-width: 60px; /* Ensure it fits smaller screens */
     }
 }
 
-}

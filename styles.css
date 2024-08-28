@@ -709,32 +709,35 @@ textarea {
     color: #FFD700;
     font-weight: bold;
 }
-/* New Bottom Navigation */
+/* Bottom Navigation */
 .bottom-nav {
     position: fixed;
     bottom: 0;
     left: 0;
     right: 0;
-    background-color: #333333;
+    background-color: #444444; /* Match the sidebar background color */
     display: flex;
     justify-content: space-around;
-    padding: 10px 0;
-    border-top: 2px solid #FFD700; /* Top border for the bottom nav */
+    padding: 15px 0;
+    border-top: 2px solid #FFD700; /* Golden accent to match the app’s theme */
     box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.2);
 }
 
 .bottom-nav-button {
     background-color: transparent;
     border: none;
-    color: #FFD700; /* Icon color */
-    font-size: 24px;
+    color: #FFD700; /* Matching text color of the app */
+    font-size: 28px; /* Larger font size for bigger icons */
     cursor: pointer;
     outline: none;
     transition: color 0.3s ease;
+    flex: 1; /* Ensure buttons are not too wide */
+    max-width: 60px; /* Restrict the maximum width */
+    text-align: center;
 }
 
 .bottom-nav-button:hover {
-    color: #FFA500; /* Color change on hover */
+    color: #FFA500; /* Hover color matching the app’s hover style */
 }
 
 .bottom-nav-button:focus {
@@ -744,4 +747,11 @@ textarea {
 .bottom-nav-button i {
     display: block;
     text-align: center;
+}
+
+@media (max-width: 375px) { /* Specific for iPhone screen widths */
+    .bottom-nav-button {
+        font-size: 24px; /* Adjust icon size for smaller screens */
+        max-width: 50px; /* Ensure it fits smaller screens */
+    }
 }

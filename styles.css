@@ -709,3 +709,39 @@ textarea {
     color: #FFD700;
     font-weight: bold;
 }
+/* New Bottom Navigation */
+.bottom-nav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background-color: #333333;
+    display: flex;
+    justify-content: space-around;
+    padding: 10px 0;
+    border-top: 2px solid #FFD700; /* Top border for the bottom nav */
+    box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.2);
+}
+
+.bottom-nav-button {
+    background-color: transparent;
+    border: none;
+    color: #FFD700; /* Icon color */
+    font-size: 24px;
+    cursor: pointer;
+    outline: none;
+    transition: color 0.3s ease;
+}
+
+.bottom-nav-button:hover {
+    color: #FFA500; /* Color change on hover */
+}
+
+.bottom-nav-button:focus {
+    color: #FFD700; /* Ensure color stays on focus */
+}
+
+.bottom-nav-button i {
+    display: block;
+    text-align: center;
+}

@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MY COD SQUAD - The Ultimate Squad Manager for Call of Duty&copy;</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="icon" href="favicon.ico" type="image/x-icon">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"> <!-- Font Awesome -->
+    <script type="module" src="firebaseConfig.js"></script>
+    <script type="module" src="app.js"></script>
+</head>
+<body>
+    <div id="app">
+        <div class="container">
+            <main id="mainContent" role="main">
+                <!-- Content will be dynamically loaded here -->
+            </main>
+        </div>
+
+        <!-- Bottom Navigation -->
+        <nav class="bottom-nav">
+            <button id="homeNav" class="bottom-nav-button"><i class="fas fa-home"></i></button>
+            <button id="statsNav" class="bottom-nav-button"><i class="fas fa-chart-bar"></i></button>
+            <button id="sessionsNav" class="bottom-nav-button"><i class="fas fa-gamepad"></i></button>
+            <button id="achievementsNav" class="bottom-nav-button"><i class="fas fa-trophy"></i></button>
+            <button id="highlightsNav" class="bottom-nav-button"><i class="fas fa-video"></i></button>
+            <button id="teamNav" class="bottom-nav-button"><i class="fas fa-users"></i></button>
+            <button id="aboutNav" class="bottom-nav-button"><i class="fas fa-info-circle"></i></button>
+        </nav>
+
+        <!-- Modal Structure (remains the same) -->
+        <div id="modal" class="modal">
+            <div class="modal-content">
+                <span class="close">&times;</span>
+                <div id="modalContent"></div>
+            </div>
+        </div>
+        <!-- Video Modal for Highlight Playback (remains the same) -->
+        <div id="videoModal" class="modal">
+            <div class="modal-content">
+                <span class="close" id="closeVideoModal">&times;</span>
+                <video id="highlightVideoPlayer" width="560" height="315" controls>
+                    <source id="highlightVideoSource" src="" type="video/mp4">
+                    Your browser does not support the video tag.
+                </video>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

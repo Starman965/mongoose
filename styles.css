@@ -716,44 +716,60 @@ textarea {
     bottom: 0;
     left: 0;
     right: 0;
-    background-color: #444444; /* Match the sidebar background color */
+    background-color: #444444; /* Background color to match the app’s sidebar */
     display: flex;
-    justify-content: space-around;
-    padding: 10px 0; /* Slightly less padding to make more space for buttons */
-    border-top: 2px solid #FFD700; /* Golden accent to match the app’s theme */
+    justify-content: space-between; /* Space between buttons for equal distribution */
+    padding: 10px 15px; /* Padding for a more pronounced bar */
+    border-top: 2px solid #FFD700; /* Golden accent for the top border */
     box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.2);
+    z-index: 1000; /* Ensure it stays on top of other elements */
 }
 
 .bottom-nav-button {
     background-color: transparent;
     border: none;
     color: #FFD700; /* Matching text color of the app */
-    font-size: 30px; /* Larger font size for bigger icons */
+    font-size: 24px; /* Icon size similar to the example */
     cursor: pointer;
     outline: none;
-    transition: color 0.3s ease;
-    flex: 1; /* Ensure buttons are not too wide */
-    max-width: 70px; /* Slightly increased max width */
+    flex-grow: 1; /* Allow buttons to grow evenly */
     text-align: center;
+    max-width: 80px; /* Adjusted to create a more proportional button */
+    position: relative;
+}
+
+.bottom-nav-button i {
+    display: block;
+    font-size: 26px; /* Slightly larger icon size for better visibility */
+}
+
+.bottom-nav-button span {
+    display: block;
+    font-size: 12px; /* Label text under icons */
+    margin-top: 5px; /* Space between icon and text */
+    color: #ffffff; /* Text color for labels */
 }
 
 .bottom-nav-button:hover {
-    color: #FFA500; /* Hover color matching the app’s hover style */
+    color: #FFA500; /* Hover color matching the app’s style */
 }
 
 .bottom-nav-button:focus {
     color: #FFD700; /* Ensure color stays on focus */
 }
 
-.bottom-nav-button i {
-    display: block;
-    text-align: center;
-}
-
-@media (max-width: 375px) { /* Specific for iPhone screen widths */
+/* Adjustments for smaller screens like iPhone */
+@media (max-width: 375px) {
     .bottom-nav-button {
-        font-size: 26px; /* Adjust icon size for smaller screens */
+        font-size: 20px;
         max-width: 60px; /* Ensure it fits smaller screens */
     }
-}
 
+    .bottom-nav-button i {
+        font-size: 22px; /* Icon size adjusted for smaller screens */
+    }
+
+    .bottom-nav-button span {
+        font-size: 10px; /* Adjust text size under icons */
+    }
+}
